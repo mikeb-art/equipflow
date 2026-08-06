@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rulers · EquipFlow</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    /* legacy names aliased onto the shared EquipFlow tokens (theme.css) */
+    --blue:var(--accent); --green:var(--good); --amber:var(--warn); --red:var(--crit);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  .nav-item .cnt.bad{background:var(--crit-soft);color:#ff7b7b;border-color:rgba(208,59,59,.4)}
+  .side-foot .user-card{background:var(--card-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;display:none;color:var(--ink)}
+  .user-card .role{font-size:11px;color:var(--muted)}
+  .side-foot .signout{margin-top:10px;width:100%}
+  .content{padding:22px 26px 60px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:22px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:14px 18px;border-top:4px solid var(--blue)}
+  .stat .lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .stat .val{font-size:30px;font-weight:800;margin-top:2px}
+  .stat.ok{border-top-color:var(--green)} .stat.ok .val{color:#5fd75f}
+  .stat.due{border-top-color:var(--amber)} .stat.due .val{color:var(--amber)}
+  .stat.over{border-top-color:var(--red)} .stat.over .val{color:#ff7b7b}
+  .stat.tot{border-top-color:var(--blue)} .stat.tot .val{color:var(--ink)}
+  .panel{margin-bottom:20px}
+  .panel-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .panel-head h2{font-size:15.5px;flex:1;min-width:200px;color:var(--ink)}
+  .pill{border:1px solid var(--border-strong);background:var(--card-2);color:var(--ink-2);border-radius:20px;padding:5px 14px;font-size:12.5px;cursor:pointer}
+  .pill:hover{background:#1e2f52;color:var(--ink)}
+  .pill.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{background:var(--inset);padding:8px 18px;text-align:left;border-top:1px solid var(--border)}
+  td{padding:9px 18px;border-top:1px solid var(--border);vertical-align:middle}
+  .mat{font-weight:600;color:var(--ink)}
+  .press-h{font-weight:700;font-size:11px;color:var(--ink-2);padding:12px 18px 2px;text-transform:uppercase;letter-spacing:.6px}
+  .chip{font-size:10.5px;font-weight:700;letter-spacing:.3px;border-radius:10px;padding:2px 9px;white-space:nowrap;display:inline-block}
+  .c-ok{background:var(--good-soft);color:#5fd75f} .c-due{background:var(--warn-soft);color:var(--warn)} .c-over{background:var(--crit-soft);color:#ff7b7b} .c-never{background:var(--inset);color:var(--muted)}
+  .c-month{background:var(--good-soft);color:#7bd77b} .c-qtr{background:var(--serious-soft);color:var(--serious)}
+  .ago{font-size:11.5px;color:var(--muted)}
+  .dev{font-weight:700} .dev.hi{color:#ff7b7b} .dev.mid{color:var(--serious)} .dev.lo{color:#5fd75f}
+  .alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:16px 18px}
+  .alert{border-radius:10px;padding:11px 14px;border:1px solid rgba(208,59,59,.4);background:var(--crit-soft)}
+  .alert.due{border-color:rgba(250,178,25,.35);background:var(--warn-soft)}
+  .alert .t{font-weight:800;font-size:13px;color:var(--ink)}
+  .alert .d{font-size:12px;color:var(--ink-2);margin-top:2px}
+  .empty{padding:56px 20px;text-align:center;color:var(--ink-2);font-size:15px}
+  .empty .ei{font-size:26px;margin-bottom:8px}
+  .gate{margin:80px auto;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:36px;text-align:center}
+  .gate .big{font-size:34px;margin-bottom:10px}
+  .gate h2{margin-bottom:8px;color:#fff}
+  .gate p{font-size:13.5px;color:var(--ink-2);margin-bottom:18px}
+  .loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+  .note{font-size:12px;color:var(--muted);padding:0 18px 14px}
+</style>
+<link rel="stylesheet" href="/assets/theme.css">
+</head>
+<body>
+<div class="eqf-app">
+<aside class="eqf-side">
+  <div class="eqf-brand">
+    <div class="dot"></div>
+    <div>
+      <div class="nm">Equip<b>Flow</b></div>
+      <div class="sub">Equipment · Environment</div>
+      <div class="ver">v2026.08.06</div>
+    </div>
+  </div>
+  <div class="eqf-navlabel">Modules</div>
+  <a class="eqf-navitem mod" href="/">▦&nbsp;Overview</a>
+  <a class="eqf-navitem mod" href="/maintenance/">🛠&nbsp;Maintenance</a>
+  <a class="eqf-navitem mod" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+  <a class="eqf-navitem mod active" href="/rulers/">📏&nbsp;Rulers</a>
+  <a class="eqf-navitem mod" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+  <div class="nav-label">Views</div>
+  <div class="nav-item active" data-loc="ALL" onclick="selectLoc('ALL')"><span class="ico">📏</span> All Heat Presses</div>
+  <div class="nav-label loc">Locations</div>
+  <div class="nav-item" data-loc="CA" onclick="selectLoc('CA')"><span class="ico">☀️</span> California <span class="cnt" id="cntCA">–</span></div>
+  <div class="nav-item" data-loc="MX" onclick="selectLoc('MX')"><span class="ico">🌵</span> Mexico <span class="cnt" id="cntMX">–</span></div>
+  <div class="nav-item" data-loc="PA" onclick="selectLoc('PA')"><span class="ico">🔔</span> Pennsylvania <span class="cnt" id="cntPA">–</span></div>
+  <div class="side-foot">
+    <div class="user-card" id="userCard"><div id="userName"></div><div class="role" id="userEmail"></div></div>
+    <button class="signout" id="authBtn" onclick="handleAuthClick()">Sign in with Google</button>
+  </div>
+</aside>
+<div class="eqf-main">
+  <div class="topbar">
+    <h1 id="pageTitle">📏 Ruler Verification Tracker</h1>
+    <div class="sub" id="pageSub">Media-compensation ruler checks across CA · MX · PA — monthly &amp; quarterly by material. Green = current · Amber = due soon · Red = overdue.</div>
+  </div>
+  <div class="content" id="content">
+    <div class="gate" id="gate">
+      <div class="big">📏</div>
+      <h2>Ruler Verification Tracker</h2>
+      <p>Sign in with your <b>wsdisplay.com</b> Google account to see which rulers are due and overdue.</p>
+      <button class="gbtn eqf-btn-primary" onclick="handleAuthClick()">Sign in with Google</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="/assets/auth.js"></script>
+<script>
+/* ============ CHART THEME (EquipFlow dark) ============ */
+if (window.Chart) {
+  Chart.defaults.color = "#9db0d5";
+  Chart.defaults.borderColor = "#243352";
+  Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+}
+
+/* ============ CONFIG ============ */
+const CONFIG = {
+  CLIENT_ID: "919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com",
+  SHEET_ID: "1TPT9JRnmKSdCxjSql-SGl21mUyk2ZcCnUoa3lubcAyc",  // Ruler Measurements (Responses)
+  DOMAIN: "wsdisplay.com"
+};
+const LOC_NAMES = { ALL:"All Heat Presses", CA:"California", MX:"Mexico", PA:"Pennsylvania" };
+// canonical materials + cadence
+const CADENCE = { "Stretch":"Monthly", "Black and White":"Monthly", "Backlit":"Monthly", "MultiStretch":"Monthly",
+  "Mesh":"Quarterly", "Tent":"Quarterly", "SilverBack":"Quarterly", "SmoothWall":"Quarterly" };
+const MAT_ORDER = ["Stretch","Black and White","Backlit","MultiStretch","Mesh","Tent","SilverBack","SmoothWall"];
+// Every heat press runs all 8 materials — 4 required monthly + 4 required quarterly. Full expected grid so a never-done material shows as overdue.
+const PRESSES = ["CA Monti-1","CA Monti-2","MX Monti-1","MX Monti-3","MX Monti-4","PA Monti-1","PA Monti-2"];
+// Verification calendar — the exact upload Wednesdays from the Ruler Verification Frequency Chart (2026, pinned).
+// Monthly = every 4 weeks (blue circles); Quarterly = the four red Wednesdays.
+const SCHEDULE = {
+  Monthly:   ["2026-01-21","2026-02-18","2026-03-18","2026-04-15","2026-05-13","2026-06-10","2026-07-08","2026-08-05","2026-09-02","2026-09-30","2026-10-28","2026-11-25","2026-12-23"],
+  Quarterly: ["2026-03-18","2026-06-10","2026-09-02","2026-12-23"]
+};
+const EARLY_DAYS = 5;   // an upload up to 5 days before the scheduled Wednesday still counts for that period
+const LEAD_DAYS = 10;   // a scheduled upload coming up within this many days shows as "due soon" (amber, forward-looking)
+function schedTimes(cad){ return (SCHEDULE[cad]||SCHEDULE.Monthly).map(s=>{ const p=s.split("-"); return Date.UTC(+p[0], +p[1]-1, +p[2]); }); }
+function lastDue(cad, now){ let last=null; for(const t of schedTimes(cad)){ if(t<=now) last=t; } return last; }
+function nextDue(cad, now){ for(const t of schedTimes(cad)){ if(t>now) return t; } return null; }
+
+const HEADER_RE = /(CA|MX|PA)\s*Monti-?\s*(\d)\s+(.+?)\s+(Monthly|Quarterly)\s+(Horizontal|Vertical)/i;
+
+function canonMat(s){
+  const k = String(s).toLowerCase().replace(/[^a-z]/g,"");
+  const map = { stretch:"Stretch", blackandwhite:"Black and White", backlit:"Backlit", multistretch:"MultiStretch",
+    mesh:"Mesh", tent:"Tent", silverback:"SilverBack", smoothwall:"SmoothWall" };
+  return map[k] || String(s).trim();
+}
+function isMeas(s){
+  if(s === undefined || s === null) return false;
+  s = String(s).trim();
+  if(!s) return false;
+  if(/^(na|n\/a|ma|pending|complete|default|\.|\.\.|-|–|—|0|1)$/i.test(s)) return false;
+  if(/\d\s*["”]?\s*\/\s*["”]?\s*\d/.test(s)) return true;   // expected / actual, e.g. 100/101.175 or 89"/89.5"
+  return /\d\s*["”]\s*\d/.test(s);   // tolerate a missing slash between quoted inches, e.g. 100"96.25" or 93"89.5"
+}
+// Some tabs have duplicate header columns for the same press/material/direction (e.g. PA Monti-1 Stretch
+// Horizontal appears twice, with data landing in only one of them). Keep every candidate column and,
+// per row, use whichever one actually holds a measurement.
+function pickMeas(row, idxs){ for(const i of idxs){ if(isMeas(row[i])) return row[i]; } return ""; }
+function devPct(s){
+  const nums = String(s).replace(/["”]/g," ").match(/-?\d+(\.\d+)?/g);
+  if(!nums || nums.length < 2) return null;
+  const exp = parseFloat(nums[0]), act = parseFloat(nums[1]);
+  if(!exp) return null;
+  return (act - exp) / exp * 100;
+}
+// raw size deviation in inches (actual - expected) — drives the color coding
+function devIn(s){
+  const nums = String(s).replace(/["”]/g," ").match(/-?\d+(\.\d+)?/g);
+  if(!nums || nums.length < 2) return null;
+  return parseFloat(nums[1]) - parseFloat(nums[0]);
+}
+function parseDate(raw){
+  if(typeof raw === "number" && raw > 30000 && raw < 70000)
+    return new Date(Date.UTC(1899, 11, 30) + raw * 86400000);
+  const s = String(raw).trim();
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);            // M/D/YYYY [time]
+  if(m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));
+  m = s.match(/^(\d{4})(\d{2})(\d{2})/);                                 // YYYYMMDD
+  if(m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);                 // YYYY-M-D
+  if(m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  return null;
+}
+
+/* ============ AUTH ============ */
+const SCOPES = "openid email profile https://www.googleapis.com/auth/spreadsheets.readonly";
+let user = null, accessToken = null, tokenClient = null;
+function initAuth(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(initAuth, 300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: "openid email profile https://www.googleapis.com/auth/spreadsheets.readonly",
+    callback: async (resp) => {
+      if(resp.error){ return; }
+      EQF.saveToken(resp, SCOPES);
+      accessToken = resp.access_token;
+      const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers:{ Authorization:"Bearer "+accessToken } });
+      const info = await r.json();
+      if(!info.email || !info.email.endsWith("@"+CONFIG.DOMAIN)){
+        alert("Please sign in with your "+CONFIG.DOMAIN+" account.");
+        try{ google.accounts.oauth2.revoke(accessToken, ()=>{}); }catch(e){}
+        accessToken = null; return;
+      }
+      user = { name: info.name || info.email, email: info.email };
+      updateUserUI(); loadAll();
+    }
+  });
+  // shared EquipFlow token cache: reuse a still-valid token from another module first
+  const cached = EQF.cachedToken(SCOPES);
+  if(cached){
+    accessToken = cached.access_token;
+    (async ()=>{
+      try{
+        const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers:{ Authorization:"Bearer "+accessToken } });
+        const info = await r.json();
+        if(info.email && info.email.endsWith("@"+CONFIG.DOMAIN)){
+          user = { name: info.name || info.email, email: info.email };
+          updateUserUI(); loadAll();
+          return;
+        }
+      }catch(e){}
+      // cached token unusable — fall back to the silent attempt
+      accessToken = null; EQF.clearToken();
+      if(tokenClient && !user) tokenClient.requestAccessToken({ prompt:"" });
+    })();
+  } else {
+    // silent sign-in for returning users
+    setTimeout(()=>{ if(tokenClient && !user) tokenClient.requestAccessToken({ prompt:"" }); }, 600);
+  }
+}
+window.addEventListener("load", initAuth);
+function handleAuthClick(){
+  if(user){ if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken, ()=>{}); }catch(e){} } EQF.clearToken(); user=null; accessToken=null; location.reload(); return; }
+  if(!tokenClient){ alert("Google sign-in is still loading — try again in a second."); return; }
+  tokenClient.requestAccessToken({ prompt:"" });
+}
+function updateUserUI(){
+  const card=document.getElementById("userCard"), btn=document.getElementById("authBtn");
+  if(user){ card.style.display="block"; document.getElementById("userName").textContent=user.name; document.getElementById("userEmail").textContent=user.email; btn.textContent="Sign out"; }
+  else { card.style.display="none"; btn.textContent="Sign in with Google"; }
+}
+
+/* ============ DATA ============ */
+let DATA = {};              // press -> material -> {date, by, cadence, devH, devV, devInH, devInV, hist:[]}
+let currentLoc = "ALL";
+let locFilter = "all";      // all | monthly | quarterly | none — applies to the individual-location view
+let chartInst = null;       // the trend chart instance (destroyed/rebuilt each render)
+const PALETTE = ["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];   // EquipFlow categorical order — never cycled; extras go gray
+const seriesColor = i => PALETTE[i] || "#64789f";
+window.setLocFilter = function(f){ locFilter = f; render(); };
+let chartMats = new Set(MAT_ORDER);   // which materials appear on the deviation trend chart (independent of the table filter)
+window.setChartMats = function(m){
+  if(m === "__all__") chartMats = new Set(MAT_ORDER);
+  else if(m === "__none__") chartMats = new Set();
+  else if(chartMats.has(m)) chartMats.delete(m); else chartMats.add(m);
+  render();
+};
+// Color coding is driven by the size deviation in INCHES (actual - expected), not the percent:
+//   under +0.5" (too small) -> red · +0.5" to +1.5" (on target) -> green · over +1.5" (too big) -> orange
+function inchClass(inch){
+  if(inch === null || inch === undefined || isNaN(inch)) return "";
+  if(inch < 0.5) return "hi";     // too small -> red
+  if(inch > 1.5) return "mid";    // too big  -> orange
+  return "lo";                     // 0.5"-1.5" -> green
+}
+
+async function gapi(url){
+  const r = await fetch(url, { headers:{ Authorization:"Bearer "+accessToken } });
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  return r.json();
+}
+async function loadAll(){
+  document.getElementById("content").innerHTML = '<div class="loading">Loading ruler measurements…</div>';
+  try{
+    const meta = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}?fields=sheets(properties(title))`);
+    const titles = (meta.sheets||[]).map(s=>s.properties.title);
+    const last = {};
+    for(const t of titles){
+      let vals;
+      try{ vals = (await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent("'"+t+"'!A1:BZ3000")}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`)).values || []; }
+      catch(e){ continue; }
+      parseTab(vals, last);
+    }
+    DATA = last;
+    updateCounts();
+    selectLoc(currentLoc);
+  }catch(e){
+    document.getElementById("content").innerHTML = '<div class="empty"><div class="ei">⚠️</div>Could not load the sheet — '+e.message+'</div>';
+    if(String(e).includes("401")){ accessToken=null; EQF.clearToken(); }
+  }
+}
+function parseTab(rows, last){
+  if(!rows || !rows.length) return;
+  const hi = rows.findIndex(r => Array.isArray(r) && r.some(c => HEADER_RE.test(String(c||""))));
+  if(hi < 0) return;
+  const header = rows[hi];
+  let dateCol = header.findIndex(c => /^\s*(date|timestamp)/i.test(String(c||"")));
+  if(dateCol < 0) dateCol = 0;
+  const groups = {}; // press||material -> {press, material, cadence, H, V}
+  header.forEach((c,idx)=>{
+    const m = String(c||"").match(HEADER_RE);
+    if(!m) return;
+    const press = m[1].toUpperCase()+" Monti-"+m[2];
+    const material = canonMat(m[3]);
+    const cadence = /quarter/i.test(m[4]) ? "Quarterly" : "Monthly";
+    const dir = /horiz/i.test(m[5]) ? "H" : "V";
+    const key = press+"||"+material;
+    const g = groups[key] = groups[key] || { press, material, cadence, H:[], V:[] };
+    g[dir].push(idx);
+  });
+  for(let r=hi+1; r<rows.length; r++){
+    const row = rows[r]; if(!Array.isArray(row)) continue;
+    const date = parseDate(row[dateCol]); if(!date) continue;
+    const by = String(row[1]||"");
+    Object.values(groups).forEach(g=>{
+      const hCell = pickMeas(row, g.H), vCell = pickMeas(row, g.V);
+      const hasH = isMeas(hCell), hasV = isMeas(vCell);
+      if(!hasH && !hasV) return;
+      const cur = last[g.press] = last[g.press] || {};
+      const rec = cur[g.material] = cur[g.material] || { date:null, by:"", cadence: CADENCE[g.material] || g.cadence,
+        devH:null, devV:null, devInH:null, devInV:null, hist:[] };
+      const pctH = hasH ? devPct(hCell) : null, pctV = hasV ? devPct(vCell) : null;
+      const inH = hasH ? devIn(hCell) : null, inV = hasV ? devIn(vCell) : null;
+      rec.hist.push({ t: date.getTime(), pctH, pctV, inH, inV });
+      if(!rec.date || date.getTime() > rec.date.getTime()){
+        rec.date = date; rec.by = by; rec.devH = pctH; rec.devV = pctV; rec.devInH = inH; rec.devInV = inV;
+      }
+    });
+  }
+}
+
+/* ============ STATUS ============ */
+function daysAgo(d){ return Math.floor((Date.now() - d.getTime())/86400000); }
+// The expected record for a heat press + material: the real upload if present, otherwise a never-done placeholder.
+function recFor(press, mat){
+  const cad = CADENCE[mat] || "Monthly";
+  if(DATA[press] && DATA[press][mat]) return DATA[press][mat];
+  return { date:null, by:"", cadence:cad, devH:null, devV:null, devInH:null, devInV:null, hist:[], never:true };
+}
+function statusOf(rec){
+  const now = Date.now();
+  const due = lastDue(rec.cadence, now);
+  const met = rec.date && due !== null && rec.date.getTime() >= due - EARLY_DAYS*86400000;
+  if(due !== null && !met) return "over";
+  const nxt = nextDue(rec.cadence, now);
+  if(nxt !== null && (nxt - now) <= LEAD_DAYS*86400000) return "due";
+  return "ok";
+}
+const STLABEL = { ok:"✅ Current", due:"⚠️ Due soon", over:"🔴 Overdue", never:"— Never" };
+function pressLoc(p){ return p.slice(0,2); }
+function presses(loc){
+  return PRESSES.filter(p => loc==="ALL" || pressLoc(p)===loc)
+    .sort((a,b)=> a.localeCompare(b, undefined, {numeric:true}));
+}
+function counts(loc){
+  const c = { ok:0, due:0, over:0, tot:0 };
+  presses(loc).forEach(p => MAT_ORDER.forEach(mat => { c[statusOf(recFor(p,mat))]++; c.tot++; }));
+  return c;
+}
+function updateCounts(){
+  ["CA","MX","PA"].forEach(loc=>{
+    const c = counts(loc), el = document.getElementById("cnt"+loc);
+    const bad = c.over; el.textContent = bad>0 ? bad+"⚠" : c.tot; el.className = "cnt"+(bad>0?" bad":"");
+  });
+}
+
+/* ============ RENDER ============ */
+function selectLoc(loc){
+  currentLoc = loc;
+  document.querySelectorAll(".nav-item[data-loc]").forEach(n=>n.classList.toggle("active", n.dataset.loc===loc));
+  document.getElementById("pageTitle").innerHTML = loc==="ALL" ? "📏 Ruler Verification Tracker" : "📏 "+LOC_NAMES[loc];
+  if(!user) return;
+  render();
+}
+function fmt(d){ return d.toISOString().slice(0,10); }
+function fmtT(t){ return new Date(t).toISOString().slice(0,10); }
+function nextDueStr(rec){ const t = nextDue(rec.cadence, Date.now()); return t ? fmtT(t) : "—"; }
+function devCell(pct, inch){
+  if(pct === null || pct === undefined || isNaN(pct)) return '<span class="ago">—</span>';
+  const cls = inchClass(inch);
+  const tip = (inch !== null && inch !== undefined && !isNaN(inch)) ? ` title="${inch>=0?"+":""}${inch.toFixed(2)}&quot; vs expected"` : "";
+  return `<span class="dev ${cls}"${tip}>${pct>=0?"+":""}${pct.toFixed(2)}%</span>`;
+}
+// cadence filter for the individual-location view (All / Monthly / Quarterly / None)
+function matFilter(mat){
+  if(currentLoc === "ALL") return true;
+  if(locFilter === "none") return false;
+  if(locFilter === "monthly") return CADENCE[mat] === "Monthly";
+  if(locFilter === "quarterly") return CADENCE[mat] === "Quarterly";
+  return true;
+}
+function matRows(press){
+  return MAT_ORDER.filter(matFilter).map(mat=>{
+    const rec = recFor(press, mat), st = statusOf(rec);
+    const label = rec.never ? (st==="ok" ? "— Not due yet" : "🔴 Never done") : STLABEL[st];
+    const measured = rec.date ? `${fmt(rec.date)} <span class="ago">(${daysAgo(rec.date)}d ago)</span>` : '<span class="ago">never uploaded</span>';
+    return `<tr>
+      <td class="mat">${mat}</td>
+      <td><span class="chip ${rec.cadence==="Monthly"?"c-month":"c-qtr"}">${rec.cadence.toUpperCase()}</span></td>
+      <td>${measured}</td>
+      <td><span class="chip c-${st}">${label}</span><div class="ago" style="margin-top:3px">next due ${nextDueStr(rec)}</div></td>
+      <td>${devCell(rec.devH, rec.devInH)}</td>
+      <td>${devCell(rec.devV, rec.devInV)}</td>
+    </tr>`;
+  }).join("");
+}
+// build the trend chart for the current location (deviation % over time, one line per heat-press × material)
+function buildTrend(loc){
+  const series = [];
+  presses(loc).forEach(p => MAT_ORDER.filter(m => chartMats.has(m)).forEach(mat=>{
+    const rec = DATA[p] && DATA[p][mat];
+    if(!rec || !rec.hist || !rec.hist.length) return;
+    const pts = rec.hist.slice().sort((a,b)=>a.t-b.t).map(h=>{
+      const vals = [h.pctH, h.pctV].filter(x => x !== null && !isNaN(x));
+      return vals.length ? { x:h.t, y: vals.reduce((a,b)=>a+b,0)/vals.length } : null;
+    }).filter(Boolean);
+    if(pts.length) series.push({ label:`${p} · ${mat}`, data:pts });
+  }));
+  return series;
+}
+function renderChart(loc){
+  const cv = document.getElementById("trendChart");
+  if(!cv || typeof Chart === "undefined") return;
+  if(chartInst){ chartInst.destroy(); chartInst = null; }
+  const series = buildTrend(loc);
+  if(!series.length) return;
+  chartInst = new Chart(cv.getContext("2d"), {
+    type:"line",
+    data:{ datasets: series.map((s,i)=>({ label:s.label, data:s.data, borderColor:seriesColor(i), backgroundColor:seriesColor(i), pointRadius:3, borderWidth:2, tension:0.2, fill:false })) },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:"nearest", intersect:false },
+      scales:{
+        x:{ type:"linear", ticks:{ callback:v=>new Date(v).toISOString().slice(0,10), maxRotation:0, font:{size:10} } },
+        y:{ title:{ display:true, text:"Deviation %" }, ticks:{ font:{size:10} } }
+      },
+      plugins:{ legend:{ position:"bottom", labels:{ boxWidth:12, font:{size:10} } },
+        tooltip:{ callbacks:{ title:items=>new Date(items[0].parsed.x).toISOString().slice(0,10) } } }
+    }
+  });
+}
+function render(){
+  const el = document.getElementById("content");
+  const ps = presses(currentLoc);
+  if(!ps.length){ el.innerHTML = '<div class="empty"><div class="ei">📭</div>No ruler measurements found for this view.</div>'; return; }
+
+  // rosters — "Needs a ruler" = behind right now; "Next Uploads Due" = the upcoming scheduled batch (forward-looking, any status)
+  const now = Date.now();
+  const overdue = [], duesoon = [];
+  ps.forEach(p => MAT_ORDER.forEach(mat=>{
+    const rec = recFor(p, mat), st = statusOf(rec);
+    if(st==="over") overdue.push({p, mat, rec, st});
+    const nxt = nextDue(rec.cadence, now);
+    if(nxt !== null && (nxt - now) <= LEAD_DAYS*86400000) duesoon.push({p, mat, rec, st, nxt});
+  }));
+  const overdueDays = r => r.date ? daysAgo(r.date) : 99999;
+  overdue.sort((x,y)=> overdueDays(y.rec)-overdueDays(x.rec));
+  duesoon.sort((x,y)=> (x.nxt-y.nxt) || x.p.localeCompare(y.p) || MAT_ORDER.indexOf(x.mat)-MAT_ORDER.indexOf(y.mat));
+  const overdueCard = a => {
+    const due = lastDue(a.rec.cadence, now);
+    const upl = a.rec.date ? "last uploaded "+fmt(a.rec.date) : "never uploaded";
+    return `<div class="alert"><div class="t">${a.p} · ${a.mat}</div>
+      <div class="d">${a.rec.cadence} · was due ${due?fmtT(due):"—"} · ${upl} — overdue</div></div>`;
+  };
+  const duesoonCard = a => {
+    const upl = a.rec.date ? "last uploaded "+fmt(a.rec.date) : "never uploaded";
+    const behind = a.st==="over" ? ' · <b style="color:#ff7b7b">behind now</b>' : "";
+    return `<div class="alert due"><div class="t">${a.p} · ${a.mat}</div>
+      <div class="d">${a.rec.cadence} · due ${fmtT(a.nxt)} · ${upl}${behind}</div></div>`;
+  };
+  const overdueHtml = overdue.length ? overdue.map(overdueCard).join("")
+    : '<div class="d" style="padding:0 4px;color:var(--muted)">Nothing overdue in this view. 🎉</div>';
+  const duesoonHtml = duesoon.length ? duesoon.map(duesoonCard).join("")
+    : '<div class="d" style="padding:0 4px;color:var(--muted)">Nothing coming due in the next window.</div>';
+
+  const c = counts(currentLoc);
+  const stats = `<div class="stats">
+    <div class="stat tot"><div class="lbl">Heat Press × Material</div><div class="val">${c.tot}</div></div>
+    <div class="stat ok"><div class="lbl">Current</div><div class="val">${c.tot - overdue.length}</div></div>
+    <div class="stat due"><div class="lbl">Next due</div><div class="val">${duesoon.length}</div></div>
+    <div class="stat over"><div class="lbl">Overdue</div><div class="val">${overdue.length}</div></div>
+  </div>`;
+  const attention = `<div class="panel"><div class="panel-head"><h2>⏰ Needs a ruler</h2>
+      <span class="ago">Overdue by cadence (monthly / quarterly)</span></div>
+      <div class="alerts">${overdueHtml}</div></div>
+    <div class="panel"><div class="panel-head"><h2>🗓️ Next Uploads Due</h2>
+      <span class="ago">Uploads coming due within the next ${LEAD_DAYS} days</span></div>
+      <div class="alerts">${duesoonHtml}</div></div>`;
+
+  // individual-location view gets a cadence filter and a trend chart
+  const isLoc = currentLoc !== "ALL";
+  const filterBar = isLoc ? `<div class="panel" style="padding:12px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-weight:700;font-size:13px;color:var(--ink-2)">Show:</span>
+      ${[["all","All"],["monthly","Monthly"],["quarterly","Quarterly"],["none","None"]].map(([f,lbl])=>`<button class="pill${locFilter===f?" on":""}" onclick="setLocFilter('${f}')">${lbl}</button>`).join("")}</div>` : "";
+
+  const locPanels = ["CA","MX","PA"].filter(l=>currentLoc==="ALL"||currentLoc===l).map(loc=>{
+    const lp = ps.filter(p=>pressLoc(p)===loc); if(!lp.length) return "";
+    const blocks = lp.map(p=>`<div class="press-h">${p}</div>
+      <table><thead><tr><th>Material</th><th>Cadence</th><th>Last measured</th><th>Status</th><th>Actual % H</th><th>Actual % V</th></tr></thead>
+      <tbody>${matRows(p)}</tbody></table>`).join("");
+    return `<div class="panel"><div class="panel-head"><h2>${LOC_NAMES[loc]}</h2><span class="ago">${lp.length} heat press${lp.length>1?"es":""}</span></div>${blocks}
+      <div class="note">All 8 materials per heat press (4 monthly + 4 quarterly). "Never uploaded" counts as overdue. Numbers are % deviation; colors use the size gap in inches — under +0.5" red, +0.5–1.5" green, over +1.5" orange.</div></div>`;
+  }).join("");
+
+  const chartToggle = m => `<button class="pill${chartMats.has(m)?" on":""}" onclick="setChartMats('${m}')">${m}</button>`;
+  const chartBar = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 18px 0">
+      <span style="font-weight:700;font-size:12px;color:var(--ink-2)">Materials:</span>
+      <button class="pill${chartMats.size===MAT_ORDER.length?" on":""}" onclick="setChartMats('__all__')">All</button>
+      <button class="pill${chartMats.size===0?" on":""}" onclick="setChartMats('__none__')">None</button>
+      <span style="width:1px;height:18px;background:var(--border-strong);margin:0 4px"></span>
+      ${MAT_ORDER.map(chartToggle).join("")}</div>`;
+  const chartPanel = isLoc ? `<div class="panel"><div class="panel-head"><h2>📈 Deviation trend</h2>
+      <span class="ago">Average % deviation over time · one line per heat press × material</span></div>
+      ${chartBar}
+      <div style="padding:16px 18px;height:340px"><canvas id="trendChart"></canvas></div></div>` : "";
+
+  el.innerHTML = stats + attention + filterBar + locPanels + chartPanel;
+  if(isLoc) renderChart(currentLoc);
+}
+</script>
+</body>
+</html>

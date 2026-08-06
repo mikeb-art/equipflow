@@ -1,0 +1,170 @@
+/* ============================================================
+   EquipFlow — shared shell theme (PSUFlow-style dark navy)
+   Tokens + shared shell components used by every module page.
+   Load AFTER the module's own <style> so shared shell rules win.
+   ============================================================ */
+
+:root{
+  color-scheme: dark;
+  /* surfaces */
+  --bg:#0a1122;
+  --bg-2:#0d1526;
+  --panel:#0e1830;          /* sidebar / topbar */
+  --card:#131f38;           /* chart + content surface */
+  --card-2:#182642;         /* raised / hover surface */
+  --inset:#0c1529;          /* wells, inputs */
+  /* ink */
+  --ink:#e9effd;
+  --ink-2:#9db0d5;
+  --muted:#64789f;
+  /* lines */
+  --border:rgba(140,170,255,.14);
+  --border-strong:rgba(140,170,255,.28);
+  --grid:#243352;           /* chart gridline on --card */
+  --axis:#31456e;
+  /* accent */
+  --accent:#29a9ff;
+  --accent-soft:rgba(41,169,255,.14);
+  --accent-ink:#06121f;
+  /* status (fixed, always paired with icon/label) */
+  --good:#0ca30c;
+  --warn:#fab219;
+  --serious:#ec835a;
+  --crit:#d03b3b;
+  --good-soft:rgba(12,163,12,.16);
+  --warn-soft:rgba(250,178,25,.16);
+  --serious-soft:rgba(236,131,90,.16);
+  --crit-soft:rgba(208,59,59,.16);
+  /* categorical series (validated on --card, dark mode) */
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  /* type */
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --serif:Georgia,"Times New Roman",serif;
+  /* shape */
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 10px 28px rgba(2,7,18,.5);
+}
+
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans)}
+body{margin:0}
+a{color:var(--accent)}
+::selection{background:var(--accent-soft)}
+
+/* ---------- scrollbars ---------- */
+*{scrollbar-width:thin;scrollbar-color:#2a3a5e transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:#2a3a5e;border-radius:8px}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- layout ---------- */
+.eqf-app{display:flex;min-height:100vh}
+.eqf-main{flex:1;min-width:0}
+
+/* ---------- sidebar ---------- */
+.eqf-side{
+  width:236px;flex:0 0 236px;background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:18px 14px 22px;box-sizing:border-box;
+  position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto;
+}
+.eqf-brand{display:flex;gap:10px;align-items:center;padding:2px 6px 14px}
+.eqf-brand .dot{
+  width:34px;height:34px;border-radius:10px;flex:0 0 34px;
+  background:linear-gradient(135deg,#2aa9ff,#1667d9);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(41,169,255,.35);
+}
+.eqf-brand .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:#eaf6ff}
+.eqf-brand .nm{font-size:17px;font-weight:800;letter-spacing:.2px;color:#fff}
+.eqf-brand .nm b{color:var(--accent);font-weight:800}
+.eqf-brand .sub{font-family:var(--mono);font-size:9px;letter-spacing:2.2px;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.eqf-brand .ver{font-family:var(--mono);font-size:9px;color:var(--muted);opacity:.7;margin-top:2px}
+
+.eqf-navlabel,.nav-label{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin:20px 8px 7px;font-weight:600;
+}
+.eqf-navitem,.nav-item,.navitem{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;margin:2px 0;border-radius:9px;cursor:pointer;
+  color:var(--ink-2);font-size:13.5px;font-weight:500;text-decoration:none;
+  border:1px solid transparent;transition:background .12s,color .12s;
+}
+.eqf-navitem:hover,.nav-item:hover,.navitem:hover{background:var(--card-2);color:var(--ink)}
+.eqf-navitem.active,.nav-item.active,.navitem.active{
+  background:var(--accent-soft);color:#dff0ff;border-color:rgba(41,169,255,.25);
+}
+.eqf-navitem .ico,.nav-item .ico{width:18px;text-align:center;flex:0 0 18px;opacity:.9}
+.eqf-navitem .cnt,.nav-item .cnt{
+  margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--muted);
+  background:var(--inset);border:1px solid var(--border);border-radius:20px;padding:1px 8px;
+}
+.eqf-navitem.mod{font-weight:600}
+.side-foot{margin-top:26px;padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+
+/* ---------- topbar ---------- */
+.topbar,#topbar{
+  background:rgba(13,21,38,.86)!important;backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  box-shadow:none!important;color:var(--ink);
+  padding:14px 26px;position:sticky;top:0;z-index:5;
+}
+.topbar h1,#topbar h2{font-size:19px;color:#fff;margin:0}
+.topbar .sub,#topbar .sub{font-size:12.5px;color:var(--ink-2)!important;margin-top:2px}
+
+/* serif italic accent for hero words, PSUFlow-style */
+.eqf-serif{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--accent)}
+
+/* ---------- cards / panels ---------- */
+.card,.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);color:var(--ink);
+}
+
+/* ---------- tables ---------- */
+table{border-color:var(--border)}
+th{color:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+td{color:var(--ink-2)}
+tr:hover td{background:rgba(41,169,255,.05)}
+
+/* ---------- buttons ---------- */
+.signout,.gbtn,button.eqf-btn{
+  background:var(--card-2);color:var(--ink);border:1px solid var(--border-strong);
+  border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:background .12s;
+}
+.signout:hover,.gbtn:hover,button.eqf-btn:hover{background:#1e2f52}
+.eqf-btn-primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.eqf-btn-primary:hover{background:#4db8ff}
+
+/* ---------- status chips (always with text label) ---------- */
+.eqf-chip{display:inline-flex;align-items:center;gap:6px;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700;font-family:var(--mono);letter-spacing:.4px}
+.eqf-chip.good{background:var(--good-soft);color:#5fd75f}
+.eqf-chip.warn{background:var(--warn-soft);color:var(--warn)}
+.eqf-chip.serious{background:var(--serious-soft);color:var(--serious)}
+.eqf-chip.crit{background:var(--crit-soft);color:#ff7b7b}
+.eqf-chip.neutral{background:var(--inset);color:var(--ink-2)}
+
+/* ---------- inputs ---------- */
+input,select,textarea{
+  background:var(--inset);color:var(--ink);border:1px solid var(--border-strong);
+  border-radius:8px;font-family:var(--sans);
+}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(41,169,255,.4);outline-offset:0}
+
+/* ---------- sign-in gate ---------- */
+.eqf-gate{max-width:430px;margin:80px auto;text-align:center;padding:34px 30px}
+.eqf-gate h2{color:#fff;margin:0 0 8px}
+.eqf-gate p{color:var(--ink-2);font-size:14px}
+
+/* ---------- footer note ---------- */
+.eqf-foot{padding:18px 26px;color:var(--muted);font-size:11.5px;font-family:var(--mono)}
+
+@media (max-width:900px){
+  .eqf-side{position:static;height:auto;width:100%;flex-basis:auto}
+  .eqf-app{flex-direction:column}
+}

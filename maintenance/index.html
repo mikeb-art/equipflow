@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maintenance · EquipFlow</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --navy:#0e1830; --navy-2:#182642; --navy-3:#0c1529;
+    --hl:#1e2f52; --gold:#f3d375; --ltblue:#9db0d5;
+    --bg:#0a1122; --card:#131f38; --ink:#e9effd; --muted:#64789f;
+    --blue:#29a9ff; --green:#0ca30c; --amber:#fab219; --red:#d03b3b;
+    --radius:12px; --shadow:0 10px 28px rgba(2,7,18,.5);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+
+  /* ---------- Sidebar (module-specific bits; shell comes from theme.css) ---------- */
+  .nav-subs{display:none}
+  .nav-subs.open{display:block}
+  .nav-sub{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 38px;font-size:12.5px;color:var(--ltblue);cursor:pointer;border-left:4px solid transparent;line-height:1.3;border-radius:0 9px 9px 0}
+  .nav-sub:hover{background:var(--hl);color:var(--ink)}
+  .nav-sub.active{background:rgba(41,169,255,.14);border-left-color:var(--gold);color:#fff;font-weight:600}
+  .user-card{background:var(--navy-3);border:1px solid rgba(140,170,255,.14);border-radius:8px;padding:10px 12px;font-size:13px}
+  .user-card .role{font-size:11px;color:var(--ltblue)}
+  .side-foot .signout{width:100%;margin-top:10px}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{padding:14px 26px;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:19px;display:flex;align-items:center;gap:8px}
+  .topbar .sub{font-size:12.5px;margin-top:2px}
+  .content{padding:22px 26px 60px}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px;position:sticky;top:62px;z-index:4;background:var(--bg);padding:10px 0 6px}
+  .stat{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:14px 18px;border-top:4px solid var(--blue)}
+  .stat .lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .stat .val{font-size:30px;font-weight:800;margin-top:2px}
+  .stat.assigned{border-top-color:var(--blue)} .stat.assigned .val{color:var(--ink)}
+  .stat.done{border-top-color:var(--green)} .stat.done .val{color:var(--green)}
+  .stat.rate{border-top-color:var(--amber)} .stat.rate .val{color:var(--amber)}
+  .stat.notdone{border-top-color:var(--red)} .stat.notdone .val{color:var(--red)}
+
+  /* panel */
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+  .panel-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(140,170,255,.14);flex-wrap:wrap}
+  .panel-head h2{font-size:15.5px;flex:1;min-width:200px}
+  .pill{border:1px solid rgba(140,170,255,.28);background:var(--navy-2);color:var(--ltblue);border-radius:20px;padding:5px 14px;font-size:12.5px;cursor:pointer}
+  .pill:hover{background:var(--hl)}
+  .pill.on{background:var(--blue);color:#06121f;border-color:var(--blue)}
+  .pill.log{background:var(--blue);color:#06121f;border-color:var(--blue);font-weight:600}
+  .search{border:1px solid rgba(140,170,255,.28);border-radius:20px;padding:5px 14px;font-size:12.5px;width:190px}
+
+  /* machine card */
+  .machine{border-bottom:1px solid rgba(140,170,255,.14)}
+  .machine:last-child{border-bottom:none}
+  .m-head{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;background:var(--navy-3)}
+  .m-head:hover{background:var(--navy-2)}
+  .m-head .caret{transition:transform .15s;color:var(--muted)}
+  .machine.open .m-head .caret{transform:rotate(90deg)}
+  .m-title{font-weight:700;font-size:14.5px}
+  .m-serial{font-size:11.5px;color:var(--muted)}
+  .m-prog{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+  .m-bar{width:90px;height:6px;border-radius:3px;background:#243352;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:8px}
+  .m-bar i{display:block;height:100%;background:var(--green)}
+  .m-body{display:none}
+  .machine.open .m-body{display:block}
+  .nodocs{padding:14px 18px;font-size:13px;color:var(--muted);font-style:italic}
+
+  .task{display:flex;align-items:flex-start;gap:10px;padding:9px 18px;border-top:1px solid rgba(140,170,255,.1);font-size:13.5px}
+  .task:hover{background:rgba(41,169,255,.05)}
+  .task.done .t-name{text-decoration:line-through;color:var(--muted)}
+  .task.notdone .t-name{color:#ff7b7b}
+  .t-name{flex:1}
+  .t-note{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .chip{font-size:10.5px;font-weight:700;letter-spacing:.3px;border-radius:10px;padding:2px 9px;white-space:nowrap;margin-top:1px}
+  .c-shift{background:rgba(57,135,229,.18);color:#7db4f0} .c-daily{background:rgba(25,158,112,.18);color:#4fc9a4}
+  .c-2day{background:rgba(42,143,69,.18);color:#5fc77e} .c-week{background:rgba(120,170,50,.18);color:#a6d06a}
+  .c-15wd{background:rgba(201,133,0,.18);color:#e5b558} .c-month{background:rgba(217,138,40,.18);color:#eaa25c}
+  .c-45wd{background:rgba(220,120,40,.2);color:#f0a26b} .c-qtr{background:rgba(215,100,50,.2);color:#f09a76}
+  .c-half{background:rgba(144,133,233,.18);color:#b1a8f2} .c-year{background:rgba(100,90,220,.2);color:#a49af0}
+  .c-use{background:rgba(110,140,175,.18);color:#9fbede} .c-req{background:rgba(120,135,155,.18);color:#a8b8c9}
+  .t-btns{display:flex;gap:6px}
+  .t-btn{width:26px;height:26px;border-radius:50%;border:1px solid rgba(140,170,255,.28);background:var(--navy-2);cursor:pointer;font-size:13px;line-height:1;color:var(--muted)}
+  .t-btn:hover{border-color:var(--blue)}
+  .task.done .t-btn.yes{background:var(--green);border-color:var(--green);color:#fff}
+  .task.notdone .t-btn.no{background:var(--red);border-color:var(--red);color:#fff}
+
+  .t-group{display:flex;align-items:center;gap:8px;padding:7px 18px;background:var(--navy-3);font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ltblue);border-top:1px solid rgba(140,170,255,.14)}
+  .t-group .g-count{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;font-size:11.5px;color:var(--muted)}
+  .fb-label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+  .fb-input{width:100%;padding:9px 11px;border:1px solid rgba(140,170,255,.28);border-radius:8px;font-size:14px;font-family:inherit}
+  textarea.fb-input{resize:vertical}
+  .empty{padding:56px 20px;text-align:center;color:var(--muted);font-size:15px}
+  .empty .ei{font-size:26px;margin-bottom:8px}
+
+  .note-panel{background:rgba(250,178,25,.1);border:1px solid rgba(250,178,25,.35);border-radius:var(--radius);padding:14px 18px;font-size:13px;margin-bottom:20px}
+  .note-panel h3{font-size:13px;margin-bottom:6px;color:var(--amber)}
+  .note-panel li{margin:4px 0 4px 18px;color:var(--ltblue)}
+
+  .doc-list li{list-style:none;padding:9px 18px;border-top:1px solid rgba(140,170,255,.1);font-size:13.5px}
+  .doc-list li:first-child{border-top:none}
+  .doc-list a{color:var(--blue);text-decoration:none}
+  .doc-list a:hover{text-decoration:underline}
+  .doc-cat{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;padding:14px 18px 2px}
+
+  /* modal */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(2,7,18,.66);z-index:50;align-items:center;justify-content:center}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--card);border:1px solid rgba(140,170,255,.28);border-radius:12px;max-width:560px;width:92%;padding:22px 24px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .modal h3{margin-bottom:10px;font-size:16px}
+  .modal p,.modal li{font-size:13.5px;color:var(--ltblue);margin:6px 0}
+  .modal li{margin-left:18px}
+  .modal .close{float:right;background:var(--navy-2);border:1px solid rgba(140,170,255,.28);color:var(--ink);border-radius:8px;padding:7px 16px;cursor:pointer;margin-top:10px}
+
+  @media print{.eqf-side,.t-btns,.pill,.search{display:none}.main{margin-left:0}.m-body{display:block!important}}
+</style>
+<link rel="stylesheet" href="/assets/theme.css">
+<script src="/assets/auth.js"></script>
+</head>
+<body>
+<div class="eqf-app">
+
+<aside class="eqf-side">
+  <div class="eqf-brand">
+    <div class="dot"></div>
+    <div>
+      <div class="nm">Equip<b>Flow</b></div>
+      <div class="sub">Equipment · Environment</div>
+      <div class="ver">v2026.08.06</div>
+    </div>
+  </div>
+  <div class="eqf-navlabel">Modules</div>
+  <a class="eqf-navitem mod" href="/">▦&nbsp;Overview</a>
+  <a class="eqf-navitem mod active" href="/maintenance/">🛠&nbsp;Maintenance</a>
+  <a class="eqf-navitem mod" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+  <a class="eqf-navitem mod" href="/rulers/">📏&nbsp;Rulers</a>
+  <a class="eqf-navitem mod" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+
+  <div class="nav-label">Overview</div>
+  <div class="nav-item" data-view="dash"><span class="ico">▦</span> Dashboard</div>
+
+  <div class="nav-label loc">Locations</div>
+  <div class="nav-item" data-view="CA"><span class="ico">🖨</span> CA — California</div>
+  <div class="nav-item" data-view="PA"><span class="ico">🖨</span> PA — Pennsylvania</div>
+  <div class="nav-item" data-view="MX"><span class="ico">🖨</span> MX — Mexico</div>
+
+  <div class="nav-label">System</div>
+  <div class="nav-item" data-view="guide"><span class="ico">🗎</span> Documentation</div>
+
+
+
+  <div class="side-foot">
+    <button class="signout" style="margin:0 0 10px" onclick="openFeedback()">💬 Send Feedback</button>
+    <div class="user-card" id="userCard">
+      <div class="role">Not signed in</div>
+      <div>Sign in to log maintenance</div>
+    </div>
+    <button class="signout" id="authBtn" onclick="handleAuthClick()">Sign in with Google</button>
+  </div>
+</aside>
+
+<main class="main eqf-main">
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <div class="sub" id="pageSub"></div>
+    <div class="sub" id="syncStatus" style="color:#5fd75f"></div>
+  </div>
+  <div class="content" id="content"></div>
+</main>
+</div><!-- /eqf-app -->
+
+<div class="modal-bg" id="logModal">
+  <div class="modal">
+    <h3>Filter / Head Change Log</h3>
+    <p>Log <b>every</b> filter and head change on the machine&rsquo;s Filter/Head Change Log (Google Sheet). Record:</p>
+    <ul>
+      <li>Date, and filter or head changed (part + location, e.g. C1, YM4)</li>
+      <li>Circulation pressure — <b>before / after</b></li>
+      <li>Circulation pump frequency — <b>before / after</b> (Durst normal: 4.5–6.5 pressure, 65–110 pump freq)</li>
+      <li>Printed sq ft (or sq m) at time of change</li>
+      <li>Ink consumption (L) for the color changed</li>
+      <li>Technician name + notes</li>
+    </ul>
+    <p style="font-size:12px;color:var(--amber)">P5-Tex parts: carriage filter JKP 5µm PP (Durst P/N 1392545) · main ink tank filter MKL 5µm PP BLK (P/N 1392994). Values are found under Ink Heater (pressure/frequency) and Ink Cost (output, consumption) — never press Reset.</p>
+    <button class="close" onclick="document.getElementById('logModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="fbModal">
+  <div class="modal">
+    <h3>💬 Send Feedback</h3>
+    <p style="font-size:13px;color:var(--muted)">Suggest a feature, report a problem, or request a schedule change. Your name and email go with it.</p>
+    <label class="fb-label" for="fbType">Type</label>
+    <select id="fbType" class="fb-input">
+      <option>Feature request</option>
+      <option>Bug / problem</option>
+      <option>Task or schedule change</option>
+      <option>Other</option>
+    </select>
+    <label class="fb-label" for="fbText">Feedback</label>
+    <textarea id="fbText" class="fb-input" rows="4" placeholder="What should we add or change?"></textarea>
+    <div id="fbStatus" style="font-size:12px;color:#ff7b7b;margin-top:6px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+      <button class="close" onclick="document.getElementById('fbModal').classList.remove('show')">Cancel</button>
+      <button class="close" id="fbSend" style="background:var(--blue);color:#06121f;border-color:var(--blue)" onclick="submitFeedback()">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* EquipFlow dark re-skin for any Chart.js charts (guarded — no-op if absent) */
+if (window.Chart) {
+  Chart.defaults.color = "#9db0d5";
+  Chart.defaults.borderColor = "#243352";
+  Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+}
+
+/* ============ CONFIG — fill in after Google Cloud + Sheet setup (see GITHUB_SETUP.md) ============ */
+const CONFIG = {
+  CLIENT_ID: "919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com",
+  SPREADSHEET_ID: "1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo",
+  LOG_SHEET: "Log"
+};
+
+/* ================= DATA ================= */
+const CHIPS = {
+  shift:["Every Shift","c-shift"], daily:["Daily","c-daily"], d2:["Every 2 Days","c-2day"],
+  week:["Weekly","c-week"], wd3:["Every 3 Working Days","c-daily"], wd15:["Every 15 Working Days","c-15wd"],
+  month:["Monthly","c-month"], wd45:["Every 45 Working Days","c-45wd"], qtr:["Quarterly","c-qtr"],
+  half:["Half-Yearly","c-half"], year:["Yearly","c-year"], use:["Usage-Based","c-use"], req:["As Required","c-req"],
+  purge:["After Purge Cycle","c-req"], biweek:["Bi-Weekly","c-15wd"]
+};
+
+const T = {}; // task templates
+
+T.rhotex = [
+ ["Start cleaning cycle / wipe heads gently with distilled water","shift"],
+ ["Clean rollers + dancer between loading each roll of paper (wipe + water)","shift"],
+ ["Check motorized stretch/spreading rolls between loading each roll; clean if necessary (wipe + water)","shift"],
+ ["Check and empty both waste ink tanks as needed","shift"],
+ ["Clean machine and surrounding area","shift"],
+ ["Check crash sensors for contamination or overspray; clean if necessary","daily"],
+ ["Check cleaning station (left) and capping station (right); clean if necessary (wipe + distilled water)","daily"],
+ ["Check waste container (mesh tray and capping station); clean and empty if necessary","daily"],
+ ["Check and clean carriage sledge from below with distilled water","daily"],
+ ["Check the spitting pad; clean or change if necessary","daily"],
+ ["Oil linear carriage bearing guide","week"],
+ ["Check transport rollers; clean if necessary (water / soapy water)","week"],
+ ["Clean interior of the machine free from dust","week"],
+ ["Print Nozzle Check on paper and file with name / date","week"],
+ ["Check jar and filter on the ink suction wand; empty/replace if necessary","week"],
+ ["Check chiller water level and cooling fins; clean if necessary (switch off unit when cleaning!)","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Check the chiller air filter; clean as needed","month"],
+ ["Check ink level in on-board vacuum; empty if necessary","month"],
+ ["Quarterly basic cleaning (exterior/interior, top and underside)","qtr"],
+ ["Replace lubrication plates on the print head carriage","half"],
+ ["Lubricate print head carriage bushings","half","Every 108,000 sq ft OR every 6 months, whichever first"],
+ ["Change cooling system (chiller) water","year"],
+ ["6-month Durst service checklist (print quality, carriage, capping station, purge unit, media transport, ink system, cooling unit, workstation, safety devices)","half"],
+ ["Yearly Durst service checklist (6-month items + grease carriage rail & head-media-distance bearings, grease transport motor bearing, vaseline cable chain, replace main ink filters, replace cooling liquid)","year"],
+ ["Grease transport motor","use","At 13,000 hours of operation"],
+ ["Check electrical system of the cooling system (specialist)","req"],
+ ["After printing direct to textile: check absorbent pads and clean mesh tray","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
+];
+
+T.p5350 = [
+ ["Carry out print head maintenance","daily","At start of shift"],
+ ["Check printing plate for soiling; clean if necessary","daily"],
+ ["Check glass of UV LED units for soiling; clean if necessary","daily"],
+ ["Check conveyor belt, dancing rollers and redirection rolls of feed table; clean if necessary","d2"],
+ ["Check aerosol extraction air filter; clean if necessary","d2"],
+ ["Check carriage guide acoustically and visually; lubricate","week"],
+ ["Check chiller water level","week"],
+ ["Check chiller air filter and clean if necessary","week"],
+ ["Check main tank ventilation (de-air) filters; clean/replace if necessary","week"],
+ ["Document print head condition; print nozzle test, label with date/time/system # and archive","week","Keep test images — warranty claims require them"],
+ ["Check air filters of UV LED units; clean/replace if necessary","week"],
+ ["Check conveyor belt for soiling or overspray; clean if necessary","month"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Maintenance on ionizer","month"],
+ ["Replace lubrication plates of print carriage bearings (only P5 350HS — confirm)","month"],
+ ["Create backup of the workstation","half"],
+ ["Clean ventilation of the workstation","half"],
+ ["Lubricate print carriage bearing","use","Every 10,000 m² (107,639 sq ft) printed — Durst grease P/N 4290014"],
+ ["Refill ink","req"],
+ ["Clean housing of the printer","req"],
+ ["Empty catch tank","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
+];
+
+T.p5tex = [
+ ["Carry out print head maintenance","daily","At start of shift"],
+ ["Check tensioning rolls for soiling; clean if necessary","daily"],
+ ["Check rollers for soiling; clean if necessary","daily"],
+ ["Check capping station","d2"],
+ ["Check protection plate and clean if necessary","d2"],
+ ["Check aerosol extraction air filter; clean if necessary","d2"],
+ ["Lubricate carriage guide","week"],
+ ["Check status of coolant chiller","week"],
+ ["Check chiller air filter and clean if necessary","week"],
+ ["Clean capping station and sealing lip","week"],
+ ["Clean capping station wire mesh, drain 2L of waterbath, top off with 2L of distilled water","biweek"],
+ ["Dryer: clean redirection rollers + support rolls, empty catch trays, clean pyrometer protective glasses","week"],
+ ["Check de-air filters of main ink tanks; clean/replace if necessary","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Lubricate seals and toothed rack at the dryer","half"],
+ ["Lubricate carriage bearing plates","use","Every 10,000 m² (107,639 sq ft) printed — Durst grease P/N 4290014"],
+ ["Refill ink","req"],
+ ["Check vacuum carrier on printing table for soiling; clean if necessary","req"],
+ ["Empty catch tank","req"],
+ ["Park print carriage on capping station ASAP after right-side maintenance (prevents nozzle dry-out)","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Carriage filter P/N 1392545 · main ink filter P/N 1392994 — click + Log"]
+];
+
+T.monti91 = [
+ ["Grease bearing of the main printing roller","week","Assumes 8 working hours daily"],
+ ["Grease heated roller supports (left and right side)","week"],
+ ["Clean filters inside all grates (filtered-air flow to electrical box)","week"],
+ ["Clean resistance slip ring and brushes","week"],
+ ["Clean fans for side panel cooling","week"],
+ ["Clean and grease driving chains","month"],
+ ["Grease paper separator supports","month"],
+ ["Check tension of chains","qtr"],
+ ["Grease bearings and supports","qtr"],
+ ["Check greasing of felt guide, felt tightener and supplementary roller bearings","qtr"],
+ ["Replace the safety thermostat (manual p. 53)","use","Every 10,000 hours / 5 years"]
+];
+
+T.montiWS = [
+ ["Machine cleaning and general checks — clean under, above, around; report damage to Lead/Supervisor immediately","wd3"],
+ ["Safety checks — verify all safety switches and emergency stops function","wd3"],
+ ["Clean fans for side panel cooling","wd3"],
+ ["Grease heated roller supports (left and right side)","wd3"],
+ ["Clean electrical box grate filters (vacuum pad; cut new filters when vacuuming no longer removes dust)","wd3"],
+ ["Clean resistance slip ring and brushes","week"],
+ ["Charge batteries in emergency crank drill","wd15"],
+ ["Clean and grease driving chains","month"],
+ ["Check chain tension","wd45"],
+ ["Grease bearings and supports","wd45"],
+ ["Replace the safety thermostat (manual p. 53)","use","Every 10,000 hours / 5 years"]
+];
+
+T.vutek3r = [["Clean print head plate / around print head area","shift"],["Purge and wipe print heads; nozzle test until clean","shift"],["Clean the print platen (IPA, scraper, tip cleaner)","daily"],["Clean the measure-media sensor","daily"],["Clean the ink sink","daily"],["Clean the LED lamp glass on both UV lamps","daily"],["Clean the ionizer bars","daily"],["Clean the carriage crash sensors (left and right)","daily"],["Print head care - 20s soak per head face, purge, standard clean","daily"],["White ink maintenance - stir, 2s white purge, dry-wipe white heads","daily"],["Check facility air compressor and air filters; drain moisture","daily"],["Check exhaust filter; replace if dirty","daily"],["Clean the freefall rollers (roll conditioner)","week","EFI 40-hour bucket - assumes one 8-hour shift; do twice weekly on doubles"],["Clean the Y (shaft) and T (tension) rubber rollers","week"],["Clean the metal rollers - feed, press, collector","week"],["Lubricate the carriage bearings (3 pumps Molykote W2 per bearing)","week"],["Clean the carriage rail ends (remove excess grease)","week"],["Empty the waste ink container","week"],["Check chiller fluid level; top up with distilled water","week"],["Check the last-chance air and water filters","week"],["Clean the vented exterior covers","month"],["Vacuum the cable carrier and shelf","month"],["Clean the three main exhaust vents","month"],["Wipe the linear encoder strip","month"],["Clean the carriage home sensor","month"],["Inspect/replace white ink degasser tubes","qtr"],["Vacuum the power supplies and motorized drivers","qtr"],["Create a printer configuration backup","qtr"],["Replace the primary ink filters (all colors)","half"],["Schedule EFI/dealer technician PM visit","year"],["Repeat head soak/purge on nozzle dropouts or banding","req"],["Bi-directional / fine-tuning alignment after head change or drift","req"]]; T.monti858 = [["Machine cleaning and general checks","week"],["Safety checks","week"],["Compressed air group check","week"],["Clean fans for side panel cooling","week"],["Grease bearing of the main printing roller","week","Assumes 8 working hours daily"],["Grease heated roller supports (left and right side)","week","Assumes 8 working hours daily"],["Clean filters inside grates that feed filtered air to the electrical box","week"],["Clean resistance slip ring and brushes","week"],["Remove condensation from the air system filter tray (open outlet valve at bottom of tray)","week"],["Check felt tightening pneumatic cylinders","month","Also whenever felt drawing is anomalous"],["Clean and grease chains","month"],["Grease bearings and supports","month"],["Check greasing of felt guide, felt tightener and supplementary roller bearings","month"],["Check tension of chains","qtr"],["Replace the safety thermostat (manual p. 56)","use","Every 10,000 hours / 5 years"]]; T.monti902 = [
+ ["Machine cleaning and general checks","week"],
+ ["Safety checks — e-stops, hand-saving microcontacts, emergency stop handle, entry protection, air pressure on manometers, labels/signs, overall condition","week"],
+ ["FRL (air filter-regulator-lubricator) check","week"],
+ ["Clean filters inside grates of the lateral machine structure","week"],
+ ["Grease heated roller supports (left and right side)","week","Assumes 8 working hours daily"],
+ ["Clean electrical box grate filters","week"],
+ ["Clean resistance slip ring and brushes","week"],
+ ["Clean fans for side panel cooling","week"],
+ ["Check felt tightening pneumatic cylinders","month","Also whenever felt drawing is anomalous"],
+ ["Grease chains","month"],
+ ["Check tension of chains","qtr"],
+ ["Grease bearings and supports","qtr"],
+ ["Replace the safety thermostat (manual p. 56)","use","Every 10,000 hours / 5 years"]
+];
+
+const LOCS = {
+ CA:{name:"CA-Printing", full:"California", machines:[
+   {n:"Durst Rhotex 325", s:"SER # AD28-042 · Sys # 142718", t:"rhotex"},
+   {n:"Durst P5-350", s:"SER # AK26-117 · Sys # 298127", t:"p5350"},
+   {n:"Durst P5-Tex", s:"SER # AE28-019 · Sys # 298155", t:"p5tex"},
+   {n:"Monti 1 (Mod. 91-3600)", s:"SER # 2016216", t:"monti91"},
+   {n:"Monti 2 (Mod. 91-3600)", s:"SER # 2017445", t:"monti91"}
+ ]},
+ PA:{name:"PA-Printing", full:"Pennsylvania", machines:[
+   {n:"Durst Rhotex 325-1", s:"SER # AD-28-031 · Sys # 105857", t:"rhotex"},
+   {n:"Durst Rhotex 325-2", s:"SER # AD28-069 · Sys # 202921", t:"rhotex"},
+   {n:"Durst P5-350", s:"SER # AK26-116 · Sys # 294130", t:"p5350"},
+   {n:"Durst P5-Tex", s:"SER # AE28-064 · Sys # 400579", t:"p5tex"},
+   {n:"Monti (Mod. 91-3600)", s:"SER # 2017370", t:"monti91"},
+   {n:"Monti 2 (Mod. 902-3600)", s:"SER # 2022314", t:"monti902"}
+ ]},
+ MX:{name:"MX-Printing", full:"Mexico", machines:[
+   {n:"Durst Rhotex 325-1", s:"SER # AD20-049 · Sys # 154652", t:"rhotex"},
+   {n:"Durst Rhotex 325-2", s:"SER # AD28-047 · Sys # 152619", t:"rhotex"},
+   {n:"Durst P5-350", s:"SER # AK26-118 · Sys # 298128", t:"p5350"},
+   {n:"Durst P5-Tex-1", s:"SER # AE28-020 · Sys # 298183", t:"p5tex"},
+   {n:"Durst P5-Tex-2", s:"SER # AE28-069 · Sys # 405629", t:"p5tex"},
+   {n:"Monti (Mod. 902-3600)", s:"SER # 2019197", t:"monti902"},
+   {n:"Monti 3 (Mod. 902-3600)", s:"SER # 2021393", t:"monti902"},
+   {n:"Monti 2 (Mod. 858-2200)", s:"SER # 2021144", t:"monti858"},
+   {n:"Vutek 3r (EFI)", s:"SER # 9870418", t:"vutek3r"},
+   {n:"Klieverik MX-2 (GTC111-3500)", s:"SER # 891", t:null}
+ ]}
+};
+
+const DOCS = [ ["Vutek 3r (EFI)",[["Maintenance Schedule - MX Vutek 3r (EFI)","https://mikeb-art.github.io/machine-maintenance/vutek-3r-maintenance-schedule.pdf"],["EFI VUTEk 3r & 5r Maintenance Guide (OMM-00144, official EFI PDF)","https://www.smartlfp.pl/wp-content/uploads/2024/01/OMM-00144_VUTEk_3r5r_Maintenance_Guide_U.pdf"],["EFI 3r/5r Operator Training Guide (slides, Drive)","https://docs.google.com/presentation/d/1oqHnGFAQpT1wE8vBkPuc9IqQqPXxoBn0/edit"]]],
+ ["Monti Antonio 858-2200",[["Maintenance Schedule - MX Monti 2 (Mod. 858-2200)","https://drive.google.com/file/d/1ZQSiwseust92fdETOz3l9rbHWSDYQ5mk/view"]]],
+ ["Durst Rhotex 325",[
+  ["Maintenance Chart — GENERIC (S/D/W/M/H/R)","https://drive.google.com/file/d/153w5LfbWWxRUVa-aE3Ti-gQfcIhlfBjS/view"],
+  ["Maintenance Chart — CA Durst Rhotex 325","https://drive.google.com/file/d/1L4_kADQDWqE7n43Ehmy75odOYHMVetlc/view"],
+  ["Maintenance Chart — PA Durst Rhotex 325-1","https://drive.google.com/file/d/1PJ8l8PQIePIMBpttBYyk0HaLUQdGi6bT/view"],
+  ["Maintenance Chart — PA Durst Rhotex 325-2","https://drive.google.com/file/d/1IYTN8Pir5ZXGSJJYXw1SPD8yXF8PZCJj/view"],
+  ["Maintenance Chart — MX Durst Rhotex 325-1","https://drive.google.com/file/d/1zR1IGOYm2IzpB0LC9Pgn-wub2CbMniyg/view"],
+  ["Maintenance Chart — MX Durst Rhotex 325-2","https://drive.google.com/file/d/1_JV22b1Zg2tRS-TE3zD6512qVKNuyHkL/view"],
+  ["6-Month / Yearly Service Checklist (Durst)","https://drive.google.com/file/d/16BMYBknAZD1wa9J9czPD9fgsIdGb4uPL/view"],
+  ["Machine TPM SOP v1 (WS Display)","https://drive.google.com/file/d/16h7xzOOlSF-EEVJG8iHc_TUY64HHZ8Bn/view"],
+  ["Verify Nozzle & Head Quality (procedure)","https://drive.google.com/file/d/18okOyaKOup2Mnznyz9AoAGLZhQcToPrB/view"],
+  ["Lubricate Carriage Bearing Plates (photos)","https://drive.google.com/file/d/1UJC5zEBz3YFWl4E3YrpLZBqD35QYYq1f/view"]
+ ]],
+ ["Durst P5-350",[
+  ["Service Intervals (owner) — P5 210/350","https://drive.google.com/file/d/1TsjIaeBl1pEH8qeOxdIOWMBUsbZpNg5z/view"],
+  ["Daily/Weekly + Monthly/Yearly Checklist","https://drive.google.com/file/d/1Wv2ZCWUArEvcOgCa2tr8GjliHyXkjoSM/view"]
+ ]],
+ ["Durst P5-Tex",[
+  ["Service Intervals — P5 Tex / iSub","https://drive.google.com/file/d/15zEzka6pdZrtLhOo8gof9Pcjox8eOqfN/view"],
+  ["Daily/Weekly/Monthly/Yearly Checklist","https://drive.google.com/file/d/1wgzSe0fZaDPqIs2RB3l92jSZ1QWI143D/view"],
+  ["Daily/Weekly/Monthly/Bi-Monthly Checklist","https://drive.google.com/file/d/1ek1jTBUAlHNozSZzbd02O2ffWg3MUwNg/view"]
+ ]],
+ ["Durst P5 (both)",[
+  ["Lubricate Carriage Bearing Plates — grease P/N 4290014","https://drive.google.com/file/d/1REJcpB3ya_gGIKgB5kZWU34LBQJ9VnQ7/view"],
+  ["Carriage Lubrication — every 10,000 m² / 107,639 sq ft","https://drive.google.com/file/d/10b1IA30-7pBtehW-Jqgwa4NKgB8Gq8Be/view"]
+ ]],
+ ["Monti Antonio",[
+  ["Calender 91/3600 — Scheduled Maintenance","https://drive.google.com/file/d/1zshdJhHX5NNO7FryQwceIn9Jf7RwDQP-/view"],
+  ["Calender 902-3600 — Ordinary + Scheduled Maintenance","https://drive.google.com/file/d/1vhSA629bcmCZTf9Lzil85WsCoaWfrCSS/view"]
+ ]],
+ ["Filter / Head Change Logs (per-machine reminders)",[
+  ["CA Machines folder","https://drive.google.com/drive/folders/1FMSU1ToF_r9vBL6bsLb1wRUIRD0iAhho"],
+  ["PA Machines folder","https://drive.google.com/drive/folders/1jWjfsUg_jr8esOWyFeQ0u-kDDEOGu863"],
+  ["MX Machines folder","https://drive.google.com/drive/folders/1vqGf4PqWWrz7jCvKpTiisjiq37O1S38J"]
+ ]]
+];
+
+const NOTES = [
+ 
+ 
+ "Machines with no maintenance docs yet: Klieverik MX-2."
+];
+
+/* ================= STATE ================= */
+let store = {};
+try { store = JSON.parse(localStorage.getItem("wsd-maint") || "{}"); } catch(e){ store = {}; }
+function save(){ try{ localStorage.setItem("wsd-maint", JSON.stringify(store)); }catch(e){} }
+/* Each checkmark lasts for its own interval period — daily tasks reset each day, weekly each
+   week (Mon), monthly each calendar month, etc. The Log sheet keeps permanent history. */
+function periodKey(iv){
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth();
+  const days = Math.floor(now.getTime()/86400000);
+  switch(iv){
+    case "week": { const d = new Date(now); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return "W" + d.toDateString(); }
+    case "biweek": case "wd15": return "B" + Math.floor(days/14);
+    case "d2": return "D2-" + Math.floor(days/2);
+    case "wd3": return "D3-" + Math.floor(days/3);
+    case "month": return "M" + y + "-" + m;
+    case "wd45": return "D45-" + Math.floor(days/45);
+    case "qtr": return "Q" + y + "-" + Math.floor(m/3);
+    case "half": return "H" + y + "-" + (m<6?0:1);
+    case "year": return "Y" + y;
+    default: return "T" + now.toDateString(); /* shift, daily, use, req, purge */
+  }
+}
+const CATS = [
+  ["Daily / Shift", ["shift","daily","d2","wd3"]],
+  ["Weekly", ["week","biweek","wd15"]],
+  ["Monthly", ["month","wd45"]],
+  ["Quarterly & Longer", ["qtr","half","year"]],
+  ["As Needed", ["use","req","purge"]]
+];
+function catOf(iv){ for(const [n,l] of CATS) if(l.includes(iv)) return n; return "Other"; }
+
+/* ================= GOOGLE SIGN-IN + SHEET LOGGING ================= */
+const EQF_SCOPES = "openid email profile https://www.googleapis.com/auth/spreadsheets";
+let user = null, accessToken = null, tokenClient = null;
+let queue = [];
+try { queue = JSON.parse(localStorage.getItem("wsd-queue") || "[]"); } catch(e){ queue = []; }
+function saveQueue(){ try{ localStorage.setItem("wsd-queue", JSON.stringify(queue)); }catch(e){} }
+
+async function loadUserAndData(){
+  try{
+    const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+      { headers: { Authorization: "Bearer " + accessToken } });
+    user = await r.json();
+  }catch(e){ user = { email: "(unknown)" }; }
+  updateUserUI();
+  flushQueue();
+}
+function initAuth(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(initAuth, 300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: "openid email profile https://www.googleapis.com/auth/spreadsheets",
+    callback: async (resp) => {
+      EQF.saveToken(resp, EQF_SCOPES);
+      if(resp.error){ setSync("Sign-in failed: " + resp.error); return; }
+      accessToken = resp.access_token;
+      await loadUserAndData();
+    }
+  });
+  /* shared auth cache: reuse a live token from another EquipFlow module,
+     else try a silent (no-popup) sign-in — prompt:"" never opens UI. */
+  const c = EQF.cachedToken(EQF_SCOPES);
+  if(c){
+    accessToken = c.access_token;
+    loadUserAndData();
+  } else {
+    try{ tokenClient.requestAccessToken({ prompt: "" }); }catch(e){}
+  }
+}
+function handleAuthClick(){
+  if(user){
+    EQF.clearToken();
+    if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken, ()=>{}); }catch(e){} }
+    user = null; accessToken = null; updateUserUI(); return;
+  }
+  if(!tokenClient){ alert("Google sign-in is still loading — try again in a second."); return; }
+  tokenClient.requestAccessToken({ prompt: "select_account" });
+}
+function updateUserUI(){
+  const card = $("#userCard"), btn = $("#authBtn");
+  if(user){
+    card.innerHTML = `<div class="role">Signed in${user.name ? " · " + user.name : ""}</div><div>${user.email || ""}</div>`;
+    btn.textContent = "⎋ Sign Out";
+  } else {
+    card.innerHTML = `<div class="role">Not signed in</div><div>Sign in to log maintenance</div>`;
+    btn.textContent = "Sign in with Google";
+  }
+}
+function setSync(msg){ const el = $("#syncStatus"); if(el) el.textContent = msg || ""; }
+
+async function appendRows(rows){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(CONFIG.LOG_SHEET)}!A1:append?valueInputOption=USER_ENTERED`;
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + accessToken, "Content-Type": "application/json" },
+    body: JSON.stringify({ values: rows })
+  });
+  if(!r.ok) throw new Error("HTTP " + r.status);
+}
+async function flushQueue(){
+  if(!accessToken || !queue.length) return;
+  const rows = queue.map(e => e.row);
+  try{
+    await appendRows(rows);
+    queue = []; saveQueue();
+    setSync("✓ Maintenance logged " + new Date().toLocaleTimeString());
+  }catch(err){
+    if(String(err).includes("401")){ accessToken = null; }
+    setSync("⚠ " + queue.length + " log entr" + (queue.length===1?"y":"ies") + " pending — will retry on next action or sign-in");
+  }
+}
+function logAction(loc, mi, ti, action){
+  const m = LOCS[loc].machines[mi], t = T[m.t][ti];
+  const row = [ new Date().toLocaleString(), user ? user.email : "", loc, m.n, m.s, t[0], CHIPS[t[1]][0], action ];
+  queue.push({ row }); saveQueue(); flushQueue();
+}
+
+let view = "dash", filter = "all", query = "", selMachine = null;
+
+/* ================= RENDER ================= */
+const $ = s => document.querySelector(s);
+const content = $("#content");
+
+function taskId(loc,mi,ti){ return loc+"|"+mi+"|"+ti; }
+function stateOf(id, iv){
+  const e = store[id];
+  if(!e || typeof e !== "object") return "open";
+  return e.p === periodKey(iv) ? e.s : "open";
+}
+
+function counts(loc){
+  const per = {}; CATS.forEach(([n])=> per[n] = {a:0,d:0,nd:0});
+  let a=0,d=0,nd=0;
+  LOCS[loc].machines.forEach((m,mi)=>{ if(!m.t) return;
+    T[m.t].forEach((t,ti)=>{
+      const s = stateOf(taskId(loc,mi,ti), t[1]), cat = catOf(t[1]), p = per[cat];
+      p.a++; if(s==="done")p.d++; else if(s==="notdone")p.nd++;
+      if(cat !== "As Needed"){ a++; if(s==="done")d++; else if(s==="notdone")nd++; }
+    });
+  });
+  return {a,d,nd,rate: a? Math.round(d/a*1000)/10 : 0, per};
+}
+
+function chip(k){ const c=CHIPS[k]; return `<span class="chip ${c[1]}">${c[0]}</span>`; }
+
+function renderLoc(loc){
+  const L=LOCS[loc], c=counts(loc);
+  $("#pageTitle").innerHTML = "🖨 "+L.name;
+  $("#pageSub").textContent = "Department view through "+new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+  let h = `<div class="stats">`;
+  CATS.forEach(([name])=>{
+    const p = c.per[name];
+    if(!p.a) return;
+    if(name === "As Needed"){
+      h += `<div class="stat"><div class="lbl">${name}</div><div class="val" style="font-size:24px">${p.d}<span style="font-size:13px;color:var(--muted);font-weight:500"> logged today</span></div>
+        <div style="font-size:12px;color:var(--muted)">${p.a} tasks · not counted in %</div></div>`;
+    } else {
+      const r = Math.round(p.d/p.a*100), cls = r>=85?'done':r>=50?'rate':'notdone';
+      h += `<div class="stat ${cls}"><div class="lbl">${name}</div><div class="val">${r}%</div>
+        <div style="font-size:12px;color:var(--muted)">${p.d} of ${p.a} done${p.nd?` · ${p.nd} not completed`:``}</div></div>`;
+    }
+  });
+  h += `</div>`;
+  h += `
+  <div class="panel">
+    <div class="panel-head">
+      <h2>🖨 ${L.name}${selMachine!==null && L.machines[selMachine] ? " — " + L.machines[selMachine].n : " — select a machine"}</h2>
+      <input class="search" placeholder="Search tasks…" value="${query}" oninput="setQuery(this.value)">
+      <button class="pill ${filter==='open'?'on':''}" onclick="setFilter('open')">Open</button>
+      <button class="pill ${filter==='done'?'on':''}" onclick="setFilter('done')">Completed</button>
+      <button class="pill ${filter==='notdone'?'on':''}" onclick="setFilter('notdone')">Not completed</button>
+      <button class="pill ${filter==='all'?'on':''}" onclick="setFilter('all')">All</button>
+      <button class="pill log" onclick="document.getElementById('logModal').classList.add('show')">＋ Log</button>
+    </div>`;
+  let any=false;
+  const _sel = (selMachine!==null && L.machines[selMachine]) ? [selMachine] : [];
+  if(!_sel.length) h += `<div class="empty"><div class="ei">🖨</div>Select a machine from the list on the left to view and check off its tasks.</div>`;
+  _sel.forEach((mi)=>{ const m = L.machines[mi];
+    if(!m.t){
+      h += `<div class="machine open"><div class="m-head" onclick="toggle(this)"><span class="caret">▶</span>
+        <div><div class="m-title">${m.n}</div><div class="m-serial">${m.s}</div></div>
+        <div class="m-prog">no schedule on file</div></div>
+        <div class="m-body"><div class="nodocs">${m.flag || "No maintenance documents on file for this machine yet."}</div></div></div>`;
+      return;
+    }
+    const tasks = T[m.t];
+    let rows="", shown=0, mdone=0, mtot=0;
+    CATS.forEach(([cname,ivs])=>{
+      let grows="", ga=0, gd=0;
+      tasks.forEach((t,ti)=>{
+        if(!ivs.includes(t[1])) return;
+        const id = taskId(loc,mi,ti), st = stateOf(id, t[1]);
+        ga++; if(st==="done") gd++;
+        if(cname !== "As Needed"){ mtot++; if(st==="done") mdone++; }
+        if(filter!=="all" && st!==(filter==="open"?"open":filter)) return;
+        if(query && !t[0].toLowerCase().includes(query.toLowerCase())) return;
+        shown++;
+        grows += `<div class="task ${st}" id="t-${id.replace(/[|]/g,'_')}">
+          <div class="t-name">${t[0]}${t[2]?`<span class="t-note">${t[2]}</span>`:""}</div>
+          ${chip(t[1])}
+          <div class="t-btns">
+            <button class="t-btn yes" title="Mark completed" onclick="mark('${id}','done')">✓</button>
+            <button class="t-btn no" title="Mark not completed" onclick="mark('${id}','notdone')">✕</button>
+          </div></div>`;
+      });
+      if(grows) rows += `<div class="t-group">${cname}<span class="g-count">${cname==="As Needed" ? ga+" tasks" : gd+"/"+ga+" done"}</span></div>` + grows;
+    });
+    if(shown) any=true;
+    const pct = mtot ? Math.round(mdone/mtot*100) : 0;
+    h += `<div class="machine open"><div class="m-head" onclick="toggle(this)"><span class="caret">▶</span>
+      <div><div class="m-title">${m.n}</div><div class="m-serial">${m.s}</div></div>
+      <div class="m-prog">${mdone}/${mtot} due-tasks done <span class="m-bar"><i style="width:${pct}%"></i></span></div></div>
+      <div class="m-body">${rows || `<div class="nodocs">No tasks in this filter.</div>`}</div></div>`;
+  });
+  if(!any && (filter!=="all"||query)) h += `<div class="empty"><div class="ei">🗂</div>No tasks in this filter.</div>`;
+  h += `</div>`;
+  content.innerHTML = h;
+}
+
+function renderDash(){
+  $("#pageTitle").innerHTML = "▦ Dashboard";
+  $("#pageSub").textContent = "All locations — machine maintenance overview";
+  let h = `<div class="stats">`;
+  ["CA","PA","MX"].forEach(l=>{
+    const c=counts(l);
+    h += `<div class="stat ${c.rate>=85?'done':c.rate>=50?'rate':'notdone'}" style="cursor:pointer" onclick="go('${l}')">
+      <div class="lbl">${l} — ${LOCS[l].full}</div><div class="val">${c.rate}%</div>
+      <div style="font-size:12px;color:var(--muted)">${CATS.filter(([n])=>n!=="As Needed"&&c.per[n].a).map(([n])=>`${n.split(" ")[0]} ${c.per[n].d}/${c.per[n].a}`).join(" · ")}</div>
+      <div style="font-size:12px;color:var(--muted)">${LOCS[l].machines.length} machines</div></div>`;
+  });
+  h += `</div>
+  <div class="note-panel"><h3>⚠ Data notes / gaps to resolve</h3><ul>${NOTES.map(n=>`<li>${n}</li>`).join("")}</ul></div>
+  <div class="panel"><div class="panel-head"><h2>Locations</h2></div>`;
+  ["CA","PA","MX"].forEach(l=>{
+    const withDocs = LOCS[l].machines.filter(m=>m.t).length;
+    h += `<div class="machine"><div class="m-head" onclick="go('${l}')"><span class="caret">▶</span>
+      <div><div class="m-title">${LOCS[l].name}</div><div class="m-serial">${LOCS[l].full}</div></div>
+      <div class="m-prog">${withDocs} machines with schedules · ${LOCS[l].machines.length-withDocs} without</div></div></div>`;
+  });
+  h += `</div>`;
+  content.innerHTML = h;
+}
+
+function renderGuide(){
+  $("#pageTitle").innerHTML = "🗎 Documentation";
+  $("#pageSub").textContent = "Source documents in Google Drive (Equipment/Maintenance/Machine Maintenance)";
+  let h = `<div class="panel"><div class="panel-head"><h2>Maintenance source documents</h2></div><ul class="doc-list">`;
+  DOCS.forEach(([cat,items])=>{
+    h += `<div class="doc-cat">${cat}</div>`;
+    items.forEach(([t,u])=>{ h += `<li>📄 <a href="${u}" target="_blank" rel="noopener">${t}</a></li>`; });
+  });
+  h += `</ul></div>`;
+  content.innerHTML = h;
+}
+
+/* ================= ACTIONS ================= */
+function render(){
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active", n.dataset.view===view && selMachine===null));
+  document.querySelectorAll(".nav-sub").forEach(n=>n.classList.toggle("active", n.dataset.loc===view && Number(n.dataset.mi)===selMachine));
+  document.querySelectorAll(".nav-subs").forEach(w=>w.classList.toggle("open", w.dataset.locwrap===view));
+  if(view==="dash") renderDash();
+  else if(view==="guide") renderGuide();
+  else renderLoc(view);
+}
+function go(v){ view=v; selMachine=null; filter="all"; query=""; render(); }
+function goMachine(l,mi){ view=l; selMachine=mi; filter="all"; query=""; render(); }
+function setFilter(f){ filter=f; render(); }
+function setQuery(q){ query=q; clearTimeout(window._qt); window._qt=setTimeout(()=>{ render(); const el=document.querySelector(".search"); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } },300); }
+function mark(id,st){
+  if(!user){ alert("Please sign in with your Google account first — completed maintenance must be logged with your name and a timestamp."); return; }
+  const parts = id.split("|");
+  const iv = T[LOCS[parts[0]].machines[Number(parts[1])].t][Number(parts[2])][1];
+  const prev = stateOf(id, iv);
+  const now = (prev === st) ? "open" : st;
+  if(now === "open") delete store[id]; else store[id] = { s: now, p: periodKey(iv) };
+  save();
+  const action = now==="done" ? "Completed" : now==="notdone" ? "Marked NOT completed" : "Unchecked (was " + prev + ")";
+  logAction(parts[0], Number(parts[1]), Number(parts[2]), action);
+  render();
+}
+function toggle(head){ head.parentElement.classList.toggle("open"); }
+
+/* ---------- Feedback ---------- */
+function openFeedback(){
+  $("#fbStatus").textContent = "";
+  document.getElementById("fbModal").classList.add("show");
+}
+async function appendFeedback(row){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent("Feedback")}!A1:append?valueInputOption=USER_ENTERED`;
+  const post = (values) => fetch(url, { method:"POST",
+    headers:{ Authorization:"Bearer "+accessToken, "Content-Type":"application/json" },
+    body: JSON.stringify({ values }) });
+  let r = await post([row]);
+  if(r.status === 400){ /* Feedback tab missing — create it, add header, retry */
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}:batchUpdate`, { method:"POST",
+      headers:{ Authorization:"Bearer "+accessToken, "Content-Type":"application/json" },
+      body: JSON.stringify({ requests:[{ addSheet:{ properties:{ title:"Feedback" } } }] }) });
+    await post([["Timestamp","User","Name","Type","Feedback","Where"]]);
+    r = await post([row]);
+  }
+  if(!r.ok) throw new Error("HTTP " + r.status);
+}
+async function submitFeedback(){
+  if(!user || !accessToken){ alert("Please sign in with your Google account first so your feedback includes your name."); return; }
+  const txt = $("#fbText").value.trim();
+  if(!txt){ $("#fbStatus").textContent = "Please type your feedback first."; return; }
+  const btn = $("#fbSend"); btn.disabled = true;
+  $("#fbStatus").textContent = "Sending…";
+  const where = view==="dash" ? "Dashboard" : view==="guide" ? "Documentation"
+    : (LOCS[view] ? LOCS[view].name + (selMachine!==null && LOCS[view].machines[selMachine] ? " · " + LOCS[view].machines[selMachine].n : "") : String(view));
+  try{
+    await appendFeedback([ new Date().toLocaleString(), user.email || "", user.name || "", $("#fbType").value, txt, where ]);
+    $("#fbText").value = "";
+    document.getElementById("fbModal").classList.remove("show");
+    setSync("✓ Feedback sent — thank you!");
+  }catch(e){
+    if(String(e).includes("401")){ accessToken = null; }
+    $("#fbStatus").textContent = "Could not send (" + e.message + "). Please try again.";
+  }
+  btn.disabled = false;
+}
+
+document.querySelectorAll(".nav-item").forEach(n=>n.addEventListener("click",()=>go(n.dataset.view)));
+Object.keys(LOCS).forEach(l=>{
+  const anchor = document.querySelector(`.nav-item[data-view="${l}"]`);
+  if(!anchor) return;
+  const wrap = document.createElement("div");
+  wrap.className = "nav-subs"; wrap.dataset.locwrap = l;
+  LOCS[l].machines.forEach((m,mi)=>{
+    const d = document.createElement("div");
+    d.className = "nav-sub";
+    d.dataset.loc = l; d.dataset.mi = mi;
+    d.textContent = m.n;
+    d.addEventListener("click", ()=>goMachine(l, mi));
+    wrap.appendChild(d);
+  });
+  anchor.after(wrap);
+});
+initAuth();
+updateUserUI();
+render();
+</script>
+  <script src="dashboard-charts.js?v=13"></script><script src="kpi-daily.js?v=1"></script>
+</body>
+</html>

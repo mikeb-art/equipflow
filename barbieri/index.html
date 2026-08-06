@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbieri DOC · EquipFlow</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    /* status + accent aliases — resolved against /assets/theme.css tokens */
+    --blue:var(--accent); --green:var(--good); --amber:var(--warn); --red:var(--serious);
+    --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+
+  /* Sidebar/topbar chrome comes from /assets/theme.css; module keeps layout-only bits */
+  .nav-item .cnt.bad{background:var(--crit);color:#fff;border-color:transparent}
+  .user-card{background:var(--inset);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink);display:none}
+  .user-card .role{font-size:11px;color:var(--ink-2)}
+  .signout{margin-top:10px;width:100%}
+  .topbar h1{display:flex;align-items:center;gap:8px}
+  .content{padding:22px 26px 60px}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:22px}
+  .stat{background:var(--card);border-radius:10px;box-shadow:var(--shadow);padding:14px 18px;border-top:4px solid var(--blue)}
+  .stat .lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .stat .val{font-size:30px;font-weight:800;margin-top:2px}
+  .stat.ok{border-top-color:var(--green)} .stat.ok .val{color:var(--green)}
+  .stat.warn{border-top-color:var(--amber)} .stat.warn .val{color:var(--amber)}
+  .stat.oot{border-top-color:var(--red)} .stat.oot .val{color:var(--red)}
+  .stat.crit{border-top-color:var(--crit)} .stat.crit .val{color:var(--crit)}
+  .stat.mats{border-top-color:var(--blue)} .stat.mats .val{color:var(--ink)}
+
+  /* panel */
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+  .panel-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .panel-head h2{font-size:15.5px;flex:1;min-width:200px}
+  .pill{border:1px solid var(--border-strong);background:var(--card-2);color:var(--ink-2);border-radius:20px;padding:5px 14px;font-size:12.5px;cursor:pointer}
+  .pill:hover{background:#1e2f52;color:var(--ink)}
+  .pill.on{background:var(--accent-soft);color:#dff0ff;border-color:rgba(41,169,255,.25)}
+
+  /* readings table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:var(--inset);padding:8px 18px;text-align:left;border-top:1px solid var(--border)}
+  td{padding:10px 18px;border-top:1px solid var(--border);vertical-align:middle}
+  tr:hover td{background:rgba(41,169,255,.05)}
+  .mat-name{font-weight:600}
+  .val-de{font-weight:800;font-size:15px}
+  .v-ok{color:var(--green)} .v-warn{color:var(--amber)} .v-oot{color:var(--red)} .v-crit{color:var(--crit)}
+  .chip{font-size:10.5px;font-weight:700;letter-spacing:.3px;border-radius:10px;padding:2px 9px;white-space:nowrap;display:inline-block}
+  .c-ok{background:var(--good-soft);color:#5fd75f} .c-warn{background:var(--warn-soft);color:var(--warn)}
+  .c-oot{background:var(--serious-soft);color:var(--serious)} .c-crit{background:var(--crit-soft);color:#ff7b7b}
+  .c-week{background:rgba(25,158,112,.16);color:#4fc39a} .c-month{background:rgba(201,133,0,.16);color:#e0a63e}
+  .stale{font-size:11px;color:var(--red);font-weight:600}
+  .ago{font-size:11.5px;color:var(--muted)}
+
+  /* chart */
+  .chart-wrap{position:relative;height:380px;padding:12px 18px 18px}
+  .mat-toggles{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 0}
+  .mtog{display:flex;align-items:center;gap:6px;border:1px solid var(--border-strong);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;background:var(--card-2);color:var(--ink-2);user-select:none}
+  .mtog .sw{width:10px;height:10px;border-radius:50%}
+  .mtog.off{opacity:.4}
+
+  /* ---------- Trends view ---------- */
+  .trend-grid{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start}
+  .tmat-body{padding:12px 14px;max-height:calc(100vh - 330px);overflow-y:auto}
+  .tmat-actions{display:flex;gap:8px;margin-bottom:8px}
+  .tmat-actions .pill{flex:1;text-align:center;padding:4px 8px;font-size:12px}
+  .tmach{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-2);background:var(--inset);border-radius:6px;padding:5px 9px;margin:10px 0 4px;cursor:pointer;user-select:none}
+  .tmach:hover{background:var(--card-2)}
+  .tmach .hint{float:right;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:10px}
+  .tmat{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:12.5px;cursor:pointer;border-radius:5px;line-height:1.3}
+  .tmat:hover{background:rgba(41,169,255,.06)}
+  .tmat .sw{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .tsep{width:1px;height:22px;background:var(--border-strong);margin:0 4px}
+  .tsel{border:1px solid var(--border-strong);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--ink);background:var(--inset);cursor:pointer}
+  @media (max-width:900px){ .trend-grid{grid-template-columns:1fr} }
+
+  .empty{padding:56px 20px;text-align:center;color:var(--muted);font-size:15px}
+  .empty .ei{font-size:26px;margin-bottom:8px}
+
+  /* sign-in gate */
+  .gate{margin:80px auto;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:36px;text-align:center}
+  .gate .big{font-size:34px;margin-bottom:10px}
+  .gate h2{margin-bottom:8px}
+  .gate p{font-size:13.5px;color:var(--muted);margin-bottom:18px}
+  .gbtn{background:var(--accent) !important;color:var(--accent-ink) !important;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer}
+  .gbtn:hover{background:#4db8ff !important}
+  .loading{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+</style>
+<link rel="stylesheet" href="/assets/theme.css">
+</head>
+<body>
+
+<div class="eqf-app">
+<aside class="eqf-side">
+  <div class="eqf-brand">
+    <div class="dot"></div>
+    <div>
+      <div class="nm">Equip<b>Flow</b></div>
+      <div class="sub">Equipment &middot; Environment</div>
+      <div class="ver">v2026.08.06</div>
+    </div>
+  </div>
+  <div class="eqf-navlabel">Modules</div>
+  <a class="eqf-navitem mod" href="/">&#9638;&nbsp;Overview</a>
+  <a class="eqf-navitem mod" href="/maintenance/">🛠&nbsp;Maintenance</a>
+  <a class="eqf-navitem mod active" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+  <a class="eqf-navitem mod" href="/rulers/">📏&nbsp;Rulers</a>
+  <a class="eqf-navitem mod" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+
+  <div class="nav-label">Views</div>
+  <div class="nav-item active" data-loc="ALL" onclick="selectLoc('ALL')"><span class="ico">📊</span> Dashboard</div>
+  <div class="nav-item" data-loc="TRENDS" onclick="selectLoc('TRENDS')"><span class="ico">📈</span> ΔE Trends</div>
+  <div class="nav-item" data-loc="BACKLIT" onclick="selectLoc('BACKLIT')"><span class="ico">💡</span> P5-Tex Backlit (1 yr)</div>
+  <div class="nav-item" data-loc="MACHINE" onclick="showMachineView()"><span class="ico">🖨️</span> By Machine</div>
+  <div class="nav-label loc">Locations</div>
+  <div class="nav-item" data-loc="CA" onclick="selectLoc('CA')"><span class="ico">☀️</span> California <span class="cnt" id="cntCA">–</span></div>
+  <div class="nav-item" data-loc="MX" onclick="selectLoc('MX')"><span class="ico">🌵</span> Mexico <span class="cnt" id="cntMX">–</span></div>
+  <div class="nav-item" data-loc="PA" onclick="selectLoc('PA')"><span class="ico">🔔</span> Pennsylvania <span class="cnt" id="cntPA">–</span></div>
+
+  <div class="side-foot">
+    <div class="user-card" id="userCard"><div id="userName"></div><div class="role" id="userEmail"></div></div>
+    <button class="signout" id="authBtn" onclick="handleAuthClick()">Sign in with Google</button>
+  </div>
+</aside>
+
+<div class="eqf-main">
+  <div class="topbar">
+    <h1 id="pageTitle">🎯 Barbieri DOC Monitoring</h1>
+    <div class="sub" id="pageSub">ΔE color accuracy across CA · MX · PA — thresholds: OK &lt; 3.0 · Warning 3.0–3.99 · Out of Tolerance 4.0–9.99 · Critical ≥ 10</div>
+  </div>
+  <div class="content" id="content">
+    <div class="gate" id="gate">
+      <div class="big">🎯</div>
+      <h2>Barbieri DOC Monitoring</h2>
+      <p>Sign in with your <b>wsdisplay.com</b> Google account to view ΔE readings and trends.</p>
+      <button class="gbtn eqf-btn-primary" onclick="handleAuthClick()">Sign in with Google</button>
+    </div>
+  </div>
+</div>
+</div><!-- /.eqf-app -->
+
+<script src="/assets/auth.js"></script>
+<script>
+/* ============ CHART THEME (EquipFlow dark) ============ */
+if (window.Chart) {
+  Chart.defaults.color = "#9db0d5";
+  Chart.defaults.borderColor = "#243352";
+  Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+}
+
+/* ============ CONFIG ============ */
+const CONFIG = {
+  CLIENT_ID: "919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com",
+  SHEETS: {
+    CA: "1WgLOZpJy7I22_bUvLD9TleEbaBjRJJYFBreAFV8q4qA",
+    MX: "1OlDobUChJP6r2FFEo91AmcVVWq3QXieydeF5ofsL2xQ",
+    PA: "1Bo2ctHv6mY9NwxofnhLII4XL03-pY5CgtN8Wbi492RI"
+  },
+  TAB: "Barbieri DOC Delta E Data form",
+  DOMAIN: "wsdisplay.com"
+};
+const LOC_NAMES = { ALL:"All Locations", CA:"California", MX:"Mexico", PA:"Pennsylvania" };
+const PALETTE = ["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];
+const seriesColor = i => i < PALETTE.length ? PALETTE[i] : "#64789f";   // extras fold to gray, never cycled
+
+/* ============ AUTH (Google Identity Services) ============ */
+let user = null, accessToken = null, tokenClient = null;
+
+function initAuth(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2){ setTimeout(initAuth, 300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: "openid email profile https://www.googleapis.com/auth/spreadsheets.readonly",
+    callback: async (resp) => {
+      EQF.saveToken(resp, "openid email profile https://www.googleapis.com/auth/spreadsheets.readonly");
+      if(resp.error){ alert("Sign-in failed: " + resp.error); return; }
+      accessToken = resp.access_token;
+      const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+        { headers: { Authorization: "Bearer " + accessToken } });
+      const info = await r.json();
+      if(!info.email || !info.email.endsWith("@" + CONFIG.DOMAIN)){
+        alert("Please sign in with your " + CONFIG.DOMAIN + " account.");
+        try{ google.accounts.oauth2.revoke(accessToken, ()=>{}); }catch(e){}
+        accessToken = null; return;
+      }
+      user = { name: info.name || info.email, email: info.email };
+      updateUserUI();
+      loadAll();
+    },
+    error_callback: (err) => {
+      // Silent sign-in couldn't complete without interaction — leave the gate visible.
+      // The user can sign in manually via the button (which uses a user gesture).
+    }
+  });
+  // Reuse the shared EquipFlow token cache first so hopping between modules
+  // doesn't re-prompt; fall back to the silent sign-in attempt.
+  const cached = EQF.cachedToken("openid email profile https://www.googleapis.com/auth/spreadsheets.readonly");
+  if(cached){
+    accessToken = cached.access_token;
+    (async () => {
+      try {
+        const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+          { headers: { Authorization: "Bearer " + accessToken } });
+        const info = await r.json();
+        if(info.email && info.email.endsWith("@" + CONFIG.DOMAIN)){
+          user = { name: info.name || info.email, email: info.email };
+          updateUserUI();
+          loadAll();
+          return;
+        }
+      } catch(e){}
+      EQF.clearToken(); accessToken = null;
+      try { tokenClient.requestAccessToken({ prompt: "none" }); } catch(e){}
+    })();
+    return;
+  }
+  // Attempt a silent sign-in so returning users with an active Google session
+  // aren't prompted on every visit (matches the other WS Display dashboards).
+  try { tokenClient.requestAccessToken({ prompt: "none" }); } catch(e){}
+}
+window.addEventListener("load", initAuth);
+
+function handleAuthClick(){
+  if(user){
+    EQF.clearToken();
+    if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken, ()=>{}); }catch(e){} }
+    user = null; accessToken = null; DATA = {};
+    location.reload(); return;
+  }
+  if(!tokenClient){ alert("Google sign-in is still loading — try again in a second."); return; }
+  tokenClient.requestAccessToken({ prompt: "" });
+}
+
+function updateUserUI(){
+  const card = document.getElementById("userCard"), btn = document.getElementById("authBtn");
+  if(user){
+    card.style.display = "block";
+    document.getElementById("userName").textContent = user.name;
+    document.getElementById("userEmail").textContent = user.email;
+    btn.textContent = "Sign out";
+  } else {
+    card.style.display = "none";
+    btn.textContent = "Sign in with Google";
+  }
+}
+
+/* ============ DATA ============ */
+let DATA = {};      // {loc: {materials:[{name, monthly, points:[[date,val]]}]}}
+let currentLoc = localStorage.getItem("bdoc_loc") || "ALL";
+let chart = null;
+
+async function fetchTab(sheetId){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent("'" + CONFIG.TAB + "'!A1:Z2000")}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`;
+  const r = await fetch(url, { headers: { Authorization: "Bearer " + accessToken } });
+  if(!r.ok) throw new Error(`HTTP ${r.status} reading sheet`);
+  const j = await r.json();
+  return j.values || [];
+}
+
+function cleanHeader(h){
+  h = String(h);
+  h = h.replace(/\s*weekly.*$/i, "").replace(/\s*monthly.*$/i, "").replace(/\s*total\s*delta\s*e.*$/i, "");
+  return h.replace(/\n/g, " ").replace(/[: ]+$/, "").trim();
+}
+function isMonthly(h){ return /monthly/i.test(String(h)); }
+
+function parseDate(raw){
+  if(typeof raw === "number" && raw > 30000 && raw < 60000){
+    return new Date(Date.UTC(1899, 11, 30) + raw * 86400000);
+  }
+  const s = String(raw).trim().split(" ")[0];
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return new Date(Date.UTC(+m[3], +m[1]-1, +m[2]));
+  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  return null;
+}
+
+function parseRows(rows){
+  if(!rows || !rows.length) return { materials: [] };
+  const headers = rows[0];
+  const matCols = [];
+  headers.forEach((h, i) => {
+    if(i < 3) return;                       // timestamp / meta columns
+    const name = cleanHeader(h);
+    if(!name || /^(column \d+|score)$/i.test(name)) return;
+    matCols.push({ name, idx: i, monthly: isMonthly(h) });
+  });
+  const series = {};
+  matCols.forEach(m => series[m.name] = { monthly: m.monthly, points: [] });
+  for(let r = 1; r < rows.length; r++){
+    const row = rows[r];
+    if(!row || row[0] === undefined || row[0] === "") continue;
+    const dt = parseDate(row[0]);
+    if(!dt) continue;
+    matCols.forEach(m => {
+      if(m.idx >= row.length) return;
+      const cell = String(row[m.idx]).trim();
+      if(!cell) return;
+      const v = parseFloat(cell.replace(",", "."));
+      if(!isNaN(v) && v > 0) series[m.name].points.push([dt, v]);
+    });
+  }
+  const materials = Object.keys(series)
+    .filter(k => series[k].points.length > 0)
+    .map(k => {
+      const pts = series[k].points.sort((a,b) => a[0] - b[0]);
+      return { name: k, monthly: series[k].monthly, points: pts };
+    });
+  return { materials };
+}
+
+async function loadAll(){
+  document.getElementById("content").innerHTML = `<div class="loading">Loading ΔE data from all three locations…</div>`;
+  const locs = Object.keys(CONFIG.SHEETS);
+  const results = await Promise.allSettled(locs.map(l => fetchTab(CONFIG.SHEETS[l])));
+  results.forEach((res, i) => {
+    const loc = locs[i];
+    if(res.status === "fulfilled"){ DATA[loc] = parseRows(res.value); }
+    else { DATA[loc] = { materials: [], error: String(res.reason) }; if(String(res.reason).includes("401")) accessToken = null; }
+  });
+  updateSidebarCounts();
+  selectLoc(currentLoc);
+}
+
+/* ============ STATUS HELPERS ============ */
+function statusOf(v){ return v >= 10 ? "crit" : v >= 4 ? "oot" : v >= 3 ? "warn" : "ok"; }
+const STATUS_LABEL = { ok:"✅ OK", warn:"⚠️ Warning", oot:"🔴 Out of Tolerance", crit:"🚨 Critical" };
+function latest(m){ return m.points[m.points.length - 1]; }
+function daysAgo(d){ return Math.floor((Date.now() - d.getTime()) / 86400000); }
+function isStale(m){ const a = daysAgo(latest(m)[0]); return m.monthly ? a > 45 : a > 14; }
+function fmtDate(d){ return d.toISOString().slice(0, 10); }
+
+function locCounts(loc){
+  const c = { ok:0, warn:0, oot:0, crit:0, mats:0 };
+  (DATA[loc]?.materials || []).forEach(m => { c[statusOf(latest(m)[1])]++; c.mats++; });
+  return c;
+}
+
+function updateSidebarCounts(){
+  ["CA","MX","PA"].forEach(loc => {
+    const c = locCounts(loc), el = document.getElementById("cnt" + loc);
+    const bad = c.oot + c.crit;
+    el.textContent = bad > 0 ? bad + "⚠" : c.mats;
+    el.className = "cnt" + (bad > 0 ? " bad" : "");
+  });
+}
+
+/* ============ RENDER ============ */
+function selectLoc(loc){
+  currentLoc = loc;
+  localStorage.setItem("bdoc_loc", loc);
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.loc === loc));
+  document.getElementById("pageTitle").innerHTML =
+    loc === "ALL" ? "🎯 Barbieri DOC Monitoring" :
+    loc === "TRENDS" ? "📈 ΔE Trends" :
+    loc === "BACKLIT" ? "💡 P5-Tex Backlit — 1-Year Comparison" : "🎯 " + LOC_NAMES[loc];
+  if(!user){ return; }
+  render();
+}
+
+function statCards(c){
+  return `<div class="stats">
+    <div class="stat mats"><div class="lbl">Materials</div><div class="val">${c.mats}</div></div>
+    <div class="stat ok"><div class="lbl">OK</div><div class="val">${c.ok}</div></div>
+    <div class="stat warn"><div class="lbl">Warning</div><div class="val">${c.warn}</div></div>
+    <div class="stat oot"><div class="lbl">Out of Tolerance</div><div class="val">${c.oot}</div></div>
+    <div class="stat crit"><div class="lbl">Critical</div><div class="val">${c.crit}</div></div>
+  </div>`;
+}
+
+function readingsTable(loc){
+  const mats = (DATA[loc]?.materials || []).slice()
+    .sort((a,b) => latest(b)[1] - latest(a)[1]);
+  if(!mats.length) return `<div class="empty"><div class="ei">📭</div>No readings found${DATA[loc]?.error ? " — " + DATA[loc].error : ""}</div>`;
+  const rows = mats.map(m => {
+    const [d, v] = latest(m), st = statusOf(v), ago = daysAgo(d);
+    return `<tr>
+      <td class="mat-name">${m.name}</td>
+      <td><span class="chip ${m.monthly ? "c-month" : "c-week"}">${m.monthly ? "MONTHLY" : "WEEKLY"}</span></td>
+      <td class="val-de v-${st}">${v.toFixed(2)}</td>
+      <td>${fmtDate(d)} <span class="ago">(${ago}d ago)</span>${isStale(m) ? ' <span class="stale">· overdue</span>' : ""}</td>
+      <td><span class="chip c-${st}">${STATUS_LABEL[st]}</span></td>
+    </tr>`;
+  }).join("");
+  return `<table><thead><tr><th>Material</th><th>Cadence</th><th>Max ΔE</th><th>Last Reading</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function render(){
+  const el = document.getElementById("content");
+  if(currentLoc === "TRENDS"){ renderTrends(); return; }
+  if(currentLoc === "BACKLIT"){ renderBacklit(); return; }
+  if(currentLoc === "ALL"){
+    const total = { ok:0, warn:0, oot:0, crit:0, mats:0 };
+    ["CA","MX","PA"].forEach(l => { const c = locCounts(l); Object.keys(total).forEach(k => total[k] += c[k]); });
+    el.innerHTML = statCards(total) + ["CA","MX","PA"].map(l => `
+      <div class="panel">
+        <div class="panel-head"><h2>${LOC_NAMES[l]}</h2>
+          <button class="pill" onclick="selectLoc('${l}')">Details & trend →</button></div>
+        ${readingsTable(l)}
+      </div>`).join("");
+  } else {
+    el.innerHTML = statCards(locCounts(currentLoc)) + `
+      <div class="panel">
+        <div class="panel-head"><h2>Latest readings — ${LOC_NAMES[currentLoc]}</h2></div>
+        ${readingsTable(currentLoc)}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>ΔE Trend</h2>
+          <button class="pill" data-range="90" onclick="setRange(90)">3 mo</button>
+          <button class="pill" data-range="180" onclick="setRange(180)">6 mo</button>
+          <button class="pill" data-range="365" onclick="setRange(365)">1 yr</button>
+          <button class="pill" data-range="0" onclick="setRange(0)">All</button>
+        </div>
+        <div style="display:flex;gap:8px;padding:12px 18px 0">
+          <button class="pill" onclick="matAll(true)">All</button>
+          <button class="pill" onclick="matAll(false)">None</button>
+        </div>
+        <div class="mat-toggles" id="matToggles"></div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>`;
+    buildToggles();
+    setRange(+(localStorage.getItem("bdoc_range") || 180));
+  }
+}
+
+/* ============ TREND CHART (location pages) ============ */
+let hiddenMats = new Set();
+
+function buildToggles(){
+  const mats = DATA[currentLoc]?.materials || [];
+  document.getElementById("matToggles").innerHTML = mats.map((m, i) => `
+    <div class="mtog ${hiddenMats.has(m.name) ? "off" : ""}" onclick="toggleMat('${m.name.replace(/'/g, "\\'")}')">
+      <span class="sw" style="background:${seriesColor(i)}"></span>${m.name}
+    </div>`).join("");
+}
+function toggleMat(name){
+  hiddenMats.has(name) ? hiddenMats.delete(name) : hiddenMats.add(name);
+  buildToggles(); drawChart();
+}
+function matAll(show){
+  const mats = DATA[currentLoc]?.materials || [];
+  if(show){ hiddenMats.clear(); }
+  else { mats.forEach(m => hiddenMats.add(m.name)); }
+  buildToggles(); drawChart();
+}
+let rangeDays = 180;
+function setRange(d){
+  rangeDays = d;
+  localStorage.setItem("bdoc_range", d);
+  document.querySelectorAll(".pill[data-range]").forEach(p => p.classList.toggle("on", +p.dataset.range === d));
+  drawChart();
+}
+
+function drawChart(){
+  const mats = DATA[currentLoc]?.materials || [];
+  const cutoff = rangeDays ? Date.now() - rangeDays * 86400000 : 0;
+  const datasets = mats.map((m, i) => ({
+    label: m.name,
+    data: m.points.filter(p => p[0].getTime() >= cutoff).map(p => ({ x: fmtDate(p[0]), y: p[1] })),
+    borderColor: seriesColor(i),
+    backgroundColor: seriesColor(i) + "33",
+    hidden: hiddenMats.has(m.name),
+    tension: .25, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, spanGaps: true
+  }));
+  const ctx = document.getElementById("trendChart");
+  if(!ctx) return;
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "line",
+    data: { datasets },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "nearest", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ΔE ${c.parsed.y.toFixed(2)} (${STATUS_LABEL[statusOf(c.parsed.y)]})` } }
+      },
+      scales: {
+        x: { type: "category", ticks: { maxTicksLimit: 14, font: { size: 10 }, maxRotation: 35 }, grid: { color: "#243352" } },
+        y: { beginAtZero: true, suggestedMax: 5,
+             title: { display: true, text: "Max Total ΔE", font: { size: 11 } },
+             ticks: { font: { size: 10 } }, grid: { color: "#243352" } }
+      }
+    },
+    plugins: [THRESHOLD_PLUGIN]
+  });
+}
+
+/* Shared threshold-lines plugin */
+const THRESHOLD_PLUGIN = {
+  id: "thresholds",
+  afterDraw(c){
+    const { ctx, chartArea, scales } = c;
+    if(!chartArea) return;
+    [[3, "#fab219"], [4, "#ec835a"], [10, "#d03b3b"]].forEach(([v, col]) => {
+      if(v > scales.y.max) return;
+      const y = scales.y.getPixelForValue(v);
+      ctx.save(); ctx.strokeStyle = col; ctx.setLineDash([6, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+      ctx.fillStyle = col; ctx.font = "10px sans-serif";
+      ctx.fillText("ΔE " + v, chartArea.right - 34, y - 4); ctx.restore();
+    });
+  }
+};
+
+/* ============ P5-TEX BACKLIT 1-YEAR COMPARISON VIEW ============ */
+let backlitExclOutliers = (localStorage.getItem("bdoc_backlit_excl") === "1");
+
+function backlitSeriesFor(loc){
+  const mats = DATA[loc]?.materials || [];
+  return mats.find(x => /p5-?tex/i.test(x.name) && /backlit/i.test(x.name) && !/film/i.test(x.name)) || null;
+}
+
+function backlitStats(){
+  const cutoff = Date.now() - 365 * 86400000;
+  const out = {};
+  ["CA","MX","PA"].forEach(loc => {
+    const m = backlitSeriesFor(loc);
+    let vals = [], excluded = 0;
+    if(m){
+      const inWindow = m.points.filter(p => p[0].getTime() >= cutoff).map(p => p[1]);
+      excluded = inWindow.filter(v => v >= 10).length;
+      vals = backlitExclOutliers ? inWindow.filter(v => v < 10) : inWindow;
+    }
+    out[loc] = vals.length
+      ? { n: vals.length, avg: vals.reduce((a,b)=>a+b,0)/vals.length, min: Math.min(...vals), max: Math.max(...vals), excluded, material: m ? m.name : "" }
+      : { n: 0, avg: null, min: null, max: null, excluded, material: m ? m.name : "" };
+  });
+  return out;
+}
+
+function renderBacklit(){
+  const stats = backlitStats();
+  window._backlitStats = stats;
+  const locs = ["CA","MX","PA"];
+  const totalExcluded = locs.reduce((a,l) => a + stats[l].excluded, 0);
+  const cards = locs.map(loc => {
+    const s = stats[loc];
+    if(s.avg === null) return `<div class="stat mats"><div class="lbl">${LOC_NAMES[loc]}</div><div class="val">—</div></div>`;
+    const st = statusOf(s.avg);
+    return `<div class="stat ${st}"><div class="lbl">${LOC_NAMES[loc]} · avg ΔE</div><div class="val">${s.avg.toFixed(2)}</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:4px">${s.n} readings · range ${s.min.toFixed(2)}–${s.max.toFixed(2)}</div></div>`;
+  }).join("");
+  document.getElementById("content").innerHTML = `
+    <div class="stats">${cards}</div>
+    <div class="panel">
+      <div class="panel-head"><h2>P5-Tex Backlit — average ΔE over last 12 months</h2>
+        <button class="pill ${backlitExclOutliers ? "on" : ""}" onclick="toggleBacklitOutliers()">Exclude critical outliers (ΔE ≥ 10)${totalExcluded ? " · " + totalExcluded : ""}</button>
+      </div>
+      <div class="chart-wrap"><canvas id="backlitChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>About this view</h2></div>
+      <div style="padding:14px 18px;font-size:13.5px;color:var(--ink-2);line-height:1.65">
+        Bars show the mean Max Total ΔE for P5-Tex Backlit at each location over the trailing 365 days; whiskers show the min–max range of individual readings. Dashed lines mark the Warning (3.0) and Out-of-Tolerance (4.0) thresholds.
+        ${backlitExclOutliers
+          ? (totalExcluded ? ` Currently excluding ${totalExcluded} critical reading(s) ≥ 10 ΔE.` : " No critical readings ≥ 10 in the window.")
+          : " Use the toggle above to exclude critical spikes (e.g. Mexico's late-May cluster of ~15 ΔE)."}
+      </div>
+    </div>`;
+  drawBacklitChart();
+}
+
+function toggleBacklitOutliers(){
+  backlitExclOutliers = !backlitExclOutliers;
+  localStorage.setItem("bdoc_backlit_excl", backlitExclOutliers ? "1" : "0");
+  renderBacklit();
+}
+
+function drawBacklitChart(){
+  const stats = window._backlitStats, locs = ["CA","MX","PA"];
+  const labels = locs.map(l => LOC_NAMES[l]);
+  const data = locs.map(l => stats[l].avg);
+  const ranges = locs.map(l => [stats[l].min, stats[l].max]);
+  const ctx = document.getElementById("backlitChart");
+  if(!ctx) return;
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Avg ΔE", data, backgroundColor: "#3987e5", borderRadius: 4, maxBarThickness: 90 }] },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => {
+          const r = ranges[c.dataIndex];
+          return c.parsed.y == null ? " No readings"
+            : ` Avg ΔE ${c.parsed.y.toFixed(2)}` + (r[0] != null ? `  (range ${r[0].toFixed(2)}–${r[1].toFixed(2)})` : "");
+        } } }
+      },
+      scales: {
+        y: { beginAtZero: true, suggestedMax: 6.5, title: { display: true, text: "Max Total ΔE", font: { size: 11 } }, ticks: { font: { size: 10 } }, grid: { color: "#243352" } },
+        x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+      }
+    },
+    plugins: [{
+      id: "backlitExtras",
+      afterDatasetsDraw(c){
+        const { ctx, chartArea, scales } = c;
+        if(!chartArea) return;
+        [[3, "#fab219"], [4, "#ec835a"]].forEach(([v, col]) => {
+          if(v > scales.y.max) return;
+          const y = scales.y.getPixelForValue(v);
+          ctx.save(); ctx.strokeStyle = col; ctx.setLineDash([6, 4]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(chartArea.left, y); ctx.lineTo(chartArea.right, y); ctx.stroke();
+          ctx.fillStyle = col; ctx.font = "10px sans-serif"; ctx.fillText("ΔE " + v, chartArea.right - 34, y - 4); ctx.restore();
+        });
+        ranges.forEach((r, i) => {
+          if(r[0] == null) return;
+          const bar = c.getDatasetMeta(0).data[i];
+          if(!bar) return;
+          const cx = bar.x, yl = scales.y.getPixelForValue(r[0]), yh = scales.y.getPixelForValue(r[1]);
+          ctx.save(); ctx.strokeStyle = "#9db0d5"; ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, yh); ctx.lineTo(cx, yl);
+          ctx.moveTo(cx - 8, yh); ctx.lineTo(cx + 8, yh);
+          ctx.moveTo(cx - 8, yl); ctx.lineTo(cx + 8, yl);
+          ctx.stroke(); ctx.restore();
+        });
+      }
+    }]
+  });
+}
+
+/* ============ ΔE TRENDS VIEW ============ */
+let tLoc = localStorage.getItem("bdoc_tloc") || "CA";
+let tRange = +(localStorage.getItem("bdoc_trange") || 180);
+let tMachine = "ALL";
+let tVis = {};          // material name -> visible
+let tShowTrend = true;  // dashed regression trendlines
+let tChart = null;
+
+const MACHINE_PREFIXES = [
+  "Durst 325-1","Durst 325-2","Durst 325",
+  "Rhotex 325-1","Rhotex 325-2","Rhotex 325",
+  "P5-Tex-1","P5-Tex-2","P5-Tex","P5-350","Vutek 3r"
+];
+function machineOf(name){
+  const n = String(name).toLowerCase();
+  for(const p of MACHINE_PREFIXES){ if(n.startsWith(p.toLowerCase())) return p; }
+  const m = String(name).match(/\b(\d{3}-\d)\b/);   // e.g. "Stretch 325-1" → machine 325-1
+  if(m) return m[1];
+  return "Other";
+}
+
+function renderTrends(){
+  document.getElementById("content").innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h2>Controls</h2>
+        ${["CA","MX","PA"].map(l => `<button class="pill ${tLoc === l ? "on" : ""}" data-tloc="${l}" onclick="tSetLoc('${l}')">${LOC_NAMES[l]}</button>`).join("")}
+        <span class="tsep"></span>
+        ${[[28,"4 wk"],[90,"3 mo"],[180,"6 mo"],[365,"1 yr"],[0,"All"]].map(([d,t]) => `<button class="pill ${tRange === d ? "on" : ""}" data-trange="${d}" onclick="tSetRange(${d})">${t}</button>`).join("")}
+        <span class="tsep"></span>
+        <select id="tMachineSel" class="tsel" onchange="tSetMachine(this.value)"></select>
+        <button class="pill ${tShowTrend ? "on" : ""}" id="tTrendBtn" onclick="tToggleTrend()">Trendlines</button>
+      </div>
+    </div>
+    <div class="trend-grid">
+      <div class="panel">
+        <div class="panel-head"><h2>Materials</h2></div>
+        <div class="tmat-body">
+          <div class="tmat-actions">
+            <button class="pill" onclick="tAll(true)">All</button>
+            <button class="pill" onclick="tAll(false)">None</button>
+          </div>
+          <div id="tMatList"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="panel-head"><h2 id="tChartTitle">ΔE Trend</h2><span class="ago" id="tChartSub"></span></div>
+          <div class="chart-wrap"><canvas id="tCanvas"></canvas></div>
+        </div>
+        <div id="tStats"></div>
+      </div>
+    </div>`;
+  tRefresh();
+}
+
+function tGroups(){
+  const all = DATA[tLoc]?.materials || [];
+  const groups = {};
+  all.forEach((m, i) => {
+    const mc = machineOf(m.name);
+    (groups[mc] = groups[mc] || []).push({ m, i });
+  });
+  return groups;
+}
+function tShownMats(){
+  const all = DATA[tLoc]?.materials || [];
+  return all.map((m, i) => ({ m, i }))
+    .filter(({ m }) => tMachine === "ALL" || machineOf(m.name) === tMachine);
+}
+function tFilterPts(m){
+  const cutoff = tRange ? Date.now() - tRange * 86400000 : 0;
+  return m.points.filter(p => p[0].getTime() >= cutoff);
+}
+
+function tBuildList(){
+  const groups = tGroups();
+  const machines = Object.keys(groups).sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b));
+
+  // machine dropdown
+  const sel = document.getElementById("tMachineSel");
+  sel.innerHTML = `<option value="ALL">All machines</option>` +
+    machines.map(mc => `<option value="${mc}" ${tMachine === mc ? "selected" : ""}>${mc} (${groups[mc].length})</option>`).join("");
+
+  // grouped material checklist
+  const show = machines.filter(mc => tMachine === "ALL" || mc === tMachine);
+  document.getElementById("tMatList").innerHTML = show.map(mc =>
+    `<div class="tmach" onclick="tToggleMachine('${mc}')">${mc}<span class="hint">toggle</span></div>` +
+    groups[mc].map(({ m, i }) => {
+      if(!(m.name in tVis)) tVis[m.name] = true;
+      return `<label class="tmat">
+        <span class="sw" style="background:${seriesColor(i)}"></span>
+        <input type="checkbox" ${tVis[m.name] ? "checked" : ""} onchange="tCheck(${i}, this.checked)">
+        <span>${m.name}</span>
+      </label>`;
+    }).join("")
+  ).join("");
+}
+
+function tLinearTrend(labels, values){
+  const pairs = labels.map((l, i) => [i, values[i]]).filter(p => p[1] !== null && p[1] !== undefined);
+  if(pairs.length < 2) return labels.map(() => null);
+  const n = pairs.length;
+  const mx = pairs.reduce((s, p) => s + p[0], 0) / n;
+  const my = pairs.reduce((s, p) => s + p[1], 0) / n;
+  const num = pairs.reduce((s, p) => s + (p[0] - mx) * (p[1] - my), 0);
+  const den = pairs.reduce((s, p) => s + (p[0] - mx) ** 2, 0);
+  const slope = den ? num / den : 0;
+  const intercept = my - slope * mx;
+  return labels.map((_, i) => +Math.max(0, slope * i + intercept).toFixed(3));
+}
+
+function tDraw(){
+  const shown = tShownMats();
+
+  // union of dates across visible, machine-filtered materials
+  const dateSet = new Set();
+  shown.forEach(({ m }) => { if(tVis[m.name] !== false) tFilterPts(m).forEach(p => dateSet.add(fmtDate(p[0]))); });
+  const labels = Array.from(dateSet).sort();
+
+  const datasets = [];
+  shown.forEach(({ m, i }) => {
+    if(tVis[m.name] === false) return;
+    const pts = tFilterPts(m);
+    if(!pts.length) return;
+    const color = seriesColor(i);
+    const lookup = {};
+    pts.forEach(p => lookup[fmtDate(p[0])] = p[1]);
+    const values = labels.map(l => lookup[l] !== undefined ? lookup[l] : null);
+    datasets.push({
+      label: m.name, data: values,
+      borderColor: color, backgroundColor: color + "33",
+      borderWidth: 2, pointRadius: values.map(v => v !== null ? 3 : 0), pointHoverRadius: 5,
+      tension: .25, spanGaps: true, _trend: false
+    });
+    if(tShowTrend){
+      datasets.push({
+        label: m.name + " trend", data: tLinearTrend(labels, values),
+        borderColor: color, borderWidth: 1.4, borderDash: [5, 4],
+        pointRadius: 0, tension: 0, spanGaps: true, _trend: true
+      });
+    }
+  });
+
+  const ctx = document.getElementById("tCanvas");
+  if(!ctx) return;
+  if(tChart) tChart.destroy();
+  tChart = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          filter: item => !item.dataset._trend && item.parsed.y !== null,
+          callbacks: { label: c => ` ${c.dataset.label}: ΔE ${c.parsed.y.toFixed(2)} (${STATUS_LABEL[statusOf(c.parsed.y)]})` }
+        }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 14, font: { size: 10 }, maxRotation: 35 }, grid: { color: "#243352" } },
+        y: { beginAtZero: true, suggestedMax: 5,
+             title: { display: true, text: "Max Total ΔE", font: { size: 11 } },
+             ticks: { font: { size: 10 } }, grid: { color: "#243352" } }
+      }
+    },
+    plugins: [THRESHOLD_PLUGIN]
+  });
+
+  // stats over machine-filtered materials (latest value within range)
+  const c = { ok:0, warn:0, oot:0, crit:0, mats:0 };
+  shown.forEach(({ m }) => {
+    const pts = tFilterPts(m);
+    if(!pts.length) return;
+    c[statusOf(pts[pts.length - 1][1])]++; c.mats++;
+  });
+  document.getElementById("tStats").innerHTML = statCards(c);
+
+  const visCount = shown.filter(({ m }) => tVis[m.name] !== false).length;
+  document.getElementById("tChartTitle").textContent =
+    `${LOC_NAMES[tLoc]} — ΔE Trends${tMachine !== "ALL" ? " · " + tMachine : ""}`;
+  document.getElementById("tChartSub").textContent =
+    `${visCount} of ${shown.length} materials · ${tRange ? "last " + tRange + " days" : "all time"}`;
+}
+
+function tRefresh(){ tBuildList(); tDraw(); }
+
+function tSetLoc(l){
+  tLoc = l; tVis = {}; tMachine = "ALL";
+  localStorage.setItem("bdoc_tloc", l);
+  document.querySelectorAll(".pill[data-tloc]").forEach(p => p.classList.toggle("on", p.dataset.tloc === l));
+  tRefresh();
+}
+function tSetRange(d){
+  tRange = d;
+  localStorage.setItem("bdoc_trange", d);
+  document.querySelectorAll(".pill[data-trange]").forEach(p => p.classList.toggle("on", +p.dataset.trange === d));
+  tDraw();
+}
+function tSetMachine(mc){ tMachine = mc; tRefresh(); }
+function tToggleTrend(){
+  tShowTrend = !tShowTrend;
+  document.getElementById("tTrendBtn").classList.toggle("on", tShowTrend);
+  tDraw();
+}
+function tCheck(i, on){
+  const m = (DATA[tLoc]?.materials || [])[i];
+  if(m){ tVis[m.name] = on; tDraw(); }
+}
+function tToggleMachine(mc){
+  const groups = tGroups();
+  const mats = (groups[mc] || []).map(({ m }) => m.name);
+  const anyOff = mats.some(n => tVis[n] === false);
+  mats.forEach(n => tVis[n] = anyOff);
+  tRefresh();
+}
+function tAll(on){
+  tShownMats().forEach(({ m }) => tVis[m.name] = on);
+  tRefresh();
+}
+</script>
+<script>/* ===== By Machine add-on (self-contained, appended after WS Display app code) ===== */
+(function(){
+  const MACHINE_RULES = [
+    // 325 with or without a Durst/Rhotex/D prefix, any word order (e.g. "325-2 Stretch", "Stretch 325-2", "D325-2")
+    [/\b(?:rhotex\s*|durst\s*|d)?325\s*-?\s*1\b/i, "D325-1"],
+    [/\b(?:rhotex\s*|durst\s*|d)?325\s*-?\s*2\b/i, "D325-2"],
+    [/\b(?:rhotex\s*|durst\s*|d)?325\b/i, "D325"],
+    [/p5-?tex-?\s*1/i, "P5-Tex-1"],
+    [/p5-?tex-?\s*2/i, "P5-Tex-2"],
+    [/p5-?tex/i, "P5-Tex"],
+    [/p5-?350/i, "P5-350"],
+    [/vutek\s*3r|(?:^|\s)3r(?:\s|$)/i, "Vutek 3r"]
+  ];
+  function machineOf(name){ for(const [re,c] of MACHINE_RULES) if(re.test(name)) return c; return "Other"; }
+  function modelOf(m){ return m.replace(/-[12]$/,"").trim(); }
+  function materialOf(name, loc){
+    let s = name.replace(new RegExp("^\\s*"+loc+"\\s+","i"), "");
+    for(const [re] of MACHINE_RULES) s = s.replace(re, "");
+    return s.replace(/\s+/g," ").trim();
+  }
+  function shortUnit(machine){ return machine; }  // names already short (D325-1, P5-Tex-1, ...)
+  const SC = { ok:"var(--green)", warn:"var(--amber)", oot:"var(--red)", crit:"var(--crit)" };
+  const LOCN = { CA:"California", MX:"Mexico", PA:"Pennsylvania" };
+  function matsFor(loc){ return (typeof DATA !== "undefined" && DATA[loc] && DATA[loc].materials) || []; }
+  // ---- date-range window for the printer-to-printer comparison ----
+  function curWin(){ const v = parseInt(localStorage.getItem("bm_win") || "0", 10); return isNaN(v) ? 0 : v; }
+  window.setBmWindow = function(d){ localStorage.setItem("bm_win", String(d)); if(window.showMachineView) window.showMachineView(); };
+  function curAgg(){ return localStorage.getItem("bm_agg") === "avg" ? "avg" : "worst"; }
+  window.setBmAgg = function(a){ localStorage.setItem("bm_agg", a); if(window.showMachineView) window.showMachineView(); };
+
+  // {loc: {machine: [materialObj,...]}}
+  function buildIdx(){
+    const idx = {};
+    ["CA","MX","PA"].forEach(loc => matsFor(loc).forEach(m => {
+      const mac = machineOf(m.name);
+      (idx[loc] = idx[loc] || {});
+      (idx[loc][mac] = idx[loc][mac] || []).push(m);
+    }));
+    return idx;
+  }
+  function worstLatest(mats){ let w = -1; mats.forEach(m => { const l = latest(m); if(l && l[1] > w) w = l[1]; }); return w; }
+
+  // {loc: {model: {units:{machine:1}, mats:{matKey:{label, vals:{machine:ΔE}}}}}}
+  function buildP2P(){
+    const out = {}, win = curWin(), agg = curAgg();
+    const cutoff = win > 0 ? Date.now() - win*86400000 : 0;
+    ["CA","MX","PA"].forEach(loc => matsFor(loc).forEach(m => {
+      const machine = machineOf(m.name); if(machine === "Other") return;
+      const material = materialOf(m.name, loc); if(!material) return;
+      const inWin = m.points.filter(p => p[0].getTime() >= cutoff).map(p => p[1]);
+      if(!inWin.length) return;                              // no reading in the selected window
+      const model = modelOf(machine);
+      const key = material.toLowerCase().replace(/\s+/g,"");
+      out[loc] = out[loc] || {};
+      const M = out[loc][model] = out[loc][model] || { units:{}, mats:{} };
+      M.units[machine] = 1;
+      const mm = M.mats[key] = M.mats[key] || { label: material, pts:{} };
+      (mm.pts[machine] = mm.pts[machine] || []).push(...inWin);
+    }));
+    // collapse each unit's in-window readings to a single value: worst = max, avg = mean
+    Object.values(out).forEach(models => Object.values(models).forEach(M =>
+      Object.values(M.mats).forEach(mm => {
+        mm.vals = {};
+        Object.keys(mm.pts).forEach(u => {
+          const arr = mm.pts[u];
+          mm.vals[u] = agg === "avg" ? (arr.reduce((a,b)=>a+b,0) / arr.length) : Math.max(...arr);
+        });
+      })
+    ));
+    return out;
+  }
+
+  function cell(v){
+    if(v === undefined || v < 0) return '<td style="text-align:center;color:var(--muted)">—</td>';
+    const st = statusOf(v);
+    return `<td style="text-align:center;font-weight:800;color:${SC[st]}">${v.toFixed(2)}</td>`;
+  }
+
+  window.showMachineView = function(){
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.loc === "MACHINE"));
+    const title = document.getElementById("pageTitle");
+    const sub = document.getElementById("pageSub");
+    if(title) title.innerHTML = "🖨️ By Machine";
+    if(sub) sub.textContent = "Cross-location: same model across sites. Printer-to-printer: the two units of a model at one site, material by material.";
+    const el = document.getElementById("content");
+    if(!el) return;
+    if(typeof DATA === "undefined" || !DATA || !Object.keys(DATA).length){
+      el.innerHTML = '<div class="gate"><div class="big">🖨️</div><h2>By Machine</h2><p>Sign in to load ΔE data.</p></div>';
+      return;
+    }
+
+    // ---------- Cross-location comparison (same model, different sites) ----------
+    const idx = buildIdx();
+    const models = {}, modelLocs = {};
+    ["CA","MX","PA"].forEach(loc => Object.keys(idx[loc]||{}).forEach(mac => {
+      if(mac === "Other") return;
+      const model = modelOf(mac);
+      (modelLocs[model] = modelLocs[model] || new Set()).add(loc);
+      const w = worstLatest(idx[loc][mac]);
+      models[model] = models[model] || {};
+      models[model][loc] = Math.max(models[model][loc] ?? -1, w);
+    }));
+    const comparable = Object.keys(models).filter(md => modelLocs[md].size >= 2).sort();
+    const singleModels = Object.keys(models).filter(md => modelLocs[md].size < 2).sort();
+
+    const xrow = md => `<tr><td class="mat-name">${md}</td>${["CA","MX","PA"].map(loc => cell(models[md][loc])).join("")}</tr>`;
+    let html = `<div class="panel"><div class="panel-head"><h2>Cross-location comparison</h2>
+      <span class="ago">Worst-material ΔE per machine model · only models run at 2+ locations</span></div>`;
+    html += comparable.length
+      ? `<table><thead><tr><th>Machine model</th><th style="text-align:center">California</th><th style="text-align:center">Mexico</th><th style="text-align:center">Pennsylvania</th></tr></thead><tbody>${comparable.map(xrow).join("")}</tbody></table>`
+      : '<div class="empty"><div class="ei">📭</div>No models are run at more than one location yet.</div>';
+    html += `</div>`;
+
+    // ---------- Date-range selector (applies to the printer-to-printer comparisons below) ----------
+    const win = curWin(), agg = curAgg();
+    const pill = (d,label) => `<button class="pill${win===d?" on":""}" onclick="setBmWindow(${d})">${label}</button>`;
+    const aggPill = (a,label) => `<button class="pill${agg===a?" on":""}" onclick="setBmAgg('${a}')">${label}</button>`;
+    html += `<div class="panel" style="padding:12px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:700;font-size:13px;color:var(--ink-2)">Printer-to-printer range:</span>
+        ${pill(30,"30 days")}${pill(60,"60 days")}${pill(90,"90 days")}${pill(180,"180 days")}${pill(0,"All time")}
+        <span class="tsep"></span>${aggPill("worst","Worst")}${aggPill("avg","Average")}
+        <span class="ago" style="margin-left:auto">${agg==="avg"?"average":"worst"} ΔE per unit in the selected window</span></div>`;
+
+    // ---------- Printer-to-printer (same location, unit vs unit, per material) ----------
+    const p2p = buildP2P();
+    ["CA","MX","PA"].forEach(loc => {
+      const modelsAtLoc = p2p[loc] || {};
+      const blocks = [];
+      Object.keys(modelsAtLoc).sort().forEach(model => {
+        const M = modelsAtLoc[model];
+        const units = Object.keys(M.units).sort();
+        if(units.length < 2) return;
+        const matKeys = Object.keys(M.mats)
+          .filter(k => units.filter(u => M.mats[k].vals[u] !== undefined && M.mats[k].vals[u] >= 0).length >= 2)
+          .sort((a,b) => M.mats[a].label.localeCompare(M.mats[b].label));
+        if(!matKeys.length) return;
+        // fixed, shared column widths so every model's table lines up vertically
+        const uW = (45 / units.length).toFixed(2);
+        const head = `<tr><th style="width:40%">Material</th>${units.map(u => `<th style="text-align:center;width:${uW}%">${shortUnit(u)}</th>`).join("")}<th style="text-align:center;width:15%">Δ units</th></tr>`;
+        const rows = matKeys.map(k => {
+          const present = units.map(u => M.mats[k].vals[u]).filter(v => v !== undefined && v >= 0);
+          const diff = present.length >= 2 ? (Math.max(...present) - Math.min(...present)) : null;
+          const cells = units.map(u => cell(M.mats[k].vals[u])).join("");
+          const dc = diff === null ? "var(--muted)" : diff >= 3 ? "var(--red)" : diff >= 1.5 ? "var(--amber)" : "var(--muted)";
+          const dcell = diff === null ? "<td></td>" : `<td style="text-align:center;font-weight:700;color:${dc}">${diff.toFixed(2)}</td>`;
+          return `<tr><td class="mat-name">${M.mats[k].label}</td>${cells}${dcell}</tr>`;
+        }).join("");
+        blocks.push(`<div style="font-weight:700;font-size:11px;color:var(--ink-2);padding:12px 18px 2px;text-transform:uppercase;letter-spacing:.6px">${model}</div><table style="table-layout:fixed"><thead>${head}</thead><tbody>${rows}</tbody></table>`);
+      });
+      if(blocks.length){
+        html += `<div class="panel"><div class="panel-head"><h2>${LOCN[loc]} — printer&#8209;to&#8209;printer</h2>
+          <span class="ago">Same material on each unit of a model · Δ = gap between the two printers</span></div>${blocks.join("")}</div>`;
+      }
+    });
+
+    el.innerHTML = html;
+  };
+})();
+</script>
+</body>
+</html>

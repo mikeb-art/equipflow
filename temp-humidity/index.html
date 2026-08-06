@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temp &amp; Humidity · EquipFlow</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    /* legacy aliases → EquipFlow tokens (theme.css supplies the token values) */
+    --hl:var(--accent); --ltblue:var(--ink-2);
+    --blue:var(--accent); --green:var(--good); --amber:var(--warn); --red:var(--crit);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh}
+  /* Sidebar module nav sections */
+  .navsec{margin-top:14px}
+  .navsec .sec{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--muted);margin:0 8px 6px;text-transform:uppercase;font-weight:600}
+  /* Main */
+  #main{flex:1;padding:0;min-width:0}
+  #content{padding:24px 28px;max-width:1200px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .eqf-app .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;border:1px solid var(--border);border-top:4px solid var(--muted)}
+  .card.ok{border-top-color:var(--good)} .card.warn{border-top-color:var(--warn)} .card.bad{border-top-color:var(--crit)}
+  .card .loc{font-size:11.5px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:700}
+  .card .big{font-size:26px;font-weight:800;margin:6px 0 2px}
+  .card .big .t{color:var(--ink)} .card .big .h{color:var(--hl)}
+  .card .rows{margin-top:10px;font-size:12.5px}
+  .srow{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid var(--border);cursor:pointer}
+  .srow:hover{background:var(--card-2)}
+  .srow .nm{color:var(--ink)}
+  .srow .vals{color:var(--muted);white-space:nowrap}
+  .pill{display:inline-block;padding:1px 7px;border-radius:9px;font-size:10.5px;font-weight:700;color:#fff;margin-left:6px;vertical-align:1px}
+  .pill.ok{background:var(--good)} .pill.warn{background:var(--warn);color:#241a00} .pill.bad{background:var(--crit)} .pill.stale{background:var(--muted);color:#0a1122}
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-top:20px}
+  .panel h3{font-size:16px;margin-bottom:10px}
+  .note{background:var(--warn-soft);border:1px solid rgba(250,178,25,.35);border-radius:var(--radius);padding:12px 16px;margin-top:20px;font-size:13px;color:var(--ink)}
+  .note b{color:var(--warn)}
+  .chartwrap{position:relative;height:320px;margin-top:8px}
+  .range-btns{display:flex;gap:8px;margin:4px 0 6px;flex-wrap:wrap}
+  .rbtn{border:1px solid var(--border-strong);background:var(--inset);color:var(--accent);font-size:12px;padding:4px 12px;border-radius:14px;cursor:pointer;font-weight:600}
+  .rbtn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .legend-note{font-size:11.5px;color:var(--muted);margin-top:6px}
+  .trend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:8px}
+  .trend{border:1px solid var(--border);background:var(--inset);border-radius:10px;padding:12px 14px;font-size:13px}
+  .trend b{display:block;margin-bottom:4px}
+  .trend-date{display:block;font-size:11px;color:var(--muted);font-weight:400;margin:-2px 0 7px}
+  .oorgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px 22px;margin-top:6px}
+  @media(max-width:640px){.oorgrid{grid-template-columns:1fr}}
+  .datacurrency{background:var(--accent-soft);border:1px solid rgba(41,169,255,.3);color:var(--ink-2);border-radius:10px;padding:8px 14px;font-size:12.5px;margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .datacurrency .stale{color:#ff7b7b;font-weight:700}
+  .up{color:#ff7b7b;font-weight:700}.down{color:#5fd75f;font-weight:700}.flat{color:var(--muted);font-weight:700}
+  table.readings{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  table.readings th{ text-align:left;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:2px solid var(--border-strong)}
+  table.readings td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.sel-label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.sel-label select{font:inherit;font-size:13px;color:var(--ink);background:var(--inset);border:1px solid var(--border-strong);border-radius:6px;padding:5px 8px;cursor:pointer}
+.sel-label select:focus{outline:2px solid rgba(41,169,255,.4);outline-offset:1px}
+</style>
+<link rel="stylesheet" href="/assets/theme.css">
+</head>
+<body>
+<div class="eqf-app">
+<aside class="eqf-side">
+  <div class="eqf-brand">
+    <div class="dot"></div>
+    <div>
+      <div class="nm">Equip<b>Flow</b></div>
+      <div class="sub">Equipment &middot; Environment</div>
+      <div class="ver">v2026.08.06</div>
+    </div>
+  </div>
+  <div class="eqf-navlabel">Modules</div>
+  <a class="eqf-navitem mod" href="/">▦&nbsp;Overview</a>
+  <a class="eqf-navitem mod" href="/maintenance/">🛠&nbsp;Maintenance</a>
+  <a class="eqf-navitem mod" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+  <a class="eqf-navitem mod" href="/rulers/">📏&nbsp;Rulers</a>
+  <a class="eqf-navitem mod active" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+  <div class="navsec">
+    <div class="sec">Overview</div>
+    <div class="navitem active" data-view="dash" onclick="show('dash')">▦&nbsp; Dashboard</div>
+  </div>
+  <div class="navsec">
+    <div class="sec">Locations</div>
+    <div id="locnav"></div>
+  </div>
+  <div class="side-foot">Targets: 68–76 °F · 45–55 %RH<br><span id="gen"></span></div>
+</aside>
+<div id="main" class="eqf-main">
+  <div id="topbar"><h2 id="title">▦ Dashboard</h2><div class="sub" id="subtitle">All locations — current conditions &amp; trends</div></div>
+  <div id="content"></div>
+</div>
+</div>
+<script>
+if (window.Chart) {
+  Chart.defaults.color = "#9db0d5";
+  Chart.defaults.borderColor = "#243352";
+  Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+}
+const T_LO=68, T_HI=76, H_LO=45, H_HI=55;
+const NEAR=2; // within this of the edge = warning
+let DATA=null, charts=[];
+
+function status(t,h){
+  const tBad = t<T_LO||t>T_HI, hBad = h<H_LO||h>H_HI;
+  if(tBad||hBad) return 'bad';
+  if(t<T_LO+NEAR||t>T_HI-NEAR||h<H_LO+NEAR||h>H_HI-NEAR) return 'warn';
+  return 'ok';
+}
+const S_LABEL={ok:'IN RANGE',warn:'NEAR EDGE',bad:'OUT OF RANGE',stale:'STALE'};
+const fmt=(v,u)=>v==null?'—':v.toFixed(1)+u;
+
+function locSensors(loc){return Object.entries(DATA.sensors).filter(([n,s])=>s.loc===loc);}
+function isStale(iso){ return (new Date(DATA.generated) - new Date(iso.replace(' ','T'))) > 3*3600*1000; }
+
+function buildNav(){
+  const el=document.getElementById('locnav');
+  el.innerHTML='';
+  for(const [code,name] of Object.entries(DATA.locations)){
+    const d=document.createElement('div');
+    d.className='navitem'; d.dataset.view='loc-'+code;
+    d.innerHTML='🖨&nbsp; '+code+' — '+name;
+    d.onclick=()=>show('loc-'+code);
+    el.appendChild(d);
+  }
+}
+function killCharts(){charts.forEach(c=>c.destroy());charts=[];}
+
+function show(view){
+  document.querySelectorAll('.navitem,.subitem').forEach(e=>e.classList.toggle('active',e.dataset.view===view));
+  killCharts();
+  if(view==='dash') renderDash();
+  else renderLoc(view.slice(4));
+  window.scrollTo(0,0);
+}
+
+/* ---------- Dashboard ---------- */
+function renderDash(){
+  document.getElementById('title').textContent='▦ Dashboard';
+  document.getElementById('subtitle').textContent='All locations — current conditions & trends';
+  const c=document.getElementById('content');
+  let cards='';
+  const alerts=[];
+  for(const [code,name] of Object.entries(DATA.locations)){
+    const ss=locSensors(code);
+    let sumT=0,sumH=0,n=0,worst='ok',rows='';
+    for(const [nm,s] of ss){
+      const [ts,t,h]=s.latest;
+      const stale=isStale(ts);
+      const st=stale?'stale':status(t,h);
+      if(!stale){sumT+=t;sumH+=h;n++;}
+      if(st==='bad'){ if(worst!=='bad')worst='bad';
+        const parts=[];
+        if(t<T_LO)parts.push(t.toFixed(1)+'°F (low)'); if(t>T_HI)parts.push(t.toFixed(1)+'°F (high)');
+        if(h<H_LO)parts.push(h.toFixed(1)+'% RH (low)'); if(h>H_HI)parts.push(h.toFixed(1)+'% RH (high)');
+        alerts.push(code+' · '+nm+': '+parts.join(', '));
+      } else if(st==='warn'&&worst==='ok')worst='warn';
+      rows+='<div class="srow" onclick="show(\'loc-'+code+'\')"><span class="nm">'+nm+'</span><span class="vals">'+fmt(t,'°F')+' · '+fmt(h,'%')+'<span class="pill '+st+'">'+S_LABEL[st]+'</span></span></div>';
+    }
+    cards+='<div class="card '+worst+'"><div class="loc">'+code+' — '+name+'</div>'
+      +'<div class="big"><span class="t">'+(n?(sumT/n).toFixed(1):'—')+'°F</span> · <span class="h">'+(n?(sumH/n).toFixed(1):'—')+'% RH</span></div>'
+      +'<div class="rows">'+rows+'</div></div>';
+  }
+  let alertHtml='';
+  if(alerts.length) alertHtml='<div class="note"><b>⚠ Out of range now</b><div class="oorgrid">'+alerts.map(a=>'<div>• '+a+'</div>').join('')+'</div></div>';
+  const _g=DATA.generated?new Date(DATA.generated.replace(' ','T')):null;const _hrs=_g?Math.round((Date.now()-_g.getTime())/3600000):null;const _stale=_hrs!=null&&_hrs>9;const _cur='<div class="datacurrency"><span>🕒 Data updated: '+(DATA.generated?DATA.generated.replace('T',' ').slice(0,16):'—')+(_hrs!=null?' <span class="'+(_stale?'stale':'')+'">('+_hrs+'h ago)</span>':'')+'</span><span>Auto-refreshes every 8 hours</span></div>';c.innerHTML=_cur+'<div class="cards">'+cards+'</div>'+alertHtml
+    +'<div class="panel"><h3 id="trendsHead">30-Day Trends vs Prior 30 Days</h3><div class="range-btns"><button class="rbtn active" id="trendModeBtn" onclick="toggleTrendMode(this)">Show Year-over-Year</button><button class="rbtn" id="trendOutsideBtn" onclick="trendOutsideClick(this)">Include Warehouse</button></div><div class="trend-grid" id="trends"></div></div>'
+    +'<div class="panel"><h3 id="dashMonthlyHead">Monthly Averages — All Locations</h3><div class="range-btns"><label class="sel-label">Location <select id="dashLocSel" onchange="dashLocClick(this)"><option value="all">All Locations</option>'+Object.keys(DATA.locations).map(function(c){return '<option value="'+c+'">'+c+' — '+DATA.locations[c]+'</option>';}).join('')+'</select></label></div><div class="range-btns" id="mmode">'
+    +'<button class="rbtn active" onclick="dashMetric=\'h\';drawDashMonthly();mark(this)">Humidity %</button>'
+    +'<button class="rbtn" onclick="dashMetric=\'t\';drawDashMonthly();mark(this)">Temperature °F</button></div>'
+    +'<div class="range-btns" id="drange"><button class="rbtn" data-r="30d" onclick="dashRangeClick(this)">30 Days</button><button class="rbtn" data-r="90d" onclick="dashRangeClick(this)">90 Days</button><button class="rbtn" data-r="1yr" onclick="dashRangeClick(this)">1 Year</button><button class="rbtn active" data-r="all" onclick="dashRangeClick(this)">All</button></div><div class="range-btns"><button class="rbtn" id="outsideBtn" onclick="dashOutsideClick(this)">Include Warehouse</button></div>'
+    +'<div class="chartwrap"><canvas id="dashChart"></canvas></div>'
+    +'<div class="legend-note">One line per location (print-room sensors averaged; toggle to add warehouse). Shaded band = target range.</div></div>'
++'<div class="panel"><h3 id="yoyHead">Year-over-Year Comparison — All Locations</h3><div class="range-btns"><label class="sel-label">Location <select id="yoyLocSel" onchange="yoyLocClick(this)"><option value="all">All Locations</option>'+Object.keys(DATA.locations).map(function(c){return '<option value="'+c+'">'+c+' — '+DATA.locations[c]+'</option>';}).join('')+'</select></label></div>'
++'<div class="range-btns" id="ymode"><button class="rbtn active" onclick="yoyMetric=\'h\';drawYoY();mark(this)">Humidity %</button><button class="rbtn" onclick="yoyMetric=\'t\';drawYoY();mark(this)">Temperature °F</button></div>'
++'<div class="range-btns" id="yrange"><button class="rbtn" data-r="30d" onclick="yoyRangeClick(this)">30 Days</button><button class="rbtn" data-r="90d" onclick="yoyRangeClick(this)">90 Days</button><button class="rbtn" data-r="1yr" onclick="yoyRangeClick(this)">1 Year</button><button class="rbtn active" data-r="all" onclick="yoyRangeClick(this)">All</button></div>'
++'<div class="range-btns"><button class="rbtn" id="yoyOutsideBtn" onclick="yoyOutsideClick(this)">Include Warehouse</button></div>'
++'<div class="chartwrap"><canvas id="yoyChart"></canvas></div>'
++'<div class="legend-note">Solid line = the selected period; dashed line of the same colour = the same period one year earlier. Gaps mean there is no prior-year data yet. Shaded band = target range.</div></div>';
+  renderTrends();
+drawDashMonthly();
+drawYoY();
+}
+function mark(btn){btn.parentElement.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+let dashMetric='h';
+let dashRange='all';
+let dashIncludeOutside=false;
+let dashLoc='all';
+let yoyMetric='h'; let yoyRange='all'; let yoyIncludeOutside=false; let yoyLoc='all';
+function yoyRangeClick(btn){yoyRange=btn.dataset.r;drawYoY();mark(btn);}
+function yoyOutsideClick(btn){yoyIncludeOutside=!yoyIncludeOutside;btn.classList.toggle('active');drawYoY();}
+function yoyLocClick(sel){yoyLoc=sel.value;var hd=document.getElementById('yoyHead');if(hd)hd.textContent='Year-over-Year Comparison — '+(yoyLoc==='all'?'All Locations':(yoyLoc+' — '+DATA.locations[yoyLoc]));drawYoY();}
+function dashLocClick(sel){dashLoc=sel.value;var hd=document.getElementById('dashMonthlyHead');if(hd)hd.textContent='Monthly Averages — '+(dashLoc==='all'?'All Locations':(dashLoc+' — '+DATA.locations[dashLoc]));drawDashMonthly();}
+let trendMode='trend'; let trendIncludeOutside=false;
+function dashRangeClick(btn){dashRange=btn.dataset.r;drawDashMonthly();mark(btn);}
+function trendOutsideClick(btn){trendIncludeOutside=!trendIncludeOutside;btn.classList.toggle('active');renderTrends();} function dashOutsideClick(btn){dashIncludeOutside=!dashIncludeOutside;btn.classList.toggle('active');drawDashMonthly();}
+function toggleTrendMode(btn){trendMode=(trendMode==='trend')?'yoy':'trend';var hd=document.getElementById('trendsHead');if(hd)hd.textContent=(trendMode==='yoy')?'Year-over-Year — Last 30 Days vs Same Period Last Year':'30-Day Trends vs Prior 30 Days';btn.textContent=(trendMode==='yoy')?'Show 30-Day Trends':'Show Year-over-Year';renderTrends();}
+
+function trendOf(sensorEntries, idx){ // idx 1=temp,4=hum from daily [minT,avgT,maxT,minH,avgH,maxH]
+  const gen=new Date(DATA.generated);
+  const day=d=>{const x=new Date(gen);x.setDate(x.getDate()-d);return x.toISOString().slice(0,10);}
+  const avgOver=(from,to)=>{let s=0,n=0;
+    for(const [,sd] of sensorEntries) for(const [d,v] of Object.entries(sd.daily)) if(d>=from&&d<to){s+=v[idx];n++;}
+    return n?s/n:null;}
+  const cur=avgOver(day(30),day(0)), prev=(typeof trendMode!=='undefined'&&trendMode==='yoy')?avgOver(day(395),day(365)):avgOver(day(60),day(30));
+  return [cur,prev];
+}
+function renderTrends(){
+  const el=document.getElementById('trends');
+  let html='';
+  const _tg=DATA.generated?new Date(DATA.generated.replace(' ','T')):new Date();
+  const _te=new Date(_tg), _ts=new Date(_tg); _ts.setDate(_ts.getDate()-30);
+  const _fd=x=>x.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const _trange=(typeof trendMode!=='undefined'&&trendMode==='yoy')?('Last 30d vs same period '+(_te.getFullYear()-1)):(_fd(_ts)+' – '+_fd(_te)+', '+_te.getFullYear());
+  for(const [code,name] of Object.entries(DATA.locations)){
+    const ss=locSensors(code).filter(([nm])=>trendIncludeOutside||!isOutsideSensor(nm));
+    const [tc,tp]=trendOf(ss,1), [hc,hp]=trendOf(ss,4);
+    const arrow=(c,p)=>{if(c==null||p==null)return['flat','—'];const d=c-p;if(Math.abs(d)<0.5)return['flat','→ steady'];return d>0?['up','↑ +'+d.toFixed(1)]:['down','↓ '+d.toFixed(1)];};
+    const [tc_,ta]=arrow(tc,tp),[hc_,ha]=arrow(hc,hp);
+    html+='<div class="trend"><b>'+code+' — '+name+'</b><span class="trend-date">'+_trange+'</span>'
+      +'Temp: '+(tc?tc.toFixed(1):'—')+'°F <span class="'+tc_+'">'+ta+'</span><br>'
+      +'Humidity: '+(hc?hc.toFixed(1):'—')+'% <span class="'+hc_+'">'+ha+'</span></div>';
+  }
+  el.innerHTML=html;
+}
+/* EquipFlow categorical palette — fixed order, never cycled */
+const EQF_SERIES=["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];
+const EQF_OTHER="#64789f"; /* fold-to-gray for any series beyond the 8th */
+const LOC_COLORS={CA:'#3987e5',PA:'#d95926',MX:'#199e70'};
+function bandPlugin(lo,hi){
+  return {id:'band',beforeDraw(ch){const {ctx,chartArea:a,scales:{y}}=ch;if(!a)return;
+    const y1=y.getPixelForValue(hi),y2=y.getPixelForValue(lo);
+    ctx.save();ctx.fillStyle='rgba(12,163,12,.10)';ctx.fillRect(a.left,Math.max(y1,a.top),a.right-a.left,Math.min(y2,a.bottom)-Math.max(y1,a.top));ctx.restore();}};
+}
+function killChart(id){var el=document.getElementById(id);if(!el)return;var c=Chart.getChart(el);if(c){var i=charts.indexOf(c);if(i>=0)charts.splice(i,1);c.destroy();}}
+function drawDashMonthly(){
+killChart('dashChart');
+  const t=dashMetric==='t';
+  const daily=(dashRange==='30d'||dashRange==='90d');
+  const inc=nm=>dashIncludeOutside||!isOutsideSensor(nm);
+  let labels=[], ds=[];
+  if(daily){
+    const gen=new Date(DATA.generated);
+    const days=dashRange==='30d'?30:90;
+    const from=new Date(gen);from.setDate(from.getDate()-days);
+    const fromStr=from.toISOString().slice(0,10);
+    const set=new Set();
+    Object.values(DATA.sensors).forEach(s=>Object.keys(s.daily||{}).forEach(d=>{if(d>=fromStr)set.add(d);}));
+    labels=[...set].sort();
+    const di=t?1:4;
+    for(const [code] of Object.entries(DATA.locations)){if(dashLoc!=='all'&&code!==dashLoc)continue;
+      const ss=locSensors(code);
+      ds.push({label:code,data:labels.map(m=>{let s=0,n=0;for(const[nm,sd]of ss){if(!inc(nm))continue;const v=sd.daily[m];if(v){s+=v[di];n++;}}return n?+(s/n).toFixed(1):null;}),
+        borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],tension:.3,spanGaps:true,pointRadius:0});
+    }
+  }else{
+    const months=new Set();
+    Object.values(DATA.sensors).forEach(s=>Object.keys(s.monthly).forEach(m=>months.add(m)));
+    let all=[...months].sort().filter(m=>m>='2024-06');
+    labels=dashRange==='1yr'?all.slice(-12):all;
+    const mi=t?0:1;
+    for(const [code] of Object.entries(DATA.locations)){if(dashLoc!=='all'&&code!==dashLoc)continue;
+      const ss=locSensors(code);
+      ds.push({label:code,data:labels.map(m=>{let s=0,n=0;for(const[nm,sd]of ss){if(!inc(nm))continue;const v=sd.monthly[m];if(v){s+=v[mi];n++;}}return n?+(s/n).toFixed(1):null;}),
+        borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],tension:.3,spanGaps:true,pointRadius:2});
+    }
+  }
+  charts.push(new Chart(document.getElementById('dashChart'),{type:'line',
+    data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,scales:{y:{title:{display:true,text:t?'°F':'% RH'}}},plugins:{legend:{position:'bottom'}}},
+    plugins:[bandPlugin(...(t?[T_LO,T_HI]:[H_LO,H_HI]))]}));
+}
+
+
+function drawYoY(){
+killChart('yoyChart');
+const t=yoyMetric==='t';
+const daily=(yoyRange==='30d'||yoyRange==='90d');
+const inc=nm=>yoyIncludeOutside||!isOutsideSensor(nm);
+const py=k=>(parseInt(k.slice(0,4),10)-1)+k.slice(4);
+let labels=[], ds=[];
+if(daily){
+const gen=new Date(DATA.generated);
+const days=yoyRange==='30d'?30:90;
+const from=new Date(gen);from.setDate(from.getDate()-days);
+const fromStr=from.toISOString().slice(0,10);
+const set=new Set();
+Object.values(DATA.sensors).forEach(s=>Object.keys(s.daily||{}).forEach(d=>{if(d>=fromStr)set.add(d);}));
+labels=[...set].sort();
+const di=t?1:4;
+for(const [code] of Object.entries(DATA.locations)){
+if(yoyLoc!=='all'&&code!==yoyLoc)continue;
+const ss=locSensors(code);
+const pick=k=>{let s=0,n=0;for(const[nm,sd]of ss){if(!inc(nm))continue;const v=sd.daily[k];if(v){s+=v[di];n++;}}return n?+(s/n).toFixed(1):null;};
+ds.push({label:code+' — this year',data:labels.map(k=>pick(k)),borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],borderWidth:2.4,tension:.3,spanGaps:true,pointRadius:0});
+ds.push({label:code+' — prior year',data:labels.map(k=>pick(py(k))),borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],borderWidth:1.5,borderDash:[5,4],tension:.3,spanGaps:true,pointRadius:0});
+}
+}else{
+const months=new Set();
+Object.values(DATA.sensors).forEach(s=>Object.keys(s.monthly).forEach(m=>months.add(m)));
+let all=[...months].sort().filter(m=>m>='2024-06');
+labels=yoyRange==='1yr'?all.slice(-12):all;
+const mi=t?0:1;
+for(const [code] of Object.entries(DATA.locations)){
+if(yoyLoc!=='all'&&code!==yoyLoc)continue;
+const ss=locSensors(code);
+const pick=k=>{let s=0,n=0;for(const[nm,sd]of ss){if(!inc(nm))continue;const v=sd.monthly[k];if(v){s+=v[mi];n++;}}return n?+(s/n).toFixed(1):null;};
+ds.push({label:code+' — this year',data:labels.map(k=>pick(k)),borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],borderWidth:2.4,tension:.3,spanGaps:true,pointRadius:2});
+ds.push({label:code+' — prior year',data:labels.map(k=>pick(py(k))),borderColor:LOC_COLORS[code],backgroundColor:LOC_COLORS[code],borderWidth:1.5,borderDash:[5,4],tension:.3,spanGaps:true,pointRadius:0});
+}
+}
+charts.push(new Chart(document.getElementById('yoyChart'),{type:'line',
+data:{labels,datasets:ds},
+options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},scales:{y:{title:{display:true,text:t?'°F':'% RH'}}},plugins:{legend:{position:'bottom'}}},
+plugins:[bandPlugin(...(t?[T_LO,T_HI]:[H_LO,H_HI]))]}));
+}
+
+/* ---------- Location view ---------- */
+let locRange='30d';
+function renderLoc(code){
+  const name=DATA.locations[code];
+  document.getElementById('title').textContent='🖨 '+code+' — '+name;
+  document.getElementById('subtitle').textContent='Sensor readings, charts and history';
+  const c=document.getElementById('content');
+  const ss=locSensors(code);
+  let rows='';
+  for(const [nm,s] of ss){
+    const [ts,t,h]=s.latest; const st=isStale(ts)?'stale':status(t,h);
+    rows+='<tr><td>'+nm+'</td><td>'+fmt(t,'°F')+'</td><td>'+fmt(h,'%')+'</td><td>'+ts.replace('T',' ').slice(0,16)+'</td><td><span class="pill '+st+'">'+S_LABEL[st]+'</span></td></tr>';
+  }
+  c.innerHTML='<div class="panel" style="margin-top:0"><h3>Current Readings</h3><table class="readings"><tr><th>Sensor</th><th>Temp</th><th>Humidity</th><th>Last reading</th><th>Status</th></tr>'+rows+'</table></div>'
+   +'<div class="panel"><h3>Temperature</h3><div class="range-btns">'
+   +['30d','90d','180d','all'].map(r=>'<button class="rbtn'+(r===locRange?' active':'')+'" onclick="locRange=\''+r+'\';renderLocCharts(\''+code+'\');markRange(this)">'+({'30d':'30 days','90d':'90 days','180d':'180 days','all':'All time'})[r]+'</button>').join('')
+   +'</div><div class="chartwrap"><canvas id="tChart"></canvas></div></div>'
+   +'<div class="panel"><h3>Humidity</h3><div class="chartwrap"><canvas id="hChart"></canvas></div>'
+   +'<div class="legend-note">Print Room line = average of all in-room sensors (room + presses). Monti / outside-print-room sensors shown as a separate line. Shaded band = target range (68–76 °F / 45–55 %RH). 30, 90 &amp; 180-day views plot daily averages; “All time” plots monthly averages.</div></div>';
+  renderLocCharts(code);
+}
+function markRange(btn){btn.parentElement.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function seriesFor(s){
+  if(locRange==='all'){ const labels=Object.keys(s.monthly).sort(); return {labels, t:labels.map(l=>s.monthly[l][0]), h:labels.map(l=>s.monthly[l][1])}; }
+  const days = locRange==='30d'?30 : locRange==='180d'?180 : 90;
+  const labels=Object.keys(s.daily).sort().slice(-days);
+  return {labels, t:labels.map(l=>s.daily[l][1]), h:labels.map(l=>s.daily[l][4])};
+}
+const SENSOR_COLORS=EQF_SERIES.slice(); /* >8 concurrent sensor series would fold to EQF_OTHER gray */
+function isOutsideSensor(nm){ return /monti/i.test(nm) || /outside/i.test(nm); }
+function groupSeriesAvg(members,key,labels){
+  const maps=members.map(([nm,sr])=>{const m={};sr.labels.forEach((l,j)=>m[l]=sr[key][j]);return m;});
+  return labels.map(l=>{let s=0,n=0;maps.forEach(m=>{const v=m[l];if(v!=null){s+=v;n++;}});return n?+(s/n).toFixed(1):null;});
+}
+function outsideLabel(members){ return 'Outside Print Room, (Monti area)'; }
+function linTrend(data){
+  const pts=[]; data.forEach((v,i)=>{ if(v!=null && !isNaN(v)) pts.push([i,+v]); });
+  if(pts.length<2) return data.map(()=>null);
+  const n=pts.length; let sx=0,sy=0,sxx=0,sxy=0;
+  pts.forEach(([x,y])=>{ sx+=x; sy+=y; sxx+=x*x; sxy+=x*y; });
+  const den=n*sxx-sx*sx; const slope=den? (n*sxy-sx*sy)/den : 0;
+  const intercept=(sy-slope*sx)/n;
+  return data.map((_,i)=>+(slope*i+intercept).toFixed(2));
+}
+function renderLocCharts(code){
+  killCharts();
+  const ss=locSensors(code);
+  const prMembers=[], outMembers=[]; const labSet=new Set();
+  ss.forEach(([nm,s])=>{ const sr=seriesFor(s); sr.labels.forEach(l=>labSet.add(l)); (isOutsideSensor(nm)?outMembers:prMembers).push([nm,sr]); });
+  const labels=[...labSet].sort();
+  const PR_COLOR=EQF_SERIES[0], OUT_COLOR=EQF_SERIES[1];
+  const mk=(key)=>{
+    const ds=[];
+    if(prMembers.length){
+      const prData=groupSeriesAvg(prMembers,key,labels);
+      ds.push({label:'Print Room (Averaged)',data:prData,borderColor:PR_COLOR,backgroundColor:PR_COLOR,tension:.25,spanGaps:true,pointRadius:0,borderWidth:2});
+      ds.push({label:'Print Room (Averaged) trend',data:linTrend(prData),borderColor:PR_COLOR,borderDash:[6,4],borderWidth:1.5,pointRadius:0,tension:0,spanGaps:true});
+    }
+    if(outMembers.length){
+      const outData=groupSeriesAvg(outMembers,key,labels);
+      ds.push({label:outsideLabel(outMembers),data:outData,borderColor:OUT_COLOR,backgroundColor:OUT_COLOR,tension:.25,spanGaps:true,pointRadius:0,borderWidth:2});
+      ds.push({label:outsideLabel(outMembers)+' trend',data:linTrend(outData),borderColor:OUT_COLOR,borderDash:[6,4],borderWidth:1.5,pointRadius:0,tension:0,spanGaps:true});
+    }
+    return ds;
+  };
+  const opts=(unit,lo,hi)=>({responsive:true,maintainAspectRatio:false,animation:false, scales:{y:{title:{display:true,text:unit}},x:{ticks:{maxTicksLimit:14}}},plugins:{legend:{position:'bottom'}}});
+  charts.push(new Chart(document.getElementById('tChart'),{type:'line',data:{labels,datasets:mk('t')},options:opts('°F'),plugins:[bandPlugin(T_LO,T_HI)]}));
+  charts.push(new Chart(document.getElementById('hChart'),{type:'line',data:{labels,datasets:mk('h')},options:opts('% RH'),plugins:[bandPlugin(H_LO,H_HI)]}));
+}
+/* Try the nightly-refreshed copy on GitHub Pages first; fall back to the local bundled copy. */
+fetch('https://mikeb-art.github.io/temp-humidity/data.json',{cache:'no-store'})
+  .then(r=>{if(!r.ok)throw new Error('remote data.json '+r.status);return r.json();})
+  .catch(()=>fetch('./data.json').then(r=>r.json()))
+  .then(d=>{
+  DATA=d;
+  document.getElementById('gen').textContent='Data updated: '+d.generated.replace('T',' ').slice(0,16);
+  buildNav();
+  renderDash();
+});
+</script>
+</body>
+</html>
