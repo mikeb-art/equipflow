@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Print Quality · EquipFlow</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  .wrap{padding:26px 30px 40px;max-width:1180px}
+  .hero{margin:6px 0 22px}
+  .hero h1{font-size:34px;margin:0;color:#fff;font-weight:800;letter-spacing:-.5px}
+  .hero .kicker{font-family:var(--mono);font-size:10px;letter-spacing:2.4px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .hero p{color:var(--ink-2);max-width:70ch;font-size:14px;line-height:1.6;margin:12px 0 0}
+  .secl{font-family:var(--mono);font-size:10px;letter-spacing:2.2px;text-transform:uppercase;color:var(--muted);margin:26px 2px 10px}
+  .modgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:14px}
+  .mod{padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;transition:transform .12s, border-color .12s}
+  .mod:hover{transform:translateY(-2px);border-color:var(--border-strong)}
+  .mod h3{margin:0;font-size:16px;color:#fff}
+  .mod p{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.55;flex:1}
+  .mod .facts{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.7}
+  .mod a.open{align-self:flex-start;text-decoration:none;font-weight:700;font-size:12.5px;background:var(--accent-soft);color:#bfe3ff;border:1px solid rgba(41,169,255,.25);padding:7px 14px;border-radius:8px}
+  .mod a.open:hover{background:rgba(41,169,255,.24)}
+  .mod .accent{position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px}
+  .note{margin-top:26px;padding:14px 18px;font-size:12px;color:var(--muted);border-style:dashed;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="eqf-app">
+  <aside class="eqf-side">
+    <div class="eqf-brand">
+      <div class="dot"></div>
+      <div>
+        <div class="nm">Equip<b>Flow</b></div>
+        <div class="sub">Equipment · Environment</div>
+        <div class="ver">v2026.09.23</div>
+      </div>
+    </div>
+    <div class="eqf-navlabel">Modules</div>
+    <a class="eqf-navitem mod" href="/">▦&nbsp;Overview</a>
+    <a class="eqf-navitem mod" href="/maintenance/">🛠&nbsp;Maintenance</a>
+    <a class="eqf-navitem mod" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+    <a class="eqf-navitem mod" href="/rulers/">📏&nbsp;Rulers</a>
+    <a class="eqf-navitem mod" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+    <a class="eqf-navitem mod" href="/soft-proof/">🖼&nbsp;Soft Proof</a>
+    <a class="eqf-navitem mod" href="/spot-colors/">🎨&nbsp;Spot Colors</a>
+    <a class="eqf-navitem mod active" href="/print-quality/">🐅&nbsp;Print Quality</a>
+    <div class="eqf-navlabel">Reports</div>
+    <a class="eqf-navitem" href="/print-quality/pa-tiger-stripes.html">PA — tiger stripes</a>
+    <a class="eqf-navitem" href="/print-quality/mx-tiger-stripes.html">MX — tiger stripes</a>
+    <a class="eqf-navitem" href="/print-quality/ca-tiger-stripes.html">CA — tiger stripes</a>
+    <div class="eqf-navlabel">Company</div>
+    <a class="eqf-navitem" href="https://psu.myws.ai/" target="_blank" rel="noopener">⛭&nbsp;PSUFlow ↗</a>
+    <div class="side-foot">WS Display · Internal use only</div>
+  </aside>
+
+  <div class="eqf-main">
+    <div class="topbar"><h1>Print Quality</h1><div class="sub">Tiger stripes vs calender humidity — PA · MX · CA</div></div>
+    <div class="wrap">
+      <div class="hero">
+        <div class="kicker">Reports · September 2026</div>
+        <h1>Tiger stripes, humidity and the <span class="eqf-serif">calenders</span></h1>
+        <p>One year of tiger-stripe reprints per plant (NetSuite Nov–Mar, PSU Apr–Sep) against %RH at each plant's Monti sensor, with the maintenance timeline, the calender and operator comparisons, and a best theory and next steps for each plant. Operator names are not shown.</p>
+      </div>
+
+      <div class="secl">Plants</div>
+      <div class="modgrid">
+        <div class="card mod">
+          <div class="accent" style="background:var(--s2)"></div>
+          <h3>Pennsylvania</h3>
+          <p>Winter spike of 206 reprints at 19–31% RH lined up with the Monti 2 take-up and Monti 1 felt-tracking repairs; fell within two weeks of the March service. Dry air and a bad calender can't be told apart this year.</p>
+          <div class="facts">MONTI 1 · MONTI 2 · MAINTENANCE TIMELINE</div>
+          <a class="open" href="/print-quality/pa-tiger-stripes.html">Open →</a>
+        </div>
+        <div class="card mod">
+          <div class="accent" style="background:var(--s1)"></div>
+          <h3>Mexico</h3>
+          <p>No humidity pattern across a 35-point swing. On stretch fabric, Monti 3 and 4 run ~2 per 100 with a fifteen-fold spread between operators and a night-shift penalty — an operator-setup problem, not the room.</p>
+          <div class="facts">MONTI 3 · MONTI 4 · OPERATOR SPREAD</div>
+          <a class="open" href="/print-quality/mx-tiger-stripes.html">Open →</a>
+        </div>
+        <div class="card mod">
+          <div class="accent" style="background:var(--s3)"></div>
+          <h3>California</h3>
+          <p>Small numbers and flat across seasons; half the year's stripes fall in two burst weeks on one press each — a setup that was wrong for a few days, not weather.</p>
+          <div class="facts">MONTI 1 · MONTI 2 · BURST WEEKS</div>
+          <a class="open" href="/print-quality/ca-tiger-stripes.html">Open →</a>
+        </div>
+      </div>
+
+      <div class="card note">Sources: PSU <code>printing.events</code> on the read replica (Printed / Sublimated / reprint scans), a NetSuite "Production Status Update" export for Nov 2025 – Mar 2026, SensorPush daily averages from the Temp &amp; Humidity module, and maintenance history from S&amp;S Engineering email and NetSuite cases. Reports open in the light theme of the original analysis.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
