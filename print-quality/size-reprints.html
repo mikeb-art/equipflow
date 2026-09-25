@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Reprint Reasons Severity</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#f6f6f4; --surface:#fdfdfc; --ink:#141513; --ink-2:#4f524d; --ink-3:#85887f;
+  --rule:#e2e2dc; --axis:#c4c5bd; --grid:#e6e6e0; --ring:rgba(20,21,19,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s7:#4a3aa7;
+  --good:#006300; --warn:#b26f00; --crit:#d03b3b; --wash:rgba(42,120,214,.10);
+  --tag-bg:#eceef2;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#0f100f; --surface:#1a1a19; --ink:#f4f4f1; --ink-2:#c3c2b7; --ink-3:#8f9189;
+  --rule:#2c2c2a; --axis:#383835; --grid:#262624; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9;
+  --good:#0ca30c; --warn:#fab219; --crit:#e66767; --wash:rgba(57,135,229,.14);
+  --tag-bg:#26282c;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0f100f; --surface:#1a1a19; --ink:#f4f4f1; --ink-2:#c3c2b7; --ink-3:#8f9189;
+  --rule:#2c2c2a; --axis:#383835; --grid:#262624; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9;
+  --good:#0ca30c; --warn:#fab219; --crit:#e66767; --wash:rgba(57,135,229,.14);
+  --tag-bg:#26282c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-block:0 48px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{padding:40px 0 20px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font:500 12px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h1{font:600 34px/1.1 "IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-2);max-width:62ch;margin:0}
+.meta{font:400 12.5px/1.6 "IBM Plex Mono",ui-monospace,monospace;color:var(--ink-3);text-align:right}
+h2{font:600 22px/1.2 "IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;margin:0 0 4px;letter-spacing:-.005em}
+h3{font:600 15px/1.3 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 2px}
+section{padding:36px 0 8px;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+.lede{color:var(--ink-2);max-width:68ch;margin:0 0 20px}
+p{max-width:68ch}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:24px 0 6px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:16px 18px 14px}
+.tile .lbl{font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.tile .val{font:600 34px/1 "IBM Plex Sans",system-ui,sans-serif;margin:0}
+.tile .val small{font-size:16px;font-weight:500;color:var(--ink-2);margin-left:2px}
+.tile .note{font-size:12.5px;color:var(--ink-3);margin:8px 0 0;line-height:1.4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+@media (max-width:760px){.grid2,.grid4{grid-template-columns:1fr}}
+@media (min-width:761px) and (max-width:980px){.grid4{grid-template-columns:1fr 1fr}}
+figure{margin:0;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px 10px;min-width:0}
+figure .cap{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;line-height:1.45}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink-2);margin:6px 0 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.line{height:2px;width:14px;border-radius:1px;vertical-align:3px}
+.tag{display:inline-block;font:500 11.5px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;padding:5px 8px;border-radius:3px;background:var(--tag-bg);color:var(--ink-2);margin-right:6px}
+.tag.crit{color:var(--crit)} .tag.good{color:var(--good)} .tag.warn{color:var(--warn)}
+.callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0 18px}
+.co{border-left:3px solid var(--s1);padding:2px 0 2px 14px}
+.co h3{margin-bottom:4px}.co p{margin:0;font-size:14px;color:var(--ink-2)}
+.co.warn{border-color:var(--s2)} .co.ok{border-color:var(--s3)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0 4px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:500;color:var(--ink-3);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+ul.plain{padding-left:18px;margin:8px 0}ul.plain li{margin:6px 0;max-width:70ch}
+.foot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:80ch}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);font:12.5px/1.4 "IBM Plex Sans",system-ui,sans-serif;padding:6px 9px;border-radius:4px;opacity:0;transition:opacity .08s;z-index:9;white-space:nowrap}
+.tip b{font-weight:600}
+@media (prefers-reduced-motion:reduce){.tip{transition:none}}
+svg text{font-family:"IBM Plex Sans",system-ui,sans-serif;fill:var(--ink-2)}
+svg .ax{font-size:11px;fill:var(--ink-3)}
+svg .lab{font-size:12px;font-weight:500;fill:var(--ink)}
+svg .grid line{stroke:var(--grid);stroke-width:1}
+svg .base{stroke:var(--axis);stroke-width:1}
+svg .hit{fill:transparent}
+.heat td.c{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
+.heat td.c span{display:inline-block;min-width:46px;padding:3px 6px;border-radius:3px}
+.heat th.n{text-align:right}
+</style>
+<style>.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}@media(max-width:900px){.grid3{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<div class="wrap">
+<p style="margin:14px 0 -22px;font:500 12.5px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em"><a href="/print-quality/" style="color:inherit;opacity:.6;text-decoration:none">← EQUIPFLOW · PRINT QUALITY</a></p>
+<header>
+  <div>
+    <div class="eyebrow">WS Display · All plants · Reprint reasons</div>
+    <h1>Size reprints and what stands out by plant</h1>
+    <p class="sub">Media-compensation reprints (size too small / too big) across the year, and the full reason mix per plant since April.</p>
+  </div>
+  <div class="meta">Nov 2025 – Sep 2026<br>NetSuite (Nov–Mar) · PSU (Apr–Sep)<br>Sep = through Sep 24</div>
+</header>
+
+<section>
+  <div class="tiles">
+    <div class="tile"><p class="lbl">Size reprints, Nov–Sep, all plants</p><p class="val">972</p><p class="note">7.3% of 13,346 reprints · the #3 reason company-wide</p></div>
+    <div class="tile"><p class="lbl">Too small vs too big</p><p class="val">3.6<small>:1</small></p><p class="note">762 too small, 210 too big — under-compensated shrink, not random error</p></div>
+    <div class="tile"><p class="lbl">Worst plant-month</p><p class="val">188</p><p class="note">MX, March — 15% of its reprints. PA's worst: May, 12% (53)</p></div>
+    <div class="tile"><p class="lbl">Since April, per 100 printed lines</p><p class="val">0.68 <small>PA</small></p><p class="note">MX 0.44 · CA 0.45 — PA now highest, MX improved most</p></div>
+  </div>
+  <div class="callouts">
+    <div class="co warn"><h3>Size: MX fixed it, PA caught it</h3><p>Over the winter MX ran 10% of its reprints as size errors (484), peaking at 15–16% in November and March; since April it has fallen to 4% and July was almost zero. PA went the other way — 3% in winter, then 8–12% in April–May (over 100 in eight weeks, twenty in one week) before dropping back under 5% from mid-June. CA sits at 6–9% all year. Whatever changed at MX in the spring and at PA in June is the thing to write down.</p></div>
+    <div class="co"><h3>The glaring ones per plant</h3><p><b>PA:</b> incomplete prints at 11% of reprints (305) against 2–3% elsewhere, over-production at 3.4% (95) against under 0.5%, and the two press defects — head strikes and encoder banding — at 11% combined. <b>MX:</b> drop-out banding 9.3% (266), stamping 3.5%, over-spray 2.3% and wrong file 3.2%, each several times the other plants. <b>CA:</b> ink spots 12.9% (185) and location changes 5.7% (82). Everywhere: "other" is 15–18% of all reprints and "graphic not received" 6–8%.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Size reprints month by month</h2>
+  <p class="lede">Bars are size-too-small plus size-too-big reprints; the line is their share of that plant's reprints for the month. Winter months are NetSuite records, April onward PSU.</p>
+  <div class="grid3" id="sz"></div>
+  <div class="tbl"><table><thead><tr><th></th><th class="n">Nov</th><th class="n">Dec</th><th class="n">Jan</th><th class="n">Feb</th><th class="n">Mar</th><th class="n">Apr</th><th class="n">May</th><th class="n">Jun</th><th class="n">Jul</th><th class="n">Aug</th><th class="n">Sep</th></tr></thead><tbody id="sztab"></tbody></table></div>
+</section>
+
+<section>
+  <h2>Where the size reprints are (April–September)</h2>
+  <div class="grid2">
+    <figure><h3>By press</h3><div class="cap" style="margin:0 0 8px">Size reprints (too small + too big) as a share of that press's reprints</div>
+      <div class="tbl"><table><thead><tr><th>Plant</th><th>Press</th><th class="n">Small</th><th class="n">Big</th><th class="n">All reprints</th><th class="n">Size %</th></tr></thead><tbody>
+      <tr><td>PA</td><td>Durst 325-1</td><td class="n">61</td><td class="n">28</td><td class="n">1,292</td><td class="n"><b>6.9%</b></td></tr>
+      <tr><td>PA</td><td>Durst 325-2</td><td class="n">29</td><td class="n">8</td><td class="n">544</td><td class="n">6.8%</td></tr>
+      <tr><td>PA</td><td>Durst P5 Tex-1</td><td class="n">24</td><td class="n">3</td><td class="n">540</td><td class="n">5.0%</td></tr>
+      <tr><td>PA</td><td>Durst P5-350</td><td class="n">11</td><td class="n">0</td><td class="n">266</td><td class="n">4.1%</td></tr>
+      <tr><td>MX</td><td>Durst P5-350</td><td class="n">10</td><td class="n">0</td><td class="n">171</td><td class="n">5.8%</td></tr>
+      <tr><td>MX</td><td>Durst P5 Tex-1</td><td class="n">17</td><td class="n">6</td><td class="n">535</td><td class="n">4.3%</td></tr>
+      <tr><td>MX</td><td>Durst 325-1</td><td class="n">34</td><td class="n">12</td><td class="n">1,090</td><td class="n">4.2%</td></tr>
+      <tr><td>MX</td><td>Durst P5 Tex-2</td><td class="n">20</td><td class="n">1</td><td class="n">646</td><td class="n">3.3%</td></tr>
+      <tr><td>MX</td><td>Durst 325-2</td><td class="n">6</td><td class="n">0</td><td class="n">239</td><td class="n">2.5%</td></tr>
+      <tr><td>CA</td><td>Durst 325-1</td><td class="n">31</td><td class="n">29</td><td class="n">874</td><td class="n"><b>6.9%</b></td></tr>
+      <tr><td>CA</td><td>Durst P5 Tex-1</td><td class="n">21</td><td class="n">1</td><td class="n">369</td><td class="n">6.0%</td></tr>
+      </tbody></table></div>
+      <p class="cap">Every press at every plant is in the same 2.5–7% band: this is a compensation-table problem per material, not one printer. CA's 325 is the only place "too big" matches "too small" (29 vs 31), which points at a stretch profile that overshoots.</p></figure>
+    <figure><h3>By material and product</h3><div class="cap" style="margin:0 0 8px">Size reprints, April–September</div>
+      <div class="tbl"><table><thead><tr><th>Material</th><th class="n">PA</th><th class="n">MX</th><th class="n">CA</th></tr></thead><tbody>
+      <tr><td>Stretch Fabric</td><td class="n">74 + 32</td><td class="n">35 + 9</td><td class="n">24 + 28</td></tr>
+      <tr><td>Dye Sub Backlit</td><td class="n">18 + 0</td><td class="n">14 + 6</td><td class="n">18 + 1</td></tr>
+      <tr><td>Black &amp; White Fabric</td><td class="n">13 + 5</td><td class="n">4 + 3</td><td class="n">4 + 0</td></tr>
+      <tr><td>Classic Tent</td><td class="n">5 + 2</td><td class="n">22 + 0</td><td class="n">1 + 0</td></tr>
+      <tr><td>Super Flat Vinyl</td><td class="n">2 + 0</td><td class="n">9 + 0</td><td class="n">0</td></tr>
+      <tr><td>Fence Mesh</td><td class="n">6 + 0</td><td class="n">—</td><td class="n">—</td></tr>
+      </tbody></table></div>
+      <p class="cap">Shown as too small + too big. Stretch fabric carries two-thirds of it, and backlit is always too small, never too big — the backlit shrink figure is short at all three plants. The products that come back most: PA the 8×4 stretch replacement graphic (13), FAB-STRETCH and 3×3 replacements; MX the 36" fabric banner, 33.5" table throw and the CST15/20 dye-sub cases (16 between them); CA the 8×4 and 8×3 stretch replacements (11).</p></figure>
+  </div>
+</section>
+
+<section>
+  <h2>Every reason, every plant, April–September</h2>
+  <p class="lede">Share of each plant's reprints by reason (legacy Spanish/English labels folded into the picker codes). Darker is a bigger share; the count follows. "Other" is left out of the table: 421 at PA, 526 at MX, 258 at CA.</p>
+  <div class="tbl heat"><table><thead><tr><th>Reason</th><th>Area</th><th class="n">PA <small>(2,785)</small></th><th class="n">MX <small>(2,854)</small></th><th class="n">CA <small>(1,434)</small></th></tr></thead><tbody>
+<tr><td>Ink spot</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.61);color:#fff">8.4%</span> <small style="color:var(--ink-3)">234</small></td><td class="c"><span style="background:rgba(235,104,52,0.33);color:inherit">4.1%</span> <small style="color:var(--ink-3)">116</small></td><td class="c"><span style="background:rgba(235,104,52,0.83);color:#fff">12.9%</span> <small style="color:var(--ink-3)">185</small></td></tr>
+<tr><td>Graphic not received</td><td><span class="tag">workflow</span></td><td class="c"><span style="background:rgba(235,104,52,0.47);color:inherit">6.2%</span> <small style="color:var(--ink-3)">173</small></td><td class="c"><span style="background:rgba(235,104,52,0.61);color:#fff">8.4%</span> <small style="color:var(--ink-3)">241</small></td><td class="c"><span style="background:rgba(235,104,52,0.50);color:#fff">6.7%</span> <small style="color:var(--ink-3)">96</small></td></tr>
+<tr><td>Incomplete print</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.76);color:#fff">11.0%</span> <small style="color:var(--ink-3)">305</small></td><td class="c"><span style="background:rgba(235,104,52,0.24);color:inherit">2.6%</span> <small style="color:var(--ink-3)">75</small></td><td class="c"><span style="background:rgba(235,104,52,0.18);color:inherit">1.7%</span> <small style="color:var(--ink-3)">24</small></td></tr>
+<tr><td>Tiger stripes</td><td><span class="tag">calender</span></td><td class="c"><span style="background:rgba(235,104,52,0.27);color:inherit">3.0%</span> <small style="color:var(--ink-3)">84</small></td><td class="c"><span style="background:rgba(235,104,52,0.49);color:#fff">6.6%</span> <small style="color:var(--ink-3)">189</small></td><td class="c"><span style="background:rgba(235,104,52,0.38);color:inherit">4.7%</span> <small style="color:var(--ink-3)">68</small></td></tr>
+<tr><td>Banding (drop-out)</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.20);color:inherit">1.9%</span> <small style="color:var(--ink-3)">53</small></td><td class="c"><span style="background:rgba(235,104,52,0.66);color:#fff">9.3%</span> <small style="color:var(--ink-3)">266</small></td><td class="c"><span style="background:rgba(235,104,52,0.15);color:inherit">1.2%</span> <small style="color:var(--ink-3)">17</small></td></tr>
+<tr><td>Bad cut (machine)</td><td><span class="tag">finishing</span></td><td class="c"><span style="background:rgba(235,104,52,0.47);color:inherit">6.2%</span> <small style="color:var(--ink-3)">174</small></td><td class="c"><span style="background:rgba(235,104,52,0.22);color:inherit">2.2%</span> <small style="color:var(--ink-3)">64</small></td><td class="c"><span style="background:rgba(235,104,52,0.43);color:inherit">5.6%</span> <small style="color:var(--ink-3)">81</small></td></tr>
+<tr><td>Head strike</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.45);color:inherit">6.0%</span> <small style="color:var(--ink-3)">167</small></td><td class="c"><span style="background:rgba(235,104,52,0.26);color:inherit">2.9%</span> <small style="color:var(--ink-3)">84</small></td><td class="c"><span style="background:rgba(235,104,52,0.22);color:inherit">2.2%</span> <small style="color:var(--ink-3)">32</small></td></tr>
+<tr><td>Size too small</td><td><span class="tag">size</span></td><td class="c"><span style="background:rgba(235,104,52,0.37);color:inherit">4.6%</span> <small style="color:var(--ink-3)">129</small></td><td class="c"><span style="background:rgba(235,104,52,0.28);color:inherit">3.2%</span> <small style="color:var(--ink-3)">90</small></td><td class="c"><span style="background:rgba(235,104,52,0.32);color:inherit">3.8%</span> <small style="color:var(--ink-3)">54</small></td></tr>
+<tr><td>Sublimation defect</td><td><span class="tag">calender</span></td><td class="c"><span style="background:rgba(235,104,52,0.28);color:inherit">3.1%</span> <small style="color:var(--ink-3)">87</small></td><td class="c"><span style="background:rgba(235,104,52,0.41);color:inherit">5.3%</span> <small style="color:var(--ink-3)">150</small></td><td class="c"><span style="background:rgba(235,104,52,0.21);color:inherit">2.1%</span> <small style="color:var(--ink-3)">30</small></td></tr>
+<tr><td>Material damaged</td><td><span class="tag">material</span></td><td class="c"><span style="background:rgba(235,104,52,0.28);color:inherit">3.3%</span> <small style="color:var(--ink-3)">91</small></td><td class="c"><span style="background:rgba(235,104,52,0.27);color:inherit">3.0%</span> <small style="color:var(--ink-3)">87</small></td><td class="c"><span style="background:rgba(235,104,52,0.34);color:inherit">4.2%</span> <small style="color:var(--ink-3)">60</small></td></tr>
+<tr><td>Banding (encoder)</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.39);color:inherit">4.9%</span> <small style="color:var(--ink-3)">137</small></td><td class="c"><span style="background:rgba(235,104,52,0.25);color:inherit">2.7%</span> <small style="color:var(--ink-3)">76</small></td><td class="c"><span style="background:rgba(235,104,52,0.18);color:inherit">1.7%</span> <small style="color:var(--ink-3)">24</small></td></tr>
+<tr><td>Lost graphic</td><td><span class="tag">workflow</span></td><td class="c"><span style="background:rgba(235,104,52,0.27);color:inherit">3.0%</span> <small style="color:var(--ink-3)">83</small></td><td class="c"><span style="background:rgba(235,104,52,0.21);color:inherit">2.0%</span> <small style="color:var(--ink-3)">58</small></td><td class="c"><span style="background:rgba(235,104,52,0.32);color:inherit">3.8%</span> <small style="color:var(--ink-3)">55</small></td></tr>
+<tr><td>Bad cut (operator)</td><td><span class="tag">finishing</span></td><td class="c"><span style="background:rgba(235,104,52,0.20);color:inherit">1.9%</span> <small style="color:var(--ink-3)">53</small></td><td class="c"><span style="background:rgba(235,104,52,0.24);color:inherit">2.5%</span> <small style="color:var(--ink-3)">72</small></td><td class="c"><span style="background:rgba(235,104,52,0.35);color:inherit">4.3%</span> <small style="color:var(--ink-3)">62</small></td></tr>
+<tr><td>Location change</td><td><span class="tag">workflow</span></td><td class="c"><span style="background:rgba(235,104,52,0.12);color:inherit">0.7%</span> <small style="color:var(--ink-3)">20</small></td><td class="c"><span style="background:rgba(235,104,52,0.23);color:inherit">2.4%</span> <small style="color:var(--ink-3)">68</small></td><td class="c"><span style="background:rgba(235,104,52,0.44);color:inherit">5.7%</span> <small style="color:var(--ink-3)">82</small></td></tr>
+<tr><td>Sewing</td><td><span class="tag">finishing</span></td><td class="c"><span style="background:rgba(235,104,52,0.19);color:inherit">1.8%</span> <small style="color:var(--ink-3)">51</small></td><td class="c"><span style="background:rgba(235,104,52,0.24);color:inherit">2.5%</span> <small style="color:var(--ink-3)">71</small></td><td class="c"><span style="background:rgba(235,104,52,0.24);color:inherit">2.6%</span> <small style="color:var(--ink-3)">37</small></td></tr>
+<tr><td>Oil stains</td><td><span class="tag">material</span></td><td class="c"><span style="background:rgba(235,104,52,0.17);color:inherit">1.5%</span> <small style="color:var(--ink-3)">42</small></td><td class="c"><span style="background:rgba(235,104,52,0.16);color:inherit">1.3%</span> <small style="color:var(--ink-3)">38</small></td><td class="c"><span style="background:rgba(235,104,52,0.27);color:inherit">3.1%</span> <small style="color:var(--ink-3)">44</small></td></tr>
+<tr><td>Stamping</td><td><span class="tag">calender</span></td><td class="c"><span style="background:rgba(235,104,52,0.10);color:inherit">0.4%</span> <small style="color:var(--ink-3)">10</small></td><td class="c"><span style="background:rgba(235,104,52,0.30);color:inherit">3.5%</span> <small style="color:var(--ink-3)">101</small></td><td class="c"><span style="background:rgba(235,104,52,0.14);color:inherit">0.9%</span> <small style="color:var(--ink-3)">13</small></td></tr>
+<tr><td>Material defect</td><td><span class="tag">material</span></td><td class="c"><span style="background:rgba(235,104,52,0.21);color:inherit">2.2%</span> <small style="color:var(--ink-3)">60</small></td><td class="c"><span style="background:rgba(235,104,52,0.11);color:inherit">0.4%</span> <small style="color:var(--ink-3)">12</small></td><td class="c"><span style="background:rgba(235,104,52,0.26);color:inherit">2.9%</span> <small style="color:var(--ink-3)">41</small></td></tr>
+<tr><td>Wrong file</td><td><span class="tag">workflow</span></td><td class="c"><span style="background:rgba(235,104,52,0.11);color:inherit">0.5%</span> <small style="color:var(--ink-3)">14</small></td><td class="c"><span style="background:rgba(235,104,52,0.28);color:inherit">3.2%</span> <small style="color:var(--ink-3)">90</small></td><td class="c"><span style="background:rgba(235,104,52,0.11);color:inherit">0.6%</span> <small style="color:var(--ink-3)">8</small></td></tr>
+<tr><td>Small area no print</td><td><span class="tag">press</span></td><td class="c"><span style="background:rgba(235,104,52,0.12);color:inherit">0.7%</span> <small style="color:var(--ink-3)">20</small></td><td class="c"><span style="background:rgba(235,104,52,0.24);color:inherit">2.6%</span> <small style="color:var(--ink-3)">73</small></td><td class="c"><span style="background:rgba(235,104,52,0.15);color:inherit">1.2%</span> <small style="color:var(--ink-3)">17</small></td></tr>
+<tr><td>Over production</td><td><span class="tag">workflow</span></td><td class="c"><span style="background:rgba(235,104,52,0.29);color:inherit">3.4%</span> <small style="color:var(--ink-3)">95</small></td><td class="c"><span style="background:rgba(235,104,52,0.10);color:inherit">0.4%</span> <small style="color:var(--ink-3)">10</small></td><td class="c"><span style="background:rgba(235,104,52,0.10);color:inherit">0.3%</span> <small style="color:var(--ink-3)">4</small></td></tr>
+<tr><td>Folded material</td><td><span class="tag">material</span></td><td class="c"><span style="background:rgba(235,104,52,0.16);color:inherit">1.3%</span> <small style="color:var(--ink-3)">35</small></td><td class="c"><span style="background:rgba(235,104,52,0.22);color:inherit">2.2%</span> <small style="color:var(--ink-3)">64</small></td><td class="c"><span style="background:rgba(235,104,52,0.08);color:inherit">0.1%</span> <small style="color:var(--ink-3)">1</small></td></tr>
+<tr><td>Size too big</td><td><span class="tag">size</span></td><td class="c"><span style="background:rgba(235,104,52,0.17);color:inherit">1.5%</span> <small style="color:var(--ink-3)">42</small></td><td class="c"><span style="background:rgba(235,104,52,0.13);color:inherit">0.8%</span> <small style="color:var(--ink-3)">24</small></td><td class="c"><span style="background:rgba(235,104,52,0.21);color:inherit">2.1%</span> <small style="color:var(--ink-3)">30</small></td></tr>
+<tr><td>Dirty</td><td><span class="tag">material</span></td><td class="c"><span style="background:rgba(235,104,52,0.15);color:inherit">1.2%</span> <small style="color:var(--ink-3)">33</small></td><td class="c"><span style="background:rgba(235,104,52,0.16);color:inherit">1.3%</span> <small style="color:var(--ink-3)">38</small></td><td class="c"><span style="background:rgba(235,104,52,0.14);color:inherit">1.0%</span> <small style="color:var(--ink-3)">14</small></td></tr>
+  </tbody></table></div>
+</section>
+
+<section>
+  <h2>What I make of it</h2>
+  <div class="callouts">
+    <div class="co warn"><h3>Size</h3><p>The 3.6-to-1 too-small skew says compensation tables are systematically short on shrink rather than noisy, and the by-press table says it's the table, not the printer. The two things worth knowing are what MX did between March and April (484 winter size reprints down to a few dozen a month) and what PA did in mid-June (from 20 a week to 1–2). If either was a compensation-table update, the other plants should copy it; backlit needs its own correction everywhere, since it is only ever too small.</p></div>
+    <div class="co"><h3>The rest</h3><p>PA's 305 incomplete prints and 95 over-productions are the largest single avoidable block in the company — over-production in particular is free money. MX's drop-out banding (266) is the biggest press-defect line at any plant and is the 325-2 story from the earlier report. CA's ink spots (185) are its whole quality problem. And the 1,205 "other" entries across the three plants are a fifth of everything; a reason picker that forces a code would make every one of these tables sharper.</p></div>
+  </div>
+  <p class="foot">Reprint events with a reason, Apr 1 – Sep 24 2026 (PSU) and Nov 1 2025 – Mar 31 2026 (NetSuite "Needs Reprint" records). Size = size_too_small / size_too_big and the legacy labels "Grafico pequeño / Size too small" and "Grafico grande / Size too big"; "wrong cutting dimensions" and "small area without printing" are not counted as size. Per-100 rates use Printed scans in the same month. Shares are of reprint events with any reason, including "other".</p>
+</section>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const tip=document.getElementById('tip');
+function hover(node,html){node.addEventListener('mousemove',e=>{tip.innerHTML=html;tip.style.opacity=1;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-10)+'px'});node.addEventListener('mouseleave',()=>tip.style.opacity=0)}
+function frame(svg,W,H,m){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);return {W,H,m,iw:W-m.l-m.r,ih:H-m.t-m.b}}
+function fig(host,title,sub){const f=document.createElement('figure');f.innerHTML=`<h3>${title}</h3><div class="cap" style="margin:0 0 6px">${sub}</div>`;const svg=el('svg',{},f);host.appendChild(f);return svg}
+const M=["Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];const S={"PA": {"size": [26, 7, 19, 12, 2, 53, 53, 15, 13, 22, 20], "rep": [255, 320, 379, 528, 451, 671, 440, 313, 448, 552, 418], "pr": [null, null, null, null, null, 6352, 3628, 3035, 4121, 4270, 3814]}, "MX": {"size": [106, 42, 61, 87, 188, 32, 56, 45, 4, 28, 19], "rep": [652, 765, 1056, 961, 1233, 328, 604, 460, 391, 560, 555], "pr": [null, null, null, null, null, 2486, 5542, 5411, 3667, 4118, 4825]}, "CA": {"size": [10, 5, 7, 18, 13, 24, 18, 5, 20, 14, 13], "rep": [110, 95, 159, 156, 173, 405, 303, 304, 283, 171, 147], "pr": [null, null, null, null, null, 5444, 3841, 2613, 3718, 3095, 2212]}};
+for(const p of ['PA','MX','CA']){const d=S[p];const svg=fig(document.getElementById('sz'),p,'size reprints (bars) · share of plant reprints (line)');const f=frame(svg,340,220,{l:30,r:34,t:12,b:22});const n=M.length,bw=f.iw/n,x=i=>f.m.l+i*bw+bw/2,yb=v=>f.m.t+f.ih-v/200*f.ih,yr=v=>f.m.t+f.ih-v/20*f.ih;
+ for(const v of [50,100,150,200]){el('line',{x1:f.m.l,x2:f.m.l+f.iw,y1:yb(v),y2:yb(v),style:'stroke:var(--grid)'},svg);let t=el('text',{x:f.m.l-5,y:yb(v)+4,'text-anchor':'end',class:'ax'},svg);t.textContent=v;t=el('text',{x:f.m.l+f.iw+5,y:yb(v)+4,class:'ax'},svg);t.textContent=(v/10)+'%'}
+ d.size.forEach((v,i)=>{const sh=100*v/d.rep[i];const r=el('rect',{x:x(i)-bw*.3,y:yb(v),width:bw*.6,height:yb(0)-yb(v),rx:2,fill:'var(--s2)',opacity:i<5?.55:1},svg);hover(r,`<b>${p} ${M[i]}</b><br>${v} size reprints of ${d.rep[i]} (${sh.toFixed(1)}%)`+(d.pr[i]?`<br>${(100*v/d.pr[i]).toFixed(2)} per 100 printed lines`:''));if(i%2==0){const t=el('text',{x:x(i),y:f.H-6,'text-anchor':'middle',class:'ax'},svg);t.textContent=M[i]}});
+ let path='';d.size.forEach((v,i)=>{path+=(i?'L':'M')+x(i)+' '+yr(100*v/d.rep[i])+' '});el('path',{d:path,fill:'none',stroke:'var(--s1)','stroke-width':2,'stroke-linejoin':'round'},svg);
+ d.size.forEach((v,i)=>{el('circle',{cx:x(i),cy:yr(100*v/d.rep[i]),r:3,fill:'var(--s1)',stroke:'var(--surface)','stroke-width':1.5},svg)});}
+const tb=document.getElementById('sztab');for(const p of ['PA','MX','CA']){const d=S[p];tb.innerHTML+=`<tr><td>${p} size reprints</td>${d.size.map(v=>'<td class="n">'+v+'</td>').join('')}</tr><tr><td style="color:var(--ink-3)">share of ${p} reprints</td>${d.size.map((v,i)=>'<td class="n" style="color:var(--ink-3)">'+(100*v/d.rep[i]).toFixed(1)+'%</td>').join('')}</tr>`}
+})();
+</script>
+
+</body>
+</html>
