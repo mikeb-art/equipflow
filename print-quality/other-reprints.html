@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Inside the Other Bucket</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#f6f6f4; --surface:#fdfdfc; --ink:#141513; --ink-2:#4f524d; --ink-3:#85887f;
+  --rule:#e2e2dc; --axis:#c4c5bd; --grid:#e6e6e0; --ring:rgba(20,21,19,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s7:#4a3aa7;
+  --good:#006300; --warn:#b26f00; --crit:#d03b3b; --wash:rgba(42,120,214,.10);
+  --tag-bg:#eceef2;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#0f100f; --surface:#1a1a19; --ink:#f4f4f1; --ink-2:#c3c2b7; --ink-3:#8f9189;
+  --rule:#2c2c2a; --axis:#383835; --grid:#262624; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9;
+  --good:#0ca30c; --warn:#fab219; --crit:#e66767; --wash:rgba(57,135,229,.14);
+  --tag-bg:#26282c;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0f100f; --surface:#1a1a19; --ink:#f4f4f1; --ink-2:#c3c2b7; --ink-3:#8f9189;
+  --rule:#2c2c2a; --axis:#383835; --grid:#262624; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9;
+  --good:#0ca30c; --warn:#fab219; --crit:#e66767; --wash:rgba(57,135,229,.14);
+  --tag-bg:#26282c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding-block:0 48px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{padding:40px 0 20px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font:500 12px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h1{font:600 34px/1.1 "IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink-2);max-width:62ch;margin:0}
+.meta{font:400 12.5px/1.6 "IBM Plex Mono",ui-monospace,monospace;color:var(--ink-3);text-align:right}
+h2{font:600 22px/1.2 "IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;margin:0 0 4px;letter-spacing:-.005em}
+h3{font:600 15px/1.3 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 2px}
+section{padding:36px 0 8px;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+.lede{color:var(--ink-2);max-width:68ch;margin:0 0 20px}
+p{max-width:68ch}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:24px 0 6px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:16px 18px 14px}
+.tile .lbl{font-size:13px;color:var(--ink-2);margin:0 0 6px}
+.tile .val{font:600 34px/1 "IBM Plex Sans",system-ui,sans-serif;margin:0}
+.tile .val small{font-size:16px;font-weight:500;color:var(--ink-2);margin-left:2px}
+.tile .note{font-size:12.5px;color:var(--ink-3);margin:8px 0 0;line-height:1.4}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+@media (max-width:760px){.grid2,.grid4{grid-template-columns:1fr}}
+@media (min-width:761px) and (max-width:980px){.grid4{grid-template-columns:1fr 1fr}}
+figure{margin:0;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:14px 16px 10px;min-width:0}
+figure .cap{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;line-height:1.45}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink-2);margin:6px 0 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.line{height:2px;width:14px;border-radius:1px;vertical-align:3px}
+.tag{display:inline-block;font:500 11.5px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.04em;padding:5px 8px;border-radius:3px;background:var(--tag-bg);color:var(--ink-2);margin-right:6px}
+.tag.crit{color:var(--crit)} .tag.good{color:var(--good)} .tag.warn{color:var(--warn)}
+.callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0 18px}
+.co{border-left:3px solid var(--s1);padding:2px 0 2px 14px}
+.co h3{margin-bottom:4px}.co p{margin:0;font-size:14px;color:var(--ink-2)}
+.co.warn{border-color:var(--s2)} .co.ok{border-color:var(--s3)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0 4px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:500;color:var(--ink-3);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto}
+ul.plain{padding-left:18px;margin:8px 0}ul.plain li{margin:6px 0;max-width:70ch}
+.foot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:80ch}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);font:12.5px/1.4 "IBM Plex Sans",system-ui,sans-serif;padding:6px 9px;border-radius:4px;opacity:0;transition:opacity .08s;z-index:9;white-space:nowrap}
+.tip b{font-weight:600}
+@media (prefers-reduced-motion:reduce){.tip{transition:none}}
+svg text{font-family:"IBM Plex Sans",system-ui,sans-serif;fill:var(--ink-2)}
+svg .ax{font-size:11px;fill:var(--ink-3)}
+svg .lab{font-size:12px;font-weight:500;fill:var(--ink)}
+svg .grid line{stroke:var(--grid);stroke-width:1}
+svg .base{stroke:var(--axis);stroke-width:1}
+svg .hit{fill:transparent}
+.tog{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden;margin:0 0 14px}.tog button{background:var(--surface);color:var(--ink-2);border:0;padding:7px 14px;font:500 13px "IBM Plex Sans",system-ui,sans-serif;cursor:pointer}.tog button.on{background:var(--ink);color:var(--ground)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<p style="margin:14px 0 -22px;font:500 12.5px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.06em"><a href="/print-quality/" style="color:inherit;opacity:.6;text-decoration:none">← EQUIPFLOW · PRINT QUALITY</a></p>
+<header>
+  <div>
+    <div class="eyebrow">WS Display · PSU reprints · April 1 – September 25, 2026</div>
+    <h1>Inside the “other” bucket</h1>
+    <p class="sub">What operators actually typed when they picked “other”, where those reports belong, and the handful of real problems hiding underneath.</p>
+  </div>
+  <div class="meta">759 “other” reports · 1,804 pieces<br>plus 399 blank / N/A · 46 legacy codes<br>PA · MX · CA · pieces = NumberReprints</div>
+</header>
+
+<section>
+<div class="tiles">
+  <div class="tile"><p class="lbl">“Other” is mostly one four-week window</p><p class="val">88<small>%</small></p><p class="note">671 of 759 “other” reports were filed May 25 – July 1. Since then the three plants together file about 7 a week.</p></div>
+  <div class="tile"><p class="lbl">Notes that name an existing reason code</p><p class="val">86<small>%</small></p><p class="note">“grafico no recibido en el rollo”, “pasos marcados”, “tiger stripes”… typed by hand instead of picked from the list.</p></div>
+  <div class="tile"><p class="lbl">Not a defect at all</p><p class="val">73<small> reports</small></p><p class="note">Order moved to PA but never appeared in the PA print queue (51 · 192 pcs), “no RP needed”, tests, status fixes.</p></div>
+  <div class="tile"><p class="lbl">Genuinely new, still happening</p><p class="val">22<small> reports</small></p><p class="note">“Blue lines, paper wrinkled” on PA 325‑1 Stretch, June → September; CA had a one-day burst of “white line from paper” on its 325‑1.</p></div>
+</div>
+</section>
+
+<section>
+<h2>When “other” was used</h2>
+<p class="lede">Reports per week, by plant. The solid bars are “other”; the pale bars are reprints filed with no reason at all (blank or N/A), which stopped on July 10 when a reason became mandatory. The June wall is the same at all three plants and the notes inside it are almost all standard reason names — it looks like the reason list wasn't available (or wasn't the bilingual one) for about four weeks, and people typed the reason into the note instead.</p>
+<div class="legend"><span><i style="background:var(--s1)"></i>PA other</span><span><i style="background:var(--s2)"></i>MX other</span><span><i style="background:var(--s3)"></i>CA other</span><span><i style="background:var(--ink-3);opacity:.45"></i>blank / N/A (all plants)</span></div>
+<figure><svg id="wk"></svg><p class="cap">Weeks starting Monday. Hover a bar for the numbers. MX peaked at 138 “other” reports in the week of June 8; PA's late-June bump is the print-queue issue described below.</p></figure>
+</section>
+
+<section>
+<h2>What the notes say, largest to smallest</h2>
+<p class="lede">Every “other” note grouped by what it describes, with the existing reason code it maps to. Counts are reports; hover for pieces. The two rows tagged NEW are the only things in the bucket that don't already have a code.</p>
+<div class="legend"><span><i style="background:var(--s1)"></i>PA</span><span><i style="background:var(--s2)"></i>MX</span><span><i style="background:var(--s3)"></i>CA</span></div>
+<figure><svg id="th"></svg><p class="cap">759 “other” reports, April 1 – September 25. Five notes were unreadable. “Since Jul 1” shows how much of each row is still being filed after the June window closed.</p></figure>
+</section>
+
+<section>
+<h2>What the reprint-reasons picture looks like once “other” is put back</h2>
+<p class="lede">Re-filing those notes under their real codes moves the by-area shares. Mexico's “unclassified” slice all but disappears; most of it was press and workflow reasons typed by hand. What remains unclassified is the blank / N/A reports from April–May and early July (182 of PA's are zero-piece status edits, not reprints).</p>
+<div class="tbl"><table id="area"></table></div>
+<p class="cap" style="font-size:12.5px;color:var(--ink-3)">Share of each plant's reprint reports (PA 2,785 · MX 2,854 · CA 1,434). “Before” matches the Reprint Reasons by Plant page; “after” re-files the “other” notes by their content.</p>
+</section>
+
+<section>
+<h2>What to attack, top down</h2>
+<div class="callouts">
+  <div class="co warn"><h3>1 · PA: orders moved to PA that never generated in the PA print queue</h3><p>51 reports, 192 pieces, June 25 – July 1, all filed by management with notes like “export issue, did not generate in PA print que when moved”. Silverflag and Stretch orders transferred from MX/CA. These were never defects — a reprint was the only way to get the job printed — but they sit in PA's June reprint count. Nothing since July 1, so it looks fixed; worth confirming with Manny that the location-transfer bug is closed and that a transfer failure can be logged as something other than a reprint.</p></div>
+  <div class="co warn"><h3>2 · PA 325‑1 Stretch: “blue lines, paper wrinkled”</h3><p>14 reports June 11 → September 21, one piece each, every one on Durst 325‑1 PA with Stretch Fabric, filed by QC. Small in count but it is the one recurring defect in the bucket that has no code and no owner. CA had the same thing on its 325‑1 on June 2 (“white line from paper”, 8 reports / 16 pieces, all Stretch). Transfer paper creasing on the press: check paper path tension and the unwind/rewind on 325‑1 PA, and whether the paper rolls it's fed are stored differently from 325‑2's. Add a reason code so it is countable.</p></div>
+  <div class="co"><h3>3 · The reason list itself</h3><p>86% of “other” notes are a standard reason typed by hand, and the Mexico notes are in Spanish. Keep the bilingual list visible at every step, never fall back to a bare “other”, and make “other” require a note of at least a few words. That alone takes MX “unclassified” from 18% to about 1% going forward.</p></div>
+  <div class="co"><h3>4 · Reprint used as a status tool</h3><p>Since July, a quarter of what is left in “other” is people fixing the app rather than reporting a defect: “entered finished but still needs sewn”, “sew button doesn't show”, “no RP needed”, “test”. PSU needs a send‑back‑to‑sewing / undo‑status action so these never become reprints. Also: “over production — no RP needed” should be blocked from creating a reprint at all.</p></div>
+  <div class="co ok"><h3>5 · MX: wrong file / proof sheet</h3><p>The largest true residual at MX since July (13 of 22 “other” reports) is “impresion de archivo incorrecto” and “error en proof sheet” — the code exists, and it points at prepress rather than the floor. Worth a look at how MX pulls files for reprints.</p></div>
+  <div class="co ok"><h3>Not worth chasing</h3><p>The 399 blank / N/A reports: 230 of them requested zero pieces (status edits), they ended July 10, and their roles (sewers, warehouse, cutters) match location changes and finishing fixes rather than print defects.</p></div>
+</div>
+</section>
+
+<section>
+<p class="foot">Source: PSU <code>printing.events</code>, reprint / repaired events April 1 – September 25, 2026, reason beginning “other”, blank, N/A, or the legacy codes print_quality / damaged / file_issue (1,204 rows). Notes were grouped by keyword (Spanish and English), then checked by hand; five notes could not be read. Pieces = NumberReprints on the event. Reporter names are kept off this page.</p>
+</section>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const tip=document.getElementById('tip');
+function hover(node,html){node.addEventListener('mousemove',e=>{tip.innerHTML=html;tip.style.opacity=1;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-10)+'px'});node.addEventListener('mouseleave',()=>tip.style.opacity=0)}
+const P=['PA','MX','CA'],C=['--s1','--s2','--s3'],LOC=['Pennsylvania','Mexico','California'];
+const DATA={"weeks": ["2026-03-30", "2026-04-06", "2026-04-13", "2026-04-20", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-25", "2026-06-01", "2026-06-08", "2026-06-15", "2026-06-22", "2026-06-29", "2026-07-06", "2026-07-13", "2026-07-20", "2026-07-27", "2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31", "2026-09-07", "2026-09-14", "2026-09-21"], "other": {"Pennsylvania": [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 23, 15, 17, 41, 0, 0, 2, 3, 0, 3, 2, 4, 2, 1, 0, 3], "Mexico": [0, 0, 0, 0, 0, 0, 0, 0, 93, 135, 138, 89, 3, 3, 0, 6, 6, 2, 4, 0, 1, 0, 4, 0, 1, 5], "California": [0, 0, 0, 0, 0, 0, 0, 4, 10, 53, 30, 11, 4, 7, 0, 6, 5, 2, 3, 0, 2, 2, 3, 3, 2, 3]}, "blank": {"Pennsylvania": [10, 11, 27, 17, 30, 42, 17, 16, 7, 12, 1, 0, 0, 4, 74, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Mexico": [0, 0, 0, 0, 0, 2, 2, 4, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "California": [4, 11, 2, 2, 2, 8, 5, 8, 1, 4, 0, 0, 0, 8, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "areas": {"Pennsylvania": {"tot": 2785, "before": {"Unclassified": 421, "Press": 928, "Workflow": 437, "Calender": 186, "Finishing": 358, "Size": 171, "Material": 284}, "after": {"Unclassified": 303, "Press": 948, "Workflow": 453, "Calender": 187, "Finishing": 368, "Size": 178, "Material": 286, "Non-defect": 62}}, "Mexico": {"tot": 2854, "before": {"Unclassified": 526, "Press": 778, "Workflow": 495, "Calender": 465, "Finishing": 224, "Size": 114, "Material": 252}, "after": {"Unclassified": 38, "Press": 930, "Workflow": 627, "Calender": 528, "Finishing": 256, "Size": 170, "Material": 302, "Non-defect": 3}}, "California": {"tot": 1434, "before": {"Unclassified": 258, "Press": 321, "Workflow": 269, "Calender": 115, "Finishing": 210, "Size": 84, "Material": 177}, "after": {"Unclassified": 110, "Press": 335, "Workflow": 318, "Calender": 144, "Finishing": 231, "Size": 99, "Material": 189, "Non-defect": 8}}}, "themes": [{"l": "Graphic not received / lost", "c": "graphic_not_received", "a": "Workflow", "n": [11, 90, 25], "p": [16, 146, 35], "r": [0, 3, 4]}, {"l": "Size too small / too big", "c": "size_too_*", "a": "Size", "n": [7, 56, 15], "p": [7, 82, 146], "r": [1, 3, 3]}, {"l": "Banding (drop-out / encoder)", "c": "banding_*", "a": "Press", "n": [1, 68, 0], "p": [1, 93, 0], "r": [0, 6, 0]}, {"l": "Tiger stripes", "c": "tiger_stripes", "a": "Calender", "n": [1, 29, 24], "p": [1, 43, 48], "r": [0, 1, 1]}, {"l": "Ink spots / oil / dirty", "c": "ink_spot, oil_stains, dirty", "a": "Press", "n": [3, 43, 7], "p": [3, 49, 9], "r": [0, 0, 0]}, {"l": "Moved to PA, missing from PA print queue", "c": "NEW \u2014 not a defect", "a": "Non-defect", "n": [51, 0, 0], "p": [192, 0, 0], "r": [8, 0, 0]}, {"l": "Wrong file / art / proof sheet", "c": "wrong_file, art_issue", "a": "Workflow", "n": [3, 36, 5], "p": [3, 103, 7], "r": [2, 13, 4]}, {"l": "Bad cut", "c": "bad_cut_*", "a": "Finishing", "n": [1, 26, 15], "p": [1, 28, 19], "r": [0, 2, 2]}, {"l": "Material damaged / defect", "c": "material_*", "a": "Material", "n": [1, 24, 10], "p": [1, 31, 12], "r": [0, 0, 8]}, {"l": "Over spray", "c": "over_spray", "a": "Press", "n": [0, 25, 0], "p": [0, 27, 0], "r": [0, 0, 0]}, {"l": "Location change", "c": "location_change", "a": "Workflow", "n": [0, 6, 17], "p": [0, 9, 61], "r": [0, 0, 0]}, {"l": "Blue / white lines, paper wrinkled", "c": "NEW \u2014 paper wrinkle", "a": "Press", "n": [14, 0, 8], "p": [14, 0, 16], "r": [7, 0, 0]}, {"l": "Head strike / incomplete print", "c": "head_strike, incomplete_print", "a": "Press", "n": [3, 18, 1], "p": [3, 21, 1], "r": [0, 0, 0]}, {"l": "\u201cNo RP needed\u201d, over production, test", "c": "over_production \u2014 not a defect", "a": "Non-defect", "n": [11, 3, 8], "p": [12, 10, 8], "r": [7, 0, 8]}, {"l": "Sewing / \u201cstill needs sewn\u201d status fixes", "c": "sewing \u2014 partly not a defect", "a": "Finishing", "n": [9, 6, 6], "p": [15, 25, 7], "r": [4, 0, 5]}, {"l": "Stamping / ghosting", "c": "stamping, ghosting", "a": "Calender", "n": [0, 17, 3], "p": [0, 33, 3], "r": [0, 0, 0]}, {"l": "Sublimation defect", "c": "sublimation_defect", "a": "Calender", "n": [0, 17, 2], "p": [0, 21, 2], "r": [0, 0, 0]}, {"l": "Small area no print / folded", "c": "small_area_no_print, folded", "a": "Press", "n": [0, 16, 0], "p": [0, 18, 0], "r": [0, 0, 0]}, {"l": "Color off", "c": "color_off", "a": "Press", "n": [0, 8, 0], "p": [0, 8, 0], "r": [0, 4, 0]}, {"l": "Unreadable note", "c": "\u2014", "a": "Unclassified", "n": [1, 2, 2], "p": [1, 30, 2], "r": [0, 0, 1]}, {"l": "Shipping / warehouse", "c": "\u2014", "a": "Workflow", "n": [2, 0, 2], "p": [3, 0, 4], "r": [1, 0, 2]}], "areas2": [{"a": "Press", "b": [933, 800, 325], "af": [953, 952, 339]}, {"a": "Calender", "b": [181, 443, 111], "af": [182, 506, 140]}, {"a": "Size", "b": [171, 114, 84], "af": [178, 170, 99]}, {"a": "Finishing", "b": [349, 220, 209], "af": [359, 252, 230]}, {"a": "Material", "b": [261, 239, 160], "af": [263, 289, 172]}, {"a": "Workflow", "b": [469, 512, 287], "af": [485, 644, 336]}, {"a": "Unclassified", "b": [421, 526, 258], "af": [303, 38, 110]}, {"a": "Not a defect (status / queue fixes)", "b": [0, 0, 0], "af": [62, 3, 8]}], "tot": [2785, 2854, 1434]};
+// weekly
+(function(){const svg=document.getElementById('wk');const W=960,H=300,L=44,R=12,T=16,B=40;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const wk=DATA.weeks,n=wk.length;const tot=wk.map((w,i)=>LOC.reduce((s,l)=>s+DATA.other[l][i],0));
+ const bl=wk.map((w,i)=>LOC.reduce((s,l)=>s+DATA.blank[l][i],0));
+ const max=200;const iw=W-L-R,ih=H-T-B;const bw=iw/n;const y=v=>T+ih-v/max*ih;
+ [0,50,100,150,200].forEach(v=>{el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),style:'stroke:var(--grid)'},svg);const t=el('text',{x:L-8,y:y(v)+4,'text-anchor':'end',class:'ax'},svg);t.textContent=v});
+ wk.forEach((w,i)=>{const x0=L+i*bw;let acc=0;
+  const b=el('rect',{x:x0+bw*0.08,y:y(bl[i]),width:bw*0.84,height:ih-(y(bl[i])-T),fill:'var(--ink-3)',opacity:.22},svg);
+  hover(b,`<b>week of ${w}</b><br>blank / N/A: ${bl[i]}<br>other: ${tot[i]}`);
+  LOC.forEach((l,k)=>{const v=DATA.other[l][i];if(!v)return;const r=el('rect',{x:x0+bw*0.2,y:y(acc+v),width:bw*0.6,height:y(acc)-y(acc+v),fill:`var(${C[k]})`},svg);
+   hover(r,`<b>${P[k]} · week of ${w}</b><br>other: ${v}<br>all plants: ${tot[i]} · blank/N/A: ${bl[i]}`);acc+=v});
+  if(i%4==0){const t=el('text',{x:x0+bw/2,y:H-B+16,'text-anchor':'middle',class:'ax'},svg);t.textContent=w.slice(5)}
+ });
+ const m=[['Apr',0],['May',4],['Jun',9],['Jul',13],['Aug',18],['Sep',22]];
+ m.forEach(([nm,i])=>{const t=el('text',{x:L+i*bw+2,y:H-B+32,class:'ax',style:'fill:var(--ink-2);font-weight:500'},svg);t.textContent=nm});
+ el('line',{x1:L,x2:W-R,y1:y(0),y2:y(0),class:'base'},svg);
+ // annotation for Jul 10
+ const xj=L+14*bw+bw*0.6;el('line',{x1:xj,x2:xj,y1:T,y2:y(0),style:'stroke:var(--ink-3);stroke-dasharray:3 3'},svg);const t=el('text',{x:xj+5,y:T+12,class:'ax'},svg);t.textContent='Jul 10: reason required';
+})();
+// themes
+(function(){const svg=document.getElementById('th');const D=DATA.themes;const rowH=54,W=960,L=250,R=110,T=26;const H=T+D.length*rowH+10;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const max=100;const iw=W-L-R,x=v=>L+v/max*iw;
+ [0,25,50,75,100].forEach(v=>{el('line',{x1:x(v),x2:x(v),y1:T-6,y2:H-10,style:'stroke:var(--grid)'},svg);const t=el('text',{x:x(v),y:T-10,'text-anchor':'middle',class:'ax'},svg);t.textContent=v});
+ let t=el('text',{x:W-R+8,y:T-10,class:'ax'},svg);t.textContent='total · since Jul 1';
+ D.forEach((d,r)=>{const y0=T+r*rowH;if(r%2==1)el('rect',{x:0,y:y0,width:W,height:rowH,fill:'var(--ink)',opacity:.03},svg);
+  let t=el('text',{x:L-12,y:y0+20,'text-anchor':'end',class:'lab'},svg);t.textContent=d.l;
+  t=el('text',{x:L-12,y:y0+36,'text-anchor':'end',class:'ax',style:d.c.startsWith('NEW')?'fill:var(--crit);font-weight:500':''},svg);t.textContent=d.c;
+  [0,1,2].forEach(i=>{const v=d.n[i];const y=y0+8+i*13;const w=Math.max(0,x(v)-L);
+   const b=el('rect',{x:L,y:y,width:Math.max(w,v?1.5:0),height:10,rx:2,fill:`var(${C[i]})`},svg);
+   hover(b,`<b>${d.l} · ${P[i]}</b><br>${v} reports · ${d.p[i]} pieces<br>since Jul 1: ${d.r[i]}`);
+   if(v){const lt=el('text',{x:L+w+5,y:y+9,class:'ax',style:'font-size:10.5px'},svg);lt.textContent=v}});
+  const tot=d.n.reduce((a,b)=>a+b,0),res=d.r.reduce((a,b)=>a+b,0);
+  t=el('text',{x:W-R+8,y:y0+28,class:'lab'},svg);t.textContent=`${tot} · ${res}`;
+ });
+})();
+// area table
+(function(){const tb=document.getElementById('area');const A=DATA.areas2,TOT=DATA.tot;
+ let h='<tr><th>Area</th>'+P.map(p=>`<th class="n" colspan="2">${p} before → after</th>`).join('')+'</tr>';
+ A.forEach(a=>{h+='<tr><td>'+a.a+'</td>'+[0,1,2].map(i=>{const b=100*a.b[i]/TOT[i],f=100*a.af[i]/TOT[i];const d=f-b;const col=a.a==='Unclassified'?(d<0?'var(--good)':''):(d>1?'var(--warn)':'');return `<td class="n" style="color:var(--ink-3)">${b.toFixed(1)}%</td><td class="n" style="font-weight:500;color:${col}">${f.toFixed(1)}%</td>`}).join('')+'</tr>'});
+ tb.innerHTML=h;
+})();
+})();
+</script>
+</body>
+</html>
