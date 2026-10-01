@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Maintenance Schedules · EquipFlow</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<style>
+/* Layout: EquipFlow shell; sidebar picks a printer → model header with that printer's IDs → cadence lanes (shift → years) → gaps + source docs */
+:root{
+  color-scheme:dark;
+  --bg:#0a1122; --panel:#0e1830; --card:#131f38; --card-2:#182642; --inset:#0c1529;
+  --ink:#e9effd; --ink-2:#9db0d5; --muted:#7186ad;
+  --border:rgba(140,170,255,.14); --border-strong:rgba(140,170,255,.28);
+  --accent:#29a9ff; --accent-soft:rgba(41,169,255,.14); --accent-ink:#06121f;
+  --warn:#fab219; --warn-soft:rgba(250,178,25,.12);
+  --op:#3987e5; --svc:#9085e9;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans)}
+body{margin:0}
+.app{display:flex;min-height:100vh;background:linear-gradient(90deg,var(--panel) 236px,var(--bg) 236px)}
+.side{width:236px;flex:0 0 236px;background:var(--panel);border-right:1px solid var(--border);padding:18px 14px 22px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:2px 6px 14px}
+.brand .dot{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#2aa9ff,#1667d9);display:flex;align-items:center;justify-content:center}
+.brand .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:#eaf6ff}
+.brand .nm{font-size:17px;font-weight:800;color:#fff}.brand .nm b{color:var(--accent)}
+.brand .sub{font-family:var(--mono);font-size:9px;letter-spacing:2.2px;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.navlabel{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 8px 7px;font-weight:600}
+.navitem{display:flex;align-items:center;gap:9px;padding:7px 10px;margin:2px 0;border-radius:9px;color:var(--ink-2);font-size:13px;font-weight:500;text-decoration:none;border:1px solid transparent;cursor:pointer;background:none;width:100%;text-align:left;font-family:inherit}
+.navitem:hover{background:var(--card-2);color:var(--ink)}
+.navitem.active{background:var(--accent-soft);color:#dff0ff;border-color:rgba(41,169,255,.25)}
+.navitem .pl{font-family:var(--mono);font-size:9.5px;color:var(--muted);width:20px;flex:0 0 20px}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.side-foot{margin-top:26px;padding:10px 8px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.main{flex:1;min-width:0}
+.topbar{background:rgba(13,21,38,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 26px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.topbar h1{font-size:19px;color:#fff;margin:0}
+.topbar .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--inset);border:1px solid var(--border-strong);border-radius:9px;padding:3px;gap:2px}
+.seg button{background:none;border:0;color:var(--ink-2);font:600 12.5px var(--sans);padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.wrap{padding-block:22px 40px;padding-inline:26px;max-width:1180px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;min-width:0}
+.card h2{margin:0;font-size:15px;color:#fff;text-wrap:balance}
+.hint{font-size:12px;color:var(--muted);line-height:1.5}
+.head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
+.head h2{font-size:22px;letter-spacing:-.2px}
+.ids{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.id{background:var(--inset);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--ink-2)}
+.id b{color:#fff;font-family:var(--mono);font-weight:600}
+.siblings{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+.key{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink-2)}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.lane{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;padding:16px 0;border-top:1px solid var(--border)}
+.lane:first-of-type{border-top:0}
+.lane .when{font-family:var(--mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#fff;font-weight:700}
+.lane .when small{display:block;font-family:var(--sans);letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400;font-size:11.5px;margin-top:4px;line-height:1.4}
+.tasks{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.task{display:grid;grid-template-columns:4px minmax(0,1fr);gap:12px;align-items:stretch}
+.task .bar{border-radius:2px;background:var(--op)}
+.task.svc .bar{background:var(--svc)}
+.task .tx{font-size:13.5px;color:var(--ink);line-height:1.5}
+.task .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-family:var(--mono);font-size:10.5px;border-radius:5px;padding:1px 7px;background:var(--inset);border:1px solid var(--border);color:var(--ink-2);white-space:nowrap}
+.tag.prompt{color:#bfe3ff;border-color:rgba(41,169,255,.3);background:var(--accent-soft)}
+.tag.nolog{color:var(--warn);border-color:rgba(250,178,25,.35);background:var(--warn-soft)}
+.gaps{border-color:rgba(250,178,25,.35)}
+.gaps ul{margin:10px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--ink-2);line-height:1.55;max-width:96ch}
+.gaps b{color:#fff}
+.docs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:12px}
+.doc{display:block;text-decoration:none;background:var(--inset);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--ink)}
+.doc:hover{border-color:var(--border-strong);background:var(--card-2)}
+.doc .t{font-size:13px;font-weight:600}
+.doc .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+.foot{padding:0 26px 24px;color:var(--muted);font-size:11.5px;font-family:var(--mono)}
+@media (max-width:900px){.app{flex-direction:column;background:var(--bg)}.side{position:static;height:auto;width:100%;flex-basis:auto}.wrap{padding-inline:16px}.topbar{padding-inline:16px}.lane{grid-template-columns:1fr;gap:8px}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="dot"></div><div><div class="nm">Equip<b>Flow</b></div><div class="sub">Equipment · Environment</div></div></div>
+    <div class="navlabel">Modules</div>
+    <a class="navitem" href="/">▦&nbsp;Overview</a>
+    <a class="navitem" href="/maintenance/">🛠&nbsp;Maintenance</a>
+    <a class="navitem active" href="/printer-maintenance/">🖨&nbsp;Printer Maintenance</a>
+    <a class="navitem" href="/barbieri/">🎯&nbsp;Barbieri DOC</a>
+    <a class="navitem" href="/rulers/">📏&nbsp;Rulers</a>
+    <a class="navitem" href="/temp-humidity/">🌡&nbsp;Temp &amp; Humidity</a>
+    <a class="navitem" href="/soft-proof/">🖼&nbsp;Soft Proof</a>
+    <a class="navitem" href="/spot-colors/">🎨&nbsp;Spot Colors</a>
+    <a class="navitem" href="/print-quality/">🐅&nbsp;Print Quality</a>
+    <div class="navlabel">Views</div>
+    <a class="navitem" href="/printer-maintenance/">Daily status</a>
+    <a class="navitem active" href="/printer-maintenance/schedules.html">Schedules</a>
+    <div id="pnav"></div>
+    <div class="side-foot">WS Display · Internal use only</div>
+  </aside>
+
+  <div class="main" id="top">
+    <div class="topbar">
+      <div><h1>Maintenance Schedules</h1><div class="sub">Every Durst printer, from every shift to the multi-year service items</div></div>
+      <div class="seg" role="group" aria-label="Show tasks for" id="who">
+        <button data-who="all" class="on">All tasks</button><button data-who="op">Operator</button><button data-who="svc">Durst service</button>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="card">
+        <div class="head">
+          <div><div class="hint" id="m-kicker"></div><h2 id="m-title"></h2>
+            <div class="ids" id="m-ids"></div>
+            <div class="siblings" id="m-sib"></div></div>
+          <div class="key"><span><i class="sw" style="background:var(--op)"></i>Operator task</span><span><i class="sw" style="background:var(--svc)"></i>Durst service technician</span><span><span class="tag prompt">Durst prompt</span> printer asks for it on screen</span><span><span class="tag nolog">Not on sign-off form</span></span></div>
+        </div>
+      </div>
+
+      <div class="card" id="lanes"></div>
+
+      <div class="card gaps"><h2>Gaps between the Durst docs and the floor sign-off form</h2><ul id="gaps"></ul></div>
+
+      <div class="card"><h2>Source documents</h2><div class="hint" style="margin-top:3px">Your Google Drive. Opens in a new tab.</div><div class="docs" id="docs"></div></div>
+    </div>
+    <div class="foot">EquipFlow · Maintenance Schedules · built from the Durst checklists and the Machine Maintenance Log forms · Sep 30, 2026</div>
+  </div>
+</div>
+
+<script>
+(function(){
+const DR=id=>`https://drive.google.com/file/d/${id}/view`;
+const PRINTERS=[
+ {plant:"CA",name:"Rhotex 325 - CA",model:"r325",ser:"AD28-042",sys:"142718"},
+ {plant:"PA",name:"Rhotex 325-1 - PA",model:"r325",ser:"AD-28-031",sys:"105857"},
+ {plant:"PA",name:"Rhotex 325-2 - PA",model:"r325",ser:"AD28-069",sys:"202921"},
+ {plant:"MX",name:"Rhotex 325-1 - MX",model:"r325",ser:"AD20-049",sys:"154652"},
+ {plant:"MX",name:"Rhotex 325-2 - MX",model:"r325",ser:"AD28-047",sys:"152619"},
+ {plant:"CA",name:"P5-350 - CA",model:"p5350",ser:"AK26-117",sys:"298127"},
+ {plant:"PA",name:"P5-350 - PA",model:"p5350",ser:"AK26-116",sys:"294130"},
+ {plant:"MX",name:"P5-350 - MX",model:"p5350",ser:"AK26-118",sys:"298128"},
+ {plant:"CA",name:"P5 Tex - CA",model:"p5tex",ser:"AE28-019",sys:"298155"},
+ {plant:"PA",name:"P5 Tex - PA",model:"p5tex",ser:"AE28-064",sys:"400579"},
+ {plant:"MX",name:"P5 Tex-1 - MX",model:"p5tex",ser:"AE28-020",sys:"298183"},
+ {plant:"MX",name:"P5 Tex-2 - MX",model:"p5tex",ser:"AE28-069",sys:"405629"}
+];
+// task: [text, who("op"|"svc"), durstPrompt|null, onForm(bool)]
+const MODELS={
+ r325:{title:"Durst Rhotex 325",kicker:"Dye-sublimation roll printer · 5 printers",lanes:[
+  ["Every shift","Start of each shift",[
+   ["Start cleaning cycle and gently wipe heads with distilled water","op","Maintenance Purge",1],
+   ["Clean rollers and dancer between loading each roll of paper (wipe + water)","op",null,1],
+   ["Check motorized stretch/spreading rolls between each roll; clean if needed","op","Stretch Roller Inspect",1],
+   ["Check and empty both waste ink tanks as needed","op",null,1],
+   ["Clean machine and surrounding area","op",null,1]]],
+  ["Daily","Also at start of shift",[
+   ["Check and clean carriage sledge from below with distilled water","op",null,1],
+   ["Check cleaning station (left) and capping station (right); clean with wipe + distilled water","op",null,1],
+   ["Check crash sensors for contamination or overspray; clean if needed","op",null,1],
+   ["Check the spitting pad; clean or change if needed","op",null,1],
+   ["Check waste container (mesh tray and capping station); clean and empty","op",null,1],
+   ["Inspect print plane","op","Inspect Print Plane",0]]],
+  ["Weekly","First day of the week, usually Monday",[
+   ["Print nozzle check on paper and file it with name and date","op",null,1],
+   ["Oil linear carriage bearing guide","op","Guiding Rail Oiling",1],
+   ["Check transport rollers; clean with water or soapy water","op","Roller Inspect",1],
+   ["Clean interior of the machine free from dust","op","Dust/Air Filter Inspect",1],
+   ["Check chiller water level and cooling fins; switch the unit off before cleaning","op","Water Level Cooling Unit Inspect",1],
+   ["Check jar and filter on the ink suction wand; empty or replace","op",null,1]]],
+  ["Monthly","First Monday of the month",[
+   ["Clean encoder ruler and check for scratches or damage","op",null,1],
+   ["Check the chiller air filter; clean as needed","op",null,1],
+   ["Check ink level in the on-board vacuum; empty if needed","op",null,1]]],
+  ["Quarterly","",[["Basic cleaning, exterior and interior, top and underside","op",null,["Rhotex 325 - CA"]]]],
+  ["Half-yearly","Or by print volume",[
+   ["Replace lubrication plates on the print head carriage","op","Change lubricating plates",["Rhotex 325 - CA"]],
+   ["Lubricate print head carriage bushings, at 108,000 sq ft or every 6 months","op",null,["Rhotex 325 - CA","Rhotex 325-2 - PA","Rhotex 325-2 - MX"]],
+   ["Durst 6-month service: print quality and nozzles, crash switches, carriage rails, encoder, head-media distance, capping rubbers, purge unit, media transport and stretch rollers, replace spitting-tray fleece, de-air filters, cooling unit, workstation and RIP backups, safety devices","svc","Maintenance Service Call",0]]],
+  ["Yearly","",[
+   ["Durst yearly service: all 6-month items, plus grease carriage rail bearings and head-media-distance bearings, grease media transport motor bearing, Vaseline on cable-chain cables and tubes, replace main ink filters, replace cooling liquid","svc","Maintenance Service Call",0]]],
+  ["Usage-based","",[["Grease the transport motor at 13,000 operating hours","op",null,["Rhotex 325-2 - PA","Rhotex 325-2 - MX"]]]],
+  ["As required","",[
+   ["Run a cleaning cycle and wet wipe before putting the printer in standby","op",null,0],
+   ["After printing direct to textile: check absorbent pads and clean the mesh tray","op",null,1],
+   ["Check the cooling system's electrical system (specialist)","svc",null,1],
+   ["Change stretch rollers when the printer asks","op","Change Stretch Rollers",0],
+   ["Inspect the aerosol filter when the printer asks","op","Aerosol Filter Inspect",0]]]],
+  gaps:[
+   "<b>The CA Rhotex 325 sign-off form stops at monthly.</b> It has no quarterly cleaning, no lubrication-plate change and no carriage-bushing lubrication. The 325-1 forms have all of them; the 325-2 forms lack the bushing lubrication and transport-motor greasing.",
+   "<b>The Maintenance Purge prompt has no line of its own on the form.</b> \"Start cleaning cycle\" is signed every shift, but the printer logs the purge separately, and most PA and MX days show it put off. See Printer Maintenance.",
+   "<b>Inspect Print Plane is a daily Durst prompt with no form line.</b> MX 325-1 and 325-2 put it off on 59 and 49 of the last 90 days.",
+   "<b>The 6-month and yearly Durst service visits</b> aren't tracked anywhere on the floor form. Add a last-done date per printer."],
+  docs:[["Maintenance chart · Rhotex 325 (generic)","Shift to half-yearly chart, PDF","153w5LfbWWxRUVa-aE3Ti-gQfcIhlfBjS"],["Maintenance chart · Rhotex 325 CA","AD28-042, PDF","1L4_kADQDWqE7n43Ehmy75odOYHMVetlc"],["Durst 6-month / yearly service checklist","Rhotex 325, technician, PDF","1T5-nd79IY40wsQ2Px2Ul4D4WpIPQ2qn8"],["Rhotex 325 Machine TPM (SOP)","WS Display, rev 1.0, PDF","16h7xzOOlSF-EEVJG8iHc_TUY64HHZ8Bn"]]},
+ p5350:{title:"Durst P5 350",kicker:"UV LED hybrid printer · 3 printers",lanes:[
+  ["Daily","Start of shift",[
+   ["Carry out daily print head maintenance","op","Maintenance Purge",1],
+   ["Check safety devices: emergency switches and housing covers","op",null,0],
+   ["Check housing covers and warning signs","op",null,0],
+   ["Check and clean the printing plate","op","Inspect Print Plane",1],
+   ["Check and clean the glass plates of the UV LED lamps","op",null,1],
+   ["Check and clean the transport belt","op",null,0],
+   ["Check and clean dancer rollers and table rollers","op","Roller Inspect",1]]],
+  ["Every 2 days","About 3 times a week",[
+   ["Check air filters of the aerosol extractor on the print carriage","op","Dust/Air Filter Inspect",1],
+   ["Check conveyor belt, dancing rollers and feed-table redirection rolls","op",null,1]]],
+  ["Weekly","",[
+   ["Check, clean and lubricate guiding rails","op","Guiding Rail Oiling",1],
+   ["Check and clean the air filter of the external cooling device","op",null,1],
+   ["Check coolant level in the external cooling device","op","Water Level Cooling Unit Inspect",1],
+   ["Check de-air filters of the main ink tanks","op",null,1],
+   ["Check air filters of the UV LED units","op",null,1],
+   ["Document print head condition: print nozzle test, label with date, time and system number, archive it","op",null,1]]],
+  ["Monthly","",[
+   ["Check and clean encoder ruler","op",null,1],
+   ["Maintenance on the ionizer","op",null,1],
+   ["Check conveyor belt for soiling or overspray","op",null,1]]],
+  ["Half-yearly","Or by print volume",[
+   ["Replace lubrication plates of the print carriage bearings","op",null,1],
+   ["Lubricate print carriage bearings every 10,000 m² (about 107,600 sq ft)","op","Refill Bearings",0],
+   ["Clean the workstation ventilation and back up the workstation","op",null,1],
+   ["Durst 6-month service: safety devices, software backup, crash switches, head-media distance and its spindle, review operator maintenance, clean carriage oil drip tray, check carriage rails and grease bearings","svc","Maintenance Service Call",0]]],
+  ["Yearly","",[
+   ["Durst yearly service, adding: machine levelling, pneumatics, replace main ink tank filters, ink system, Vaseline on energy chain, encoder and UV LED positioning, transport belt and edge suction, encoder offsets, purge tub and waste tank, unwind/rewind, roll tables, replace coolant, print head alignment","svc",null,0]]],
+  ["Every 2 years","",[["Durst service: replace all circulation filters and the ink lines in the energy chain","svc",null,0]]],
+  ["Every 4 years","",[["Durst service: replace main ink tanks and all circulation pumps","svc",null,0]]],
+  ["As required","",[
+   ["Refill ink","op",null,1],["Empty catch tank","op",null,1],["Clean printer housing","op",null,1]]]],
+  gaps:[
+   "<b>Lubrication plates: the floor form says monthly,</b> marked \"only P5 350HS, confirm\". The Durst checklist shows it twice a year for the P5 350.",
+   "<b>The Durst daily checks for safety devices, housing and warning signs</b> aren't on the floor form, and neither is the daily transport-belt check (the form has it every 2 days and monthly).",
+   "<b>Refill Bearings is a Durst prompt</b> (every 10,000 m²) with no line on the form.",
+   "<b>The Maintenance Purge was put off on most purge-prompt days</b> at PA and MX in the last 90 days. CA ran a purge on 26 of 61."],
+  docs:[["Durst maintenance checklists · P5 350","Daily to 4-year intervals, WS Display edition, PDF","12AOtZ_JOrxl1SLybcVxAV1Mj78DysxSC"],["Daily/weekly checklist · P5-350","Durst form, image","1IxoAxNCrWLnRBIFVojXg2kXB4mOyrvYA"],["P5-350 daily printhead maintenance procedure","WS Display guide, Word","1S2jdyWC-JJikCGbg7AmFWXcSGitW5LIB"]]},
+ p5tex:{title:"Durst P5 Tex / P5 Tex iSub",kicker:"Textile and dye-sub printer · 4 printers",lanes:[
+  ["After each purge","",[["Wipe the print heads with a wet cloth","op",null,0]]],
+  ["Daily","Start of shift",[
+   ["Carry out print head maintenance","op","Maintenance Purge",1],
+   ["Check safety devices: housing cover switches and covers","op",null,0],
+   ["Check all warning signs are clean and readable","op",null,0],
+   ["Check and clean the printing plate","op","Inspect Print Plane",0],
+   ["Check tensioning (stretch) rolls; clean if needed","op","Stretch Roller Inspect",1],
+   ["Check media transport rollers; clean if needed","op","Roller Inspect",1]]],
+  ["Every 2 days","",[
+   ["Check the capping station","op",null,1],
+   ["Check and clean the protective plate","op",null,1],
+   ["Check aerosol extraction air filter; clean if needed","op","Aerosol Filter Inspect",1]]],
+  ["Weekly","",[
+   ["Lubricate the carriage guide","op","Guiding Rail Oiling",1],
+   ["Check coolant status","op","Water Level Cooling Unit Inspect",1],
+   ["Check and clean the cooling system air filter","op","Dust/Air Filter Inspect",1],
+   ["Service the capping station and sealing lip","op",null,1],
+   ["Check de-air filters of the main ink tanks","op",null,1],
+   ["Dryer: clean redirection and support rolls, empty catch trays, clean pyrometer protective glass","op",null,1],
+   ["Dryer: clean the heating mats","op",null,0],
+   ["Check and clean print table vacuum parts and filters","op",null,0],
+   ["Document print head condition: nozzle test labeled with date, time and system number, archived","op",null,0]]],
+  ["Every 2 weeks","",[["Clean capping station wire mesh; drain 2 L of the water bath and top off with 2 L distilled water","op",null,1]]],
+  ["Monthly","",[["Check and clean the encoder ruler","op",null,1]]],
+  ["Every 6 months","",[["Lubricate the dryer door seals and toothed rack","op",null,1]]],
+  ["Usage-based","",[
+   ["Lubricate carriage bearing plates","op",null,1],
+   ["Change stretch rollers when the printer asks","op","Change Stretch Rollers",0]]],
+  ["As required","",[
+   ["Refill ink","op",null,1],["Check vacuum carrier on the printing table; clean if needed","op",null,0],["Empty the catch tank","op",null,0],
+   ["Durst service visit when the printer raises a service call","svc","Maintenance Service Call",0]]]],
+  gaps:[
+   "<b>I didn't find the Durst customer-service intervals for the P5 Tex.</b> The operating manual in Drive cuts off before section H.2. Ask Durst for the P5 Tex service checklist, matching the P5 350 one.",
+   "<b>Not on the floor form:</b> daily safety and warning-sign checks, the weekly dryer heating mats, print table vacuum parts, and the archived nozzle test.",
+   "<b>The CA P5 Tex form has few sign-offs</b> (56 since July) against 200+ for the other P5 Tex printers.",
+   "<b>The Maintenance Purge was put off</b> on 56 and 57 days at MX Tex-1 and Tex-2 in the last 90 days. The CA P5 Tex purges daily, so its prompt never fires."],
+  docs:[["Daily–yearly checklist · P5 Tex iSub","Durst form, image","1wgzSe0fZaDPqIs2RB3l92jSZ1QWI143D"],["Service intervals · P5 Tex manual §H.1","After purge to 6 months, image","1xSVbIdEiP87QqfWBQYPVONxGd5D9qjtw"],["P5 Tex / iSub operating instructions","Durst, 09/2021, PDF","1LiSNEO4E1HulQ7ZeXov3vDVqhNzXOmou"],["P5-Tex daily printhead maintenance procedure","WS Display guide, PDF","1j309lymviV-px_bDi7Ef7wRWtvkzj2kg"]]}
+};
+const COMMON=[["Machine Maintenance Log","Floor sign-off sheet, all printers","https://docs.google.com/spreadsheets/d/1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo/edit"],["Filter / head change log","EquipFlow Maintenance module","/maintenance/"]];
+let cur=0, who="all";
+const onForm=(t,p)=>Array.isArray(t[3])?!t[3].includes(p.name):!!t[3];
+const $=id=>document.getElementById(id);
+function nav(){const groups=[["r325","Rhotex 325"],["p5350","P5 350"],["p5tex","P5 Tex"]];
+ $("pnav").innerHTML=groups.map(([m,l])=>`<div class="navlabel">${l}</div>`+PRINTERS.map((p,i)=>p.model!==m?"":`<button class="navitem${i===cur?" active":""}" data-i="${i}"><span class="pl">${p.plant}</span>${p.name.replace(/ - (CA|PA|MX)$/,"")}</button>`).join("")).join("");
+ $("pnav").querySelectorAll("button").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;render()})}
+function render(){const p=PRINTERS[cur],M=MODELS[p.model];nav();
+ $("m-kicker").textContent=M.kicker;$("m-title").textContent=p.name;
+ $("m-ids").innerHTML=`<span class="id">Model <b>${M.title}</b></span><span class="id">Plant <b>${p.plant}</b></span><span class="id">S/N <b>${p.ser}</b></span><span class="id">System # <b>${p.sys}</b></span>`;
+ $("m-sib").textContent="Same schedule: "+PRINTERS.filter(x=>x.model===p.model&&x!==p).map(x=>x.name).join(" · ");
+ $("lanes").innerHTML=M.lanes.map(([when,sub,ts])=>{const f=ts.filter(t=>who==="all"||t[1]===who);if(!f.length)return"";
+  return`<div class="lane"><div class="when">${when}${sub?`<small>${sub}</small>`:""}</div><ul class="tasks">${f.map(t=>`<li class="task ${t[1]}"><span class="bar"></span><div><div class="tx">${t[0]}</div>${(t[2]||!onForm(t,p))?`<div class="meta">${t[2]?`<span class="tag prompt">Durst prompt · ${t[2]}</span>`:""}${!onForm(t,p)&&t[1]==="op"?`<span class="tag nolog">Not on sign-off form</span>`:""}</div>`:""}</div></li>`).join("")}</ul></div>`}).join("");
+ $("gaps").innerHTML=M.gaps.map(g=>`<li>${g}</li>`).join("");
+ $("docs").innerHTML=M.docs.map(d=>`<a class="doc" href="${DR(d[2])}" target="_blank" rel="noopener"><div class="t">${d[0]}</div><div class="s">${d[1]}</div></a>`).join("")+COMMON.map(d=>`<a class="doc" href="${d[2]}" target="_blank" rel="noopener"><div class="t">${d[0]}</div><div class="s">${d[1]}</div></a>`).join("")}
+document.querySelectorAll("#who button").forEach(b=>b.onclick=()=>{who=b.dataset.who;document.querySelectorAll("#who button").forEach(x=>x.classList.toggle("on",x===b));render()});
+render();
+})();
+</script>
+
+</body>
+</html>
