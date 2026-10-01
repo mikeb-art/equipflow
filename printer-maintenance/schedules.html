@@ -78,6 +78,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .doc:hover{border-color:var(--border-strong);background:var(--card-2)}
 .doc .t{font-size:13px;font-weight:600}
 .doc .s{font-size:11.5px;color:var(--muted);margin-top:3px}
+.btn-close{display:inline-block;margin-top:12px;text-decoration:none;font-weight:700;font-size:12.5px;background:var(--accent-soft);color:#bfe3ff;border:1px solid rgba(41,169,255,.25);padding:7px 14px;border-radius:8px}
+.btn-close:hover{background:rgba(41,169,255,.24)}
 .foot{padding:0 26px 24px;color:var(--muted);font-size:11.5px;font-family:var(--mono)}
 @media (max-width:900px){.app{flex-direction:column;background:var(--bg)}.side{position:static;height:auto;width:100%;flex-basis:auto}.wrap{padding-inline:16px}.topbar{padding-inline:16px}.lane{grid-template-columns:1fr;gap:8px}}
 </style>
@@ -114,7 +116,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
         <div class="head">
           <div><div class="hint" id="m-kicker"></div><h2 id="m-title"></h2>
             <div class="ids" id="m-ids"></div>
-            <div class="siblings" id="m-sib"></div></div>
+            <div class="siblings" id="m-sib"></div>
+            <a class="btn-close" href="/printer-maintenance/#closeout">Close out this period's tasks →</a></div>
           <div class="key"><span><i class="sw" style="background:var(--op)"></i>Operator task</span><span><i class="sw" style="background:var(--svc)"></i>Durst service technician</span><span><span class="tag prompt">Durst prompt</span> printer asks for it on screen</span><span><span class="tag nolog">Not on sign-off form</span></span></div>
         </div>
       </div>

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Printer Maintenance · EquipFlow</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/assets/auth.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <style>
@@ -93,6 +95,25 @@ td .mini span{display:block;height:100%}
 .method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .method p{font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:8px 0 0}
 .foot{padding:0 26px 24px;color:var(--muted);font-size:11.5px;font-family:var(--mono)}
+.co-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+.co-user{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.btn{background:var(--card-2);color:var(--ink);border:1px solid var(--border-strong);border-radius:9px;padding:7px 13px;font:600 12.5px var(--sans);cursor:pointer}
+.btn:hover{background:#1e2f52}.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.co-msg{font-size:12px;color:var(--ink-2);min-height:16px;margin-top:8px}
+.co-prog{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.co-group{margin-top:14px}
+.co-group h3{font-family:var(--mono);font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:700}
+.co-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.co-row .tx{font-size:13px;color:var(--ink);line-height:1.45}
+.co-row .who{font-size:11.5px;color:var(--muted);margin-top:2px}
+.co-row.done .tx{color:var(--ink-2)}
+.co-btns{display:flex;gap:6px;align-items:center}
+.co-b{width:34px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--inset);color:var(--ink-2);font-size:14px;font-weight:700;cursor:pointer}
+.co-b.yes.on{background:var(--good);border-color:transparent;color:#fff}
+.co-b.no.on{background:var(--crit);border-color:transparent;color:#fff}
+.co-b:disabled{opacity:.45;cursor:not-allowed}
+.co-more{margin-top:12px}
+.co-more summary{cursor:pointer;font-size:12.5px;color:var(--ink-2)}
 @media (max-width:900px){.app{flex-direction:column;background:var(--bg)}.side{position:static;height:auto;width:100%;flex-basis:auto}.split{grid-template-columns:1fr}.wrap{padding-inline:16px}.topbar{padding-inline:16px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -172,6 +193,16 @@ td .mini span{display:block;height:100%}
           <div class="loglist" id="log"></div>
           <div id="so"></div>
         </div>
+      </div>
+
+      <div class="card" id="closeout">
+        <div class="co-head">
+          <div><h2 id="co-title">Close out maintenance</h2><div class="hint" id="co-sub">Mark each task done (✓) or not done (✕) for its current period. Entries go to the Machine Maintenance Log, the same sheet the Maintenance module uses.</div></div>
+          <div class="co-user"><span id="co-user">Not signed in</span><button class="btn pri" id="co-auth">Sign in with Google</button></div>
+        </div>
+        <div class="co-msg" id="co-msg" role="status"></div>
+        <div class="co-prog" id="co-prog"></div>
+        <div id="co-list"></div>
       </div>
 
       <div class="method">
@@ -256,12 +287,165 @@ function detail(){const p=DATA.printers[sel.p],w=win(p);
   if(!ks.length&&!x[1]&&!x[2])h=`<div class="hint">No maintenance activity logged by the printer this day.</div>`;
   $("log").innerHTML=h;
   $("so").innerHTML=x[3]?`<div class="hint" style="margin-top:14px"><b style="color:var(--ink)">Floor sign-offs (${x[3]})</b></div><ul class="so-list">${x[4].map(i=>`<li>${esc(DATA.so[i])}</li>`).join("")}</ul>`:`<div class="hint" style="margin-top:14px">No floor sign-offs for this printer this day.</div>`}
-function render(){counts();kpis();heat();trend();detail()}
+window.__selSys=()=>DATA.printers[sel.p].sys;window.__selName=()=>DATA.printers[sel.p].name;
+function render(){counts();kpis();heat();trend();detail();if(window.__coDraw)window.__coDraw()}
 document.querySelectorAll(".navitem[data-plant]").forEach(b=>b.onclick=()=>{plant=b.dataset.plant;render()});
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{range=+b.dataset.days;document.querySelectorAll(".seg button").forEach(z=>z.classList.toggle("on",z===b));if(sel.d<N-range)sel.d=N-1;render()});
 render();
 })();
 </script>
 
+
+<script>
+/* ===== Close-out: same task templates, sign-in and Log sheet rows as /maintenance/ ===== */
+(function(){
+const CONFIG={CLIENT_ID:"919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com",SPREADSHEET_ID:"1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo",LOG_SHEET:"Log"};
+const CHIPS = {
+  shift:["Every Shift","c-shift"], daily:["Daily","c-daily"], d2:["Every 2 Days","c-2day"],
+  week:["Weekly","c-week"], wd3:["Every 3 Working Days","c-daily"], wd15:["Every 15 Working Days","c-15wd"],
+  month:["Monthly","c-month"], wd45:["Every 45 Working Days","c-45wd"], qtr:["Quarterly","c-qtr"],
+  half:["Half-Yearly","c-half"], year:["Yearly","c-year"], use:["Usage-Based","c-use"], req:["As Required","c-req"],
+  purge:["After Purge Cycle","c-req"], biweek:["Bi-Weekly","c-15wd"]
+};
+const T={};
+T.rhotex = [
+ ["Start cleaning cycle / wipe heads gently with distilled water","shift"],
+ ["Clean rollers + dancer between loading each roll of paper (wipe + water)","shift"],
+ ["Check motorized stretch/spreading rolls between loading each roll; clean if necessary (wipe + water)","shift"],
+ ["Check and empty both waste ink tanks as needed","shift"],
+ ["Clean machine and surrounding area","shift"],
+ ["Check crash sensors for contamination or overspray; clean if necessary","daily"],
+ ["Check cleaning station (left) and capping station (right); clean if necessary (wipe + distilled water)","daily"],
+ ["Check waste container (mesh tray and capping station); clean and empty if necessary","daily"],
+ ["Check and clean carriage sledge from below with distilled water","daily"],
+ ["Check the spitting pad; clean or change if necessary","daily"],
+ ["Oil linear carriage bearing guide","week"],
+ ["Check transport rollers; clean if necessary (water / soapy water)","week"],
+ ["Clean interior of the machine free from dust","week"],
+ ["Print Nozzle Check on paper and file with name / date","week"],
+ ["Check jar and filter on the ink suction wand; empty/replace if necessary","week"],
+ ["Check chiller water level and cooling fins; clean if necessary (switch off unit when cleaning!)","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Check the chiller air filter; clean as needed","month"],
+ ["Check ink level in on-board vacuum; empty if necessary","month"],
+ ["Quarterly basic cleaning (exterior/interior, top and underside)","qtr"],
+ ["Replace lubrication plates on the print head carriage","half"],
+ ["Lubricate print head carriage bushings","half","Every 108,000 sq ft OR every 6 months, whichever first"],
+ ["Change cooling system (chiller) water","year"],
+ ["6-month Durst service checklist (print quality, carriage, capping station, purge unit, media transport, ink system, cooling unit, workstation, safety devices)","half"],
+ ["Yearly Durst service checklist (6-month items + grease carriage rail & head-media-distance bearings, grease transport motor bearing, vaseline cable chain, replace main ink filters, replace cooling liquid)","year"],
+ ["Grease transport motor","use","At 13,000 hours of operation"],
+ ["Check electrical system of the cooling system (specialist)","req"],
+ ["After printing direct to textile: check absorbent pads and clean mesh tray","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
+];
+T.p5350 = [
+ ["Carry out print head maintenance","daily","At start of shift"],
+ ["Check printing plate for soiling; clean if necessary","daily"],
+ ["Check glass of UV LED units for soiling; clean if necessary","daily"],
+ ["Check conveyor belt, dancing rollers and redirection rolls of feed table; clean if necessary","d2"],
+ ["Check aerosol extraction air filter; clean if necessary","d2"],
+ ["Check carriage guide acoustically and visually; lubricate","week"],
+ ["Check chiller water level","week"],
+ ["Check chiller air filter and clean if necessary","week"],
+ ["Check main tank ventilation (de-air) filters; clean/replace if necessary","week"],
+ ["Document print head condition; print nozzle test, label with date/time/system # and archive","week","Keep test images — warranty claims require them"],
+ ["Check air filters of UV LED units; clean/replace if necessary","week"],
+ ["Check conveyor belt for soiling or overspray; clean if necessary","month"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Maintenance on ionizer","month"],
+ ["Replace lubrication plates of print carriage bearings (only P5 350HS — confirm)","month"],
+ ["Create backup of the workstation","half"],
+ ["Clean ventilation of the workstation","half"],
+ ["Lubricate print carriage bearing","use","Every 10,000 m² (107,639 sq ft) printed — Durst grease P/N 4290014"],
+ ["Refill ink","req"],
+ ["Clean housing of the printer","req"],
+ ["Empty catch tank","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
+];
+T.p5tex = [
+ ["Carry out print head maintenance","daily","At start of shift"],
+ ["Check tensioning rolls for soiling; clean if necessary","daily"],
+ ["Check rollers for soiling; clean if necessary","daily"],
+ ["Check capping station","d2"],
+ ["Check protection plate and clean if necessary","d2"],
+ ["Check aerosol extraction air filter; clean if necessary","d2"],
+ ["Lubricate carriage guide","week"],
+ ["Check status of coolant chiller","week"],
+ ["Check chiller air filter and clean if necessary","week"],
+ ["Clean capping station and sealing lip","week"],
+ ["Clean capping station wire mesh, drain 2L of waterbath, top off with 2L of distilled water","biweek"],
+ ["Dryer: clean redirection rollers + support rolls, empty catch trays, clean pyrometer protective glasses","week"],
+ ["Check de-air filters of main ink tanks; clean/replace if necessary","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Lubricate seals and toothed rack at the dryer","half"],
+ ["Lubricate carriage bearing plates","use","Every 10,000 m² (107,639 sq ft) printed — Durst grease P/N 4290014"],
+ ["Refill ink","req"],
+ ["Check vacuum carrier on printing table for soiling; clean if necessary","req"],
+ ["Empty catch tank","req"],
+ ["Park print carriage on capping station ASAP after right-side maintenance (prevents nozzle dry-out)","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Carriage filter P/N 1392545 · main ink filter P/N 1392994 — click + Log"]
+];
+/* printer (Analytics system #) -> Maintenance module machine entry */
+const MACH={"142718":["CA","Durst Rhotex 325","SER # AD28-042 · Sys # 142718","rhotex"],
+"105857":["PA","Durst Rhotex 325-1","SER # AD-28-031 · Sys # 105857","rhotex"],"202921":["PA","Durst Rhotex 325-2","SER # AD28-069 · Sys # 202921","rhotex"],
+"294130":["PA","Durst P5-350","SER # AK26-116 · Sys # 294130","p5350"],"400579":["PA","Durst P5-Tex","SER # AE28-064 · Sys # 400579","p5tex"],
+"298127":["CA","Durst P5-350","SER # AK26-117 · Sys # 298127","p5350"],"298155":["CA","Durst P5-Tex","SER # AE28-019 · Sys # 298155","p5tex"],
+"154652":["MX","Durst Rhotex 325-1","SER # AD20-049 · Sys # 154652","rhotex"],"152619":["MX","Durst Rhotex 325-2","SER # AD28-047 · Sys # 152619","rhotex"],
+"298128":["MX","Durst P5-350","SER # AK26-118 · Sys # 298128","p5350"],"298183":["MX","Durst P5-Tex-1","SER # AE28-020 · Sys # 298183","p5tex"],
+"405629":["MX","Durst P5-Tex-2","SER # AE28-069 · Sys # 405629","p5tex"]};
+const LABEL2IV={};Object.entries(CHIPS).forEach(([k,v])=>{if(!LABEL2IV[v[0]])LABEL2IV[v[0]]=k});
+function periodKey(iv,now){now=now||new Date();const y=now.getFullYear(),m=now.getMonth(),days=Math.floor(now.getTime()/86400000);
+ switch(iv){case "week":{const d=new Date(now);d.setDate(d.getDate()-((d.getDay()+6)%7));return "W"+d.toDateString()}
+ case "biweek":case "wd15":return "B"+Math.floor(days/14);case "d2":return "D2-"+Math.floor(days/2);case "wd3":return "D3-"+Math.floor(days/3);
+ case "month":return "M"+y+"-"+m;case "wd45":return "D45-"+Math.floor(days/45);case "qtr":return "Q"+y+"-"+Math.floor(m/3);
+ case "half":return "H"+y+"-"+(m<6?0:1);case "year":return "Y"+y;default:return "T"+now.toDateString()}}
+const GROUPS=[["Every shift & daily",["shift","daily","d2","wd3"]],["Weekly",["week","biweek","wd15"]],["Monthly",["month","wd45"]],["Quarterly & longer",["qtr","half","year"]]];
+const SCOPES="openid email profile https://www.googleapis.com/auth/spreadsheets";
+let tokenClient=null,token=null,user=null,log=null,loading=false,curSys=null;const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const msg=t=>{$("co-msg").textContent=t||""};
+async function api(path,opt){const r=await fetch("https://sheets.googleapis.com/v4/spreadsheets/"+CONFIG.SPREADSHEET_ID+path,Object.assign({},opt,{headers:Object.assign({Authorization:"Bearer "+token},opt&&opt.headers)}));if(r.status===401){token=null;user=null;EQF.clearToken();ui();throw new Error("Your sign-in expired. Sign in again.")}if(!r.ok)throw new Error("Google Sheets returned HTTP "+r.status);return r.json()}
+async function afterToken(){try{const r=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+token}});user=await r.json()}catch(e){user={email:"(unknown)"}}ui();await loadLog()}
+async function loadLog(){if(!token)return;loading=true;draw();try{const j=await api("/values/"+encodeURIComponent(CONFIG.LOG_SHEET)+"!A2:H");log=(j.values||[]);msg("")}catch(e){msg(e.message)}loading=false;draw()}
+function ui(){$("co-user").textContent=user?("Signed in · "+(user.email||"")):"Not signed in";$("co-auth").textContent=user?"Sign out":"Sign in with Google";$("co-auth").className="btn"+(user?"":" pri")}
+$("co-auth").onclick=()=>{if(user){EQF.clearToken();try{google.accounts.oauth2.revoke(token,()=>{})}catch(e){}token=null;user=null;log=null;ui();draw();return}
+ if(!tokenClient){msg("Google sign-in is still loading. Try again in a moment.");return}tokenClient.requestAccessToken({prompt:"select_account"})};
+function initAuth(){if(!window.google||!google.accounts||!google.accounts.oauth2){setTimeout(initAuth,300);return}
+ tokenClient=google.accounts.oauth2.initTokenClient({client_id:CONFIG.CLIENT_ID,scope:SCOPES,callback:async r=>{if(r.error){msg("Sign-in didn't finish: "+r.error);return}EQF.saveToken(r,SCOPES);token=r.access_token;await afterToken()}});
+ const c=EQF.cachedToken(SCOPES);if(c){token=c.access_token;afterToken()}else{try{tokenClient.requestAccessToken({prompt:""})}catch(e){}}}
+/* current-period state of each task from the Log rows: latest action in this period wins */
+function states(m){const st={};if(!log)return st;
+ for(const r of log){if(r[4]!==m[2]||r[3]!==m[1])continue;const iv=LABEL2IV[r[6]];if(!iv)continue;const d=new Date(r[0]);if(isNaN(d))continue;
+  if(periodKey(iv,d)!==periodKey(iv))continue;const a=r[7]||"";st[r[5]]={s:a==="Completed"?"done":a==="Marked NOT completed"?"notdone":"open",by:r[1],at:d}}
+ return st}
+function draw(){const sys=window.__selSys&&window.__selSys();if(!sys)return;curSys=sys;const m=MACH[sys];const tasks=T[m[3]];
+ $("co-title").textContent="Close out maintenance · "+window.__selName();
+ if(!user){$("co-prog").innerHTML="";$("co-list").innerHTML=`<div class="hint" style="margin-top:10px">Sign in with your wsdisplay.com Google account to see this period's sign-offs and close out tasks. Every entry is logged with your name and the time.</div>`;return}
+ if(loading&&!log){$("co-list").innerHTML=`<div class="hint" style="margin-top:10px">Loading the Maintenance Log…</div>`;return}
+ const st=states(m);const fmtT=d=>d.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+ const row=(t,i)=>{const s=st[t[0]]||{s:"open"};return`<div class="co-row ${s.s}"><div><div class="tx">${esc(t[0])}</div><div class="who">${CHIPS[t[1]][0]}${t[2]?" · "+esc(t[2]):""}${s.s!=="open"?" · "+(s.s==="done"?"Done":"Not done")+" by "+esc((s.by||"").split("@")[0])+", "+fmtT(s.at):""}</div></div>
+  <div class="co-btns"><button class="co-b yes${s.s==="done"?" on":""}" data-i="${i}" data-a="done" aria-label="Mark done: ${esc(t[0])}">✓</button><button class="co-b no${s.s==="notdone"?" on":""}" data-i="${i}" data-a="notdone" aria-label="Mark not done: ${esc(t[0])}">✕</button></div></div>`};
+ let html="",due=0,done=0;
+ GROUPS.forEach(([g,ivs])=>{const items=tasks.map((t,i)=>[t,i]).filter(([t])=>ivs.includes(t[1]));if(!items.length)return;
+  items.forEach(([t])=>{due++;if((st[t[0]]||{}).s==="done")done++});
+  html+=`<div class="co-group"><h3>${g}</h3>${items.map(([t,i])=>row(t,i)).join("")}</div>`});
+ const extra=tasks.map((t,i)=>[t,i]).filter(([t])=>["use","req","purge"].includes(t[1]));
+ if(extra.length)html+=`<details class="co-more"><summary>As needed and usage-based (${extra.length})</summary>${extra.map(([t,i])=>row(t,i)).join("")}</details>`;
+ $("co-prog").innerHTML=`<span class="fact"><b>${done}</b> of <b>${due}</b> scheduled tasks done this period</span><span class="fact">${m[0]} · ${esc(m[1])} · ${esc(m[2])}</span>`;
+ $("co-list").innerHTML=html;
+ $("co-list").querySelectorAll(".co-b").forEach(b=>b.onclick=()=>mark(m,tasks[+b.dataset.i],b.dataset.a,b))}
+async function mark(m,t,a,btn){if(!token){msg("Sign in first. Every close-out is logged with your name.");return}
+ const prev=(states(m)[t[0]]||{s:"open"}).s;const now=prev===a?"open":a;
+ const action=now==="done"?"Completed":now==="notdone"?"Marked NOT completed":"Unchecked (was "+prev+")";
+ const row=[new Date().toLocaleString(),user.email||"",m[0],m[1],m[2],t[0],CHIPS[t[1]][0],action];
+ btn.disabled=true;msg("Saving…");
+ try{await api("/values/"+encodeURIComponent(CONFIG.LOG_SHEET)+"!A1:append?valueInputOption=USER_ENTERED",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({values:[row]})});
+  (log=log||[]).push(row);msg("Saved to the Maintenance Log at "+new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}))}
+ catch(e){msg("Not saved. "+e.message)}
+ draw()}
+window.__coDraw=draw;initAuth();draw();
+})();
+</script>
 </body>
 </html>
