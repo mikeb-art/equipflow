@@ -9,6 +9,11 @@ on:
     branches: [main]
     paths: [printer-maintenance/data/reminder.txt]
   workflow_dispatch:
+    inputs:
+      message:
+        description: "Optional test text to post instead of reminder.txt"
+        required: false
+        default: ""
 
 concurrency:
   group: printing-reminder
@@ -22,12 +27,20 @@ jobs:
       - name: Post reminder to Google Chat
         env:
           WEBHOOK: ${{ secrets.PRINTING_CHAT_WEBHOOK }}
+          MESSAGE: ${{ github.event.inputs.message }}
         run: |
           if [ -z "$WEBHOOK" ]; then
             echo "::warning::PRINTING_CHAT_WEBHOOK secret is not set; nothing posted."
             exit 0
           fi
-          body=$(jq -Rs '{text: .}' printer-maintenance/data/reminder.txt)
+          if [ -n "$MESSAGE" ]; then
+            body=$(jq -n --arg t "$MESSAGE" '{text: $t}')
+          elif [ -f printer-maintenance/data/reminder.txt ]; then
+            body=$(jq -Rs '{text: .}' printer-maintenance/data/reminder.txt)
+          else
+            echo "::warning::No reminder.txt yet and no test message; nothing posted."
+            exit 0
+          fi
           for attempt in 1 2; do
             code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST "$WEBHOOK" \
               -H 'Content-Type: application/json; charset=UTF-8' --data "$body") || code=000
