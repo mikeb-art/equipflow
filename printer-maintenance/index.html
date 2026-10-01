@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){var h=location.hostname;if(/\.vercel\.app$/.test(h)&&h!=="equipflow-lemon.vercel.app"){location.replace("https://equipflow-lemon.vercel.app"+location.pathname+location.search+location.hash)}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Printer Maintenance · EquipFlow</title>
@@ -418,7 +419,7 @@ $("co-auth").onclick=()=>{if(user){EQF.clearToken();try{google.accounts.oauth2.r
  if(!tokenClient){msg("Google sign-in is still loading. Try again in a moment.");return}tokenClient.requestAccessToken({prompt:"select_account"})};
 function initAuth(){if(!window.google||!google.accounts||!google.accounts.oauth2){setTimeout(initAuth,300);return}
  tokenClient=google.accounts.oauth2.initTokenClient({client_id:CONFIG.CLIENT_ID,scope:SCOPES,callback:async r=>{if(r.error){msg("Sign-in didn't finish: "+r.error);return}EQF.saveToken(r,SCOPES);token=r.access_token;await afterToken()}});
- const c=EQF.cachedToken(SCOPES);if(c){token=c.access_token;afterToken()}else{try{tokenClient.requestAccessToken({prompt:""})}catch(e){}}}
+ const c=EQF.cachedToken(SCOPES);if(c){token=c.access_token;afterToken()}}
 /* current-period state of each task from the Log rows: latest action in this period wins */
 function states(m){const st={};if(!log)return st;
  for(const r of log){if(r[4]!==m[2]||r[3]!==m[1])continue;const iv=LABEL2IV[r[6]];if(!iv)continue;const d=new Date(r[0]);if(isNaN(d))continue;
