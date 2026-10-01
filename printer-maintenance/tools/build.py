@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild Printer Maintenance data from a Durst pull + the Machine Maintenance Log.
 
-usage: build.py DUMP.txt LOG.json [--html printer-maintenance/index.html] [--reminder reminder.txt]
+usage: build.py DUMP.txt LOG.json [--html printer-maintenance/index.html] [--reminder printer-maintenance/data/reminder.txt]
 
 DUMP.txt  text produced by tools/pull.js (read from the page with get_page_text)
 LOG.json  Google Sheets values for 'Log'!A1:H of the Machine Maintenance Log
@@ -138,7 +138,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dump"); ap.add_argument("log")
     ap.add_argument("--html", default="printer-maintenance/index.html")
-    ap.add_argument("--reminder", default="reminder.txt")
+    ap.add_argument("--reminder", default="printer-maintenance/data/reminder.txt")
     ap.add_argument("--history", default="printer-maintenance/data/history.txt",
                     help="stored rolling history; the new pull is merged into it and it is rewritten")
     a = ap.parse_args()

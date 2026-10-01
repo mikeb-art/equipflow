@@ -9,10 +9,15 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    (hash: `h = (h*31 + charCode) % 2147483647` over the whole text).
 4. Read the Machine Maintenance Log (`Log!A1:H` of sheet 1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo)
    and save it as `log.json` (`{"values": [...]}`).
-5. `python3 printer-maintenance/tools/build.py dump.txt log.json --reminder reminder.txt`
+5. `python3 printer-maintenance/tools/build.py dump.txt log.json`
    merges the pull into `printer-maintenance/data/history.txt` (rolling 91 days; the pulled days replace
-   what was stored), rewrites the data in `printer-maintenance/index.html`, and drafts the Printing-space reminder.
-6. Commit `printer-maintenance/index.html` and `printer-maintenance/data/history.txt`, push to `main`; Vercel publishes it.
+   what was stored), rewrites the data in `printer-maintenance/index.html`, and writes the Printing-space reminder
+   to `printer-maintenance/data/reminder.txt`.
+6. Commit `printer-maintenance/index.html`, `printer-maintenance/data/history.txt` and
+   `printer-maintenance/data/reminder.txt`, push to `main`; Vercel publishes the page.
+7. The push of a new `reminder.txt` starts the GitHub Action `.github/workflows/printing-reminder.yml`, which posts it
+   to the Google Chat "Printing" space. The webhook URL is the repo secret `PRINTING_CHAT_WEBHOOK`; it is never
+   stored in the repo or in the scheduled task. To re-send a reminder: Actions tab > Printing reminder > Run workflow.
 
 ## P5 "done" messages
 
