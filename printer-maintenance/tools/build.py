@@ -55,6 +55,27 @@ def parse_dump(text):
     return d0, d1, pulled, tasks, events, purges
 
 
+def load_log(path):
+    """Accepts Sheets values JSON ({"values": [...]}), a Drive read_file_content result
+    ({"fileContent": "...csv..."}), or a plain CSV export of the Log tab."""
+    import csv, io
+    raw = open(path, encoding="utf-8").read()
+    try:
+        j = json.loads(raw)
+        if isinstance(j, dict) and "values" in j:
+            return j["values"]
+        if isinstance(j, dict) and "fileContent" in j:
+            raw = j["fileContent"]
+    except ValueError:
+        pass
+    m = re.search(r"```[^\n]*\n(.*?)```", raw, re.S)   # Drive wraps each tab in a fenced block
+    if m:
+        raw = m.group(1)
+    rows = list(csv.reader(io.StringIO(raw.strip())))
+    start = next((i for i, r in enumerate(rows) if r and r[0].strip() == "Timestamp"), 0)
+    return rows[start:]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dump"); ap.add_argument("log")
@@ -69,7 +90,7 @@ def main():
 
     # floor sign-offs per system number per day
     so = collections.defaultdict(lambda: collections.defaultdict(list))
-    for r in json.load(open(a.log)).get("values", [])[1:]:
+    for r in load_log(a.log)[1:]:
         if len(r) < 8 or r[7] != "Completed":
             continue
         m = re.search(r"Sys # (\d+)", r[4])
