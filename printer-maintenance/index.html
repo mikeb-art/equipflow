@@ -417,7 +417,7 @@ function initAuth(){if(!window.google||!google.accounts||!google.accounts.oauth2
 /* current-period state of each task from the Log rows: latest action in this period wins */
 function states(m){const st={};if(!log)return st;
  for(const r of log){if(r[4]!==m[2]||r[3]!==m[1])continue;const iv=LABEL2IV[r[6]];if(!iv)continue;const d=new Date(r[0]);if(isNaN(d))continue;
-  if(periodKey(iv,d)!==periodKey(iv))continue;const a=r[7]||"";st[r[5]]={s:a==="Completed"?"done":a==="Marked NOT completed"?"notdone":"open",by:r[1],at:d}}
+  if(iv==="d2"){if((Date.now()-d.getTime())/86400000>2)continue}else if(iv==="wd3"){let n=0,x=new Date(d);x.setHours(0,0,0,0);const e=new Date();e.setHours(0,0,0,0);while(x<e){x.setDate(x.getDate()+1);const w=x.getDay();if(w&&w!==6)n++}if(n>3)continue}else if(periodKey(iv,d)!==periodKey(iv))continue;const a=r[7]||"";st[r[5]]={s:a==="Completed"?"done":a==="Marked NOT completed"?"notdone":"open",by:r[1],at:d}}
  return st}
 function draw(){const sys=window.__selSys&&window.__selSys();if(!sys)return;curSys=sys;const m=MACH[sys];const tasks=T[m[3]];
  $("co-title").textContent="Close out maintenance · "+window.__selName();
