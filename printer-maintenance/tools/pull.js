@@ -55,6 +55,10 @@
         const d = dayOf(r.datetime, p.timeZone);
         if (String(r.errorNr).split("|")[0] === "41002") purge[d] = (purge[d] || 0) + 1;   // P5 purge cycle
         const n = norm(r.errorText); if (!n) continue;
+        // P5: the same "Maintenance warning: X" text is sent for the on-screen prompt and for the operator's Execute.
+        // Execute carries a zero-padded second ID (…|00000000000003089282); prompts carry a different one. Found Oct 1, 2026.
+        const [code, sub] = String(r.errorNr).split("|");
+        if (n.kind === "w" && /^50\d\d\d$/.test(code) && /^0{10}/.test(sub || "")) n.kind = "d";
         const k = ti(n.task) + n.kind; (days[d] = days[d] || {})[k] = (days[d][k] || 0) + 1;
       }
       lines.push("P" + p.id + "|" + p.systemNumber + "=" + Object.keys(days).sort().map(d => d + ":" + Object.entries(days[d]).map(([k, c]) => k + c).join(".")).join(" "));

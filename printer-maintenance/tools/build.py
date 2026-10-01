@@ -30,6 +30,18 @@ ORDER = list(PRINTERS)
 ACT = ("Test pattern printed", "Purge cycle run")
 PURGE = "Maintenance Purge"
 
+# How often each Durst-prompted task is due, in days, from the maintenance schedules (schedules.html).
+# The printer keeps its own due dates; these are the manual's intervals, used to flag overdue tasks.
+_P5 = {"Maintenance Purge": 1, "Inspect Print Plane": 1, "Roller Inspect": 1,
+       "Guiding Rail Oiling": 7, "Water Level Cooling Unit Inspect": 7}
+EVERY = {
+    "Rhotex 325": {"Maintenance Purge": 1, "Stretch Roller Inspect": 1, "Inspect Print Plane": 1,
+                   "Guiding Rail Oiling": 7, "Roller Inspect": 7, "Dust/Air Filter Inspect": 7,
+                   "Water Level Cooling Unit Inspect": 7, "Change lubricating plates": 182},
+    "P5 350": {**_P5, "Dust/Air Filter Inspect": 2, "Refill Bearings": 182},
+    "P5 Tex": {**_P5, "Stretch Roller Inspect": 1, "Aerosol Filter Inspect": 2, "Dust/Air Filter Inspect": 7},
+}
+
 
 def parse_dump(text):
     lines = [l for l in text.strip().splitlines() if l.strip()]
@@ -187,11 +199,11 @@ def main():
                 if name_t == PURGE:
                     if w or lt or dn:
                         t[str(i)] = [S["done" if (p > 0 or dn) else "off"], w + lt]
-                elif is325:
-                    if dn: t[str(i)] = [S["done"], lt]
-                    elif lt: t[str(i)] = [S["off"], lt]
-                elif w:
-                    t[str(i)] = [S["open"], w]
+                # Rhotex 325 logs "done" / "Remind later"; P5 logs the prompt and, for Execute, a "done" ID (see pull.js).
+                elif dn:
+                    t[str(i)] = [S["done"], w + lt]
+                elif lt or w:
+                    t[str(i)] = [S["off"], w + lt]
             sig = so[sysn].get(k, [])
             rows.append([t, p, tp, len(sig), [si(x) for x in sorted(set(sig))]])
             pi = str(TASKS.index(PURGE)) if PURGE in TASKS else None
@@ -204,8 +216,20 @@ def main():
             if t or p or tp: st["active"] += 1
             if tp: st["tp_days"] += 1
             if p: st["purge_cycle_days"] += 1
+        # last day each task was done (purge: a purge cycle also counts), and how overdue it is
+        last = {}
+        for i, name_t in enumerate(TASKS):
+            ld = None
+            for k, r in zip(days, rows):
+                v = r[0].get(str(i))
+                if (v and v[0] == "d") or (name_t == PURGE and r[1]):
+                    ld = k
+            iv = EVERY.get(model, {}).get(name_t)
+            seen = any(str(i) in r[0] for r in rows)   # skip tasks this printer's software never raises
+            if seen:
+                last[str(i)] = [ld.isoformat() if ld else None, iv]
         out["printers"].append({"id": int(pid), "plant": plant, "name": name, "model": model,
-                                "serial": ser, "sys": sysn, "d": rows})
+                                "serial": ser, "sys": sysn, "d": rows, "last": last})
         stats.append((name, plant, st, offt))
 
     # findings (whole window)
@@ -251,15 +275,23 @@ def main():
         for p in out["printers"]:
             if p["plant"] != plant: continue
             t, pc, tp, sc, _ = p["d"][yi]
-            if not t and not pc and not tp: continue
             off = [TASKS[int(k)] for k, v in t.items() if v[0] == "o"]
-            if off:
-                note = "Purge put off, no purge ran" if PURGE in off else ""
-                rest = [x for x in off if x != PURGE]
-                parts = [x for x in [note, ("Put off: " + ", ".join(rest)) if rest else ""] if x]
-                lines.append(f"• {p['name']} ({p['sys']}): " + "; ".join(parts) + f". Floor sign-offs: {sc}")
+            parts = []
+            if PURGE in off: parts.append("Purge put off, no purge ran")
+            rest = [x for x in off if x != PURGE]
+            if rest: parts.append("Put off: " + ", ".join(rest))
+            # weekly-and-longer tasks past their interval, as of the pull date
+            late = []
+            for k, (ld, iv) in p["last"].items():
+                if not iv or iv < 7 or TASKS[int(k)] in off: continue
+                if not ld: late.append(f"{TASKS[int(k)]} (none in {len(days)} days)")
+                elif (end - dt.date.fromisoformat(ld)).days > iv:
+                    late.append(f"{TASKS[int(k)]} (last {dt.date.fromisoformat(ld).strftime('%b %-d')})")
+            if late: parts.append("Overdue: " + ", ".join(late))
+            if parts:
+                lines.append(f"• {p['name']} ({p['sys']}): " + "; ".join(parts))
         msg.append(f"\n*{plant}*")
-        msg.extend(lines or ["• Nothing put off"])
+        msg.extend(lines or ["• Nothing put off or overdue"])
     msg.append("\nDetails and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/")
     open(a.reminder, "w").write("\n".join(msg) + "\n")
     print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}")

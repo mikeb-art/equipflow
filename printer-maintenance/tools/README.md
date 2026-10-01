@@ -13,3 +13,7 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    merges the pull into `printer-maintenance/data/history.txt` (rolling 91 days; the pulled days replace
    what was stored), rewrites the data in `printer-maintenance/index.html`, and drafts the Printing-space reminder.
 6. Commit `printer-maintenance/index.html` and `printer-maintenance/data/history.txt`, push to `main`; Vercel publishes it.
+
+## P5 "done" messages
+
+P5 printers send the same text ("Maintenance warning: X") for the on-screen prompt and for the operator tapping Execute. The Execute message has a zero-padded second ID in `errorNr` (e.g. `50001|00000000000003089282`). `pull.js` records those as done. Confirmed Oct 1, 2026 with Execute taps on the CA P5-350.
