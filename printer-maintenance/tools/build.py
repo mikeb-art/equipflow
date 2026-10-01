@@ -76,14 +76,70 @@ def load_log(path):
     return rows[start:]
 
 
+KEEP_DAYS = 91
+
+
+def serialize(d0, d1, pulled, events, purges):
+    """Inverse of parse_dump (task names re-indexed)."""
+    tasks = []
+    def ti(t):
+        if t not in tasks:
+            tasks.append(t)
+        return tasks.index(t)
+    lines = []
+    for sysn, (pid, days) in events.items():
+        parts = []
+        for day in sorted(days):
+            items = ".".join(f"{ti(t)}{k}{c}" for (t, k), c in days[day].items())
+            if items:
+                parts.append(f"{day}:{items}")
+        lines.append(f"P{pid}|{sysn}=" + " ".join(parts))
+    pcs = [f"PC{pid}=" + " ".join(f"{d}:{n}" for d, n in sorted(v.items())) for pid, v in purges.items()]
+    return "\n".join([f"D={d0}|{d1}|{pulled}", "T=" + ";".join(tasks)] + lines + pcs) + "\n"
+
+
+def merge_history(hist_text, new):
+    """Replace every day the new pull covers, keep older history, trim to KEEP_DAYS."""
+    nd0, nd1, npulled, _, nev, npc = new
+    if not hist_text:
+        hd0, hev, hpc = nd0, {}, {}
+    else:
+        hd0, _, _, _, hev, hpc = parse_dump(hist_text)
+    end = dt.date.fromisoformat(nd1)
+    start = max(dt.date.fromisoformat(min(hd0, nd0)), end - dt.timedelta(days=KEEP_DAYS - 1))
+    keep = lambda d: start.isoformat() <= d <= nd1
+    ev = {}
+    for sysn in set(hev) | set(nev):
+        pid = (nev.get(sysn) or hev.get(sysn))[0]
+        days = {d: m for d, m in (hev.get(sysn, (pid, {}))[1]).items() if d < nd0 and keep(d)}
+        days.update({d: m for d, m in (nev.get(sysn, (pid, {}))[1]).items() if keep(d)})
+        ev[sysn] = (pid, days)
+    pc = {}
+    for pid in set(hpc) | set(npc):
+        v = {d: n for d, n in hpc.get(pid, {}).items() if d < nd0 and keep(d)}
+        v.update({d: n for d, n in npc.get(pid, {}).items() if keep(d)})
+        pc[pid] = v
+    return start.isoformat(), nd1, npulled, ev, pc
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dump"); ap.add_argument("log")
     ap.add_argument("--html", default="printer-maintenance/index.html")
     ap.add_argument("--reminder", default="reminder.txt")
+    ap.add_argument("--history", default="printer-maintenance/data/history.txt",
+                    help="stored rolling history; the new pull is merged into it and it is rewritten")
     a = ap.parse_args()
 
-    d0, d1, pulled, tasks, events, purges = parse_dump(open(a.dump).read())
+    new = parse_dump(open(a.dump).read())
+    import os
+    hist = open(a.history).read() if a.history and os.path.exists(a.history) else ""
+    d0, d1, pulled, events, purges = merge_history(hist, new)
+    merged_text = serialize(d0, d1, pulled, events, purges)
+    if a.history:
+        os.makedirs(os.path.dirname(a.history) or ".", exist_ok=True)
+        open(a.history, "w").write(merged_text)
+    _, _, _, tasks, events, purges = parse_dump(merged_text)
     start, end = dt.date.fromisoformat(d0), dt.date.fromisoformat(d1)
     days = [start + dt.timedelta(i) for i in range((end - start).days + 1)]
     TASKS = [t for t in tasks if t not in ACT]

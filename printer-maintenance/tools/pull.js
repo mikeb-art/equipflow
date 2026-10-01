@@ -1,5 +1,5 @@
 /* Run in a Chrome tab on the Durst Analytics+ UI (http://50.232.157.54:8090/ui/), signed in.
-   Pulls the last 91 days of messages for every active printer, compacts them, and shows the
+   Pulls the last 3 days (or window.__pullDays) of messages for every active printer, compacts them, and shows the
    result as the page's only <article> so get_page_text can read it.
    Result value: {ok, len, hash, printers, error}. */
 (async () => {
@@ -23,7 +23,8 @@
     let printers = [];
     for (const page of [0, 1, 2]) { const j = await post("/frontend-api/printer/list", { page, limit: 10, filterTerms: [] }); printers.push(...(j.entities || [])); }
     const seen = new Set(); printers = printers.filter(p => p.active && !seen.has(p.id) && seen.add(p.id));
-    const today = new Date(), from = new Date(today); from.setDate(from.getDate() - 90);
+    const DAYS = Number(window.__pullDays) || 3;   // set window.__pullDays = 90 first for a full refresh
+    const today = new Date(), from = new Date(today); from.setDate(from.getDate() - DAYS);
     const iso = d => d.toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
     const FROM = iso(from), TO = iso(today);
     const dayOf = (d, tz) => new Date(d).toLocaleDateString("en-CA", { timeZone: tz });
