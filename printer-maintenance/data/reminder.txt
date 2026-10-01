@@ -1,0 +1,18 @@
+*Printer maintenance: Wed Sep 30* (from Durst Analytics)
+
+*CA*
+• Rhotex 325 - CA (142718): Put off: Change Stretch Rollers; Overdue: Roller Inspect (last Sep 21)
+
+*PA*
+• Rhotex 325-1 - PA (105857): Purge put off, no purge ran; Overdue: Roller Inspect (last Sep 21)
+• Rhotex 325-2 - PA (202921): Purge put off, no purge ran
+• P5-350 - PA (294130): Purge put off, no purge ran; Put off: Roller Inspect, Dust/Air Filter Inspect, Guiding Rail Oiling
+• P5 Tex - PA (400579): Purge put off, no purge ran
+
+*MX*
+• Rhotex 325-1 - MX (154652): Purge put off, no purge ran; Overdue: Roller Inspect (last Sep 18)
+• Rhotex 325-2 - MX (152619): Purge put off, no purge ran; Overdue: Roller Inspect (last Sep 11)
+• P5-350 - MX (298128): Put off: Inspect Print Plane
+• P5 Tex-2 - MX (405629): Purge put off, no purge ran; Put off: Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling
+
+Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
