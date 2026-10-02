@@ -159,10 +159,34 @@ const PRESSES = ["CA Monti-1","CA Monti-2","MX Monti-1","MX Monti-3","MX Monti-4
 // Verification calendar — the exact upload Wednesdays from the Ruler Verification Frequency Chart (2026, pinned).
 // Monthly = every 4 weeks (blue circles); Quarterly = the four red Wednesdays.
 const SCHEDULE = {
-  Monthly:   ["2026-01-21","2026-02-18","2026-03-18","2026-04-15","2026-05-13","2026-06-10","2026-07-08","2026-08-05","2026-09-02","2026-09-30","2026-10-28","2026-11-25","2026-12-23"],
-  Quarterly: ["2026-03-18","2026-06-10","2026-09-02","2026-12-23"]
+  Monthly:   ["2026-01-21","2026-02-18","2026-03-18","2026-04-15","2026-05-13","2026-06-10","2026-07-08","2026-08-05","2026-09-02","2026-09-30","2026-10-28","2026-11-25","2026-12-23",
+              "2027-01-13","2027-02-10","2027-03-10","2027-04-07","2027-05-05","2027-06-02","2027-06-30","2027-07-28","2027-08-25","2027-09-22","2027-10-20","2027-11-17","2027-12-15"],
+  Quarterly: ["2026-03-18","2026-06-10","2026-09-02","2026-12-23",
+              "2027-03-10","2027-06-30","2027-09-22","2027-12-15"]
 };
-const EARLY_DAYS = 5;   // an upload up to 5 days before the scheduled Wednesday still counts for that period
+// The page re-reads these dates from the Ruler Verification Frequency Chart on every load (red cells = quarterly),
+// so a new year added to the chart shows up without a code change. The lists above are the fallback.
+const CHART_ID = "1aDQB2beKf9QzEFTg5a5GW8GYenJlnaNVFRWdCIQcNjs";
+const MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+async function loadSchedule(){
+  try{
+    const j = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${CHART_ID}?ranges=${encodeURIComponent("A1:A300")}&includeGridData=true&fields=${encodeURIComponent("sheets(data(rowData(values(formattedValue,effectiveFormat(backgroundColor)))))")}`);
+    const rows = (((j.sheets||[])[0]||{}).data||[{}])[0].rowData || [];
+    let year = null; const mon = [], qtr = [];
+    for(const r of rows){
+      const c = (r.values||[])[0] || {}, v = String(c.formattedValue||"").trim();
+      const y = v.match(/(20\d\d)\s+calendar/i); if(y){ year = +y[1]; continue; }
+      const m = v.match(/^([A-Za-z]+)\s+(\d{1,2})$/); if(!m || !year) continue;
+      const mi = MONTHS.indexOf(m[1].toLowerCase()); if(mi < 0) continue;
+      const iso = `${year}-${String(mi+1).padStart(2,"0")}-${String(+m[2]).padStart(2,"0")}`;
+      mon.push(iso);
+      const bg = (c.effectiveFormat||{}).backgroundColor || {};
+      if((bg.red||0) > 0.8 && (bg.green||0) < 0.3 && (bg.blue||0) < 0.3) qtr.push(iso);
+    }
+    if(mon.length >= 6 && qtr.length >= 2){ SCHEDULE.Monthly = mon.sort(); SCHEDULE.Quarterly = qtr.sort(); }
+  }catch(e){ /* keep the pinned dates */ }
+}
+const EARLY_DAYS = 7;   // an upload in the week leading up to the scheduled Wednesday counts for that period
 const LEAD_DAYS = 10;   // a scheduled upload coming up within this many days shows as "due soon" (amber, forward-looking)
 function schedTimes(cad){ return (SCHEDULE[cad]||SCHEDULE.Monthly).map(s=>{ const p=s.split("-"); return Date.UTC(+p[0], +p[1]-1, +p[2]); }); }
 function lastDue(cad, now){ let last=null; for(const t of schedTimes(cad)){ if(t<=now) last=t; } return last; }
@@ -182,7 +206,8 @@ function isMeas(s){
   if(!s) return false;
   if(/^(na|n\/a|ma|pending|complete|default|\.|\.\.|-|–|—|0|1)$/i.test(s)) return false;
   if(/\d\s*["”]?\s*\/\s*["”]?\s*\d/.test(s)) return true;   // expected / actual, e.g. 100/101.175 or 89"/89.5"
-  return /\d\s*["”]\s*\d/.test(s);   // tolerate a missing slash between quoted inches, e.g. 100"96.25" or 93"89.5"
+  if(/\d\s*["”]\s*\d/.test(s)) return true;   // tolerate a missing slash between quoted inches, e.g. 100"96.25" or 93"89.5"
+  return /^\d{2,3}(\.\d+)?\s*["”]?$/.test(s);   // a lone measured length (e.g. 100.5): counts as uploaded; no deviation without the ruler length
 }
 // Some tabs have duplicate header columns for the same press/material/direction (e.g. PA Monti-1 Stretch
 // Horizontal appears twice, with data landing in only one of them). Keep every candidate column and,
@@ -309,6 +334,7 @@ async function gapi(url){
 async function loadAll(){
   document.getElementById("content").innerHTML = '<div class="loading">Loading ruler measurements…</div>';
   try{
+    await loadSchedule();
     const meta = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}?fields=sheets(properties(title))`);
     const titles = (meta.sheets||[]).map(s=>s.properties.title);
     const last = {};
@@ -374,15 +400,20 @@ function recFor(press, mat){
   if(DATA[press] && DATA[press][mat]) return DATA[press][mat];
   return { date:null, by:"", cadence:cad, devH:null, devV:null, devInH:null, devInV:null, hist:[], never:true };
 }
+// today as a UTC-midnight key, from the viewer's local date (the schedule dates are UTC-midnight keys)
+function todayKey(){ const d=new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
+// A check is overdue only after its Wednesday has passed; on the Wednesday itself it is "due today".
+// An upload in the EARLY_DAYS before a due date counts for it, so an early upload keeps it current.
 function statusOf(rec){
-  const now = Date.now();
+  const now = todayKey(), W = EARLY_DAYS*86400000;
   const due = lastDue(rec.cadence, now);
-  const met = rec.date && due !== null && rec.date.getTime() >= due - EARLY_DAYS*86400000;
-  if(due !== null && !met) return "over";
+  const met = rec.date && due !== null && rec.date.getTime() >= due - W;
+  if(due !== null && !met) return due === now ? "due" : "over";
   const nxt = nextDue(rec.cadence, now);
-  if(nxt !== null && (nxt - now) <= LEAD_DAYS*86400000) return "due";
+  if(nxt !== null && (nxt - now) <= LEAD_DAYS*86400000 && !(rec.date && rec.date.getTime() >= nxt - W)) return "due";
   return "ok";
 }
+function dueDateOf(rec, st){ const now = todayKey(), ld = lastDue(rec.cadence, now); return st==="over" ? ld : (ld===now && st==="due" ? now : nextDue(rec.cadence, now)); }
 const STLABEL = { ok:"✅ Current", due:"⚠️ Due soon", over:"🔴 Overdue", never:"— Never" };
 function pressLoc(p){ return p.slice(0,2); }
 function presses(loc){
@@ -411,7 +442,7 @@ function selectLoc(loc){
 }
 function fmt(d){ return d.toISOString().slice(0,10); }
 function fmtT(t){ return new Date(t).toISOString().slice(0,10); }
-function nextDueStr(rec){ const t = nextDue(rec.cadence, Date.now()); return t ? fmtT(t) : "—"; }
+function nextDueStr(rec){ const t = nextDue(rec.cadence, todayKey()); return t ? fmtT(t) : "—"; }
 function devCell(pct, inch){
   if(pct === null || pct === undefined || isNaN(pct)) return '<span class="ago">—</span>';
   const cls = inchClass(inch);
@@ -487,7 +518,7 @@ function render(){
   const groupsFor = loc => presses(loc).map(p=>{
     const items = MAT_ORDER.map(mat=>{
       const rec = recFor(p, mat), st = statusOf(rec);
-      return { mat, rec, st, due: st==="over" ? lastDue(rec.cadence, now) : nextDue(rec.cadence, now) };
+      return { mat, rec, st, due: dueDateOf(rec, st) };
     });
     const over = items.filter(i=>i.st==="over"), soon = items.filter(i=>i.st==="due");   // material order, as on the floor sheet
     const first = over.concat(soon).reduce((a,i)=>!a||i.due<a.due?i:a, null);   // oldest due date drives the sort and the right-hand date
@@ -511,7 +542,7 @@ function render(){
     const parts = [g.cur+" current"]; if(g.over.length) parts.push(g.over.length+" overdue"); if(g.soon.length) parts.push(g.soon.length+" due soon");
     const first = g.first, ld = new Date(), today = Date.UTC(ld.getFullYear(), ld.getMonth(), ld.getDate()), days = Math.round(Math.abs(today - first.due)/DAY);   // calendar days, local date
     const when = g.over.length ? `<div class="pg-when"><div class="d">${md(first.due)}</div><div class="n">${days} day${days===1?"":"s"}</div></div>`
-      : `<div class="pg-when soon"><div class="d">${md(first.due)}</div><div class="n">in ${days} day${days===1?"":"s"}</div></div>`;
+      : `<div class="pg-when soon"><div class="d">${md(first.due)}</div><div class="n">${days===0?"today":"in "+days+" day"+(days===1?"":"s")}</div></div>`;
     const open = openPress.has(g.p), pid = "pg-"+g.p.replace(/\W+/g,"-");
     return `<div class="pg"><button type="button" class="pg-head" onclick="togglePress('${g.p}')" aria-expanded="${open}" aria-controls="${pid}">
         <div><div class="pg-name">${g.p}</div><div class="pg-sub">${parts.join(" · ")}</div></div>${when}</button>
