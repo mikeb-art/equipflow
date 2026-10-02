@@ -208,7 +208,7 @@ function markDone(t){
   const now = new Date();
   done[t[0]] = {at: now, by: user.email};
   /* same columns as /maintenance/: when, who, location, machine, serial, task, interval, action */
-  queue.push({row:[now.toLocaleString(), user.email||"", cur.loc, cur.name, "SYS "+cur.sys, t[0], CHIPS[t[1]]||t[1], "done"]});
+  queue.push({row:[now.toLocaleString(), user.email||"", cur.loc, cur.name, "Sys # "+cur.sys, t[0], CHIPS[t[1]]||t[1], "Completed"]});
   saveQueue(); render(); flushQueue();
 }
 
@@ -230,7 +230,7 @@ async function loadDone(){
     const r = await fetch(url,{headers:{Authorization:"Bearer "+accessToken}}); const j = await r.json();
     const rows = (j.values||[]).slice(-4000);
     const fresh = {};
-    rows.forEach(v=>{ if(v[3]!==cur.name || v[7]!=="done") return; const at = new Date(v[0]); if(isNaN(at)) return; if(!fresh[v[5]] || fresh[v[5]].at<at) fresh[v[5]]={at, by:v[1]}; });
+    rows.forEach(v=>{ if(!(v[4]||"").includes(cur.sys) || !/^(done|completed)$/i.test(v[7]||"")) return; const at = new Date(v[0]); if(isNaN(at)) return; if(!fresh[v[5]] || fresh[v[5]].at<at) fresh[v[5]]={at, by:v[1]}; });
     queue.forEach(e=>{ if(e.row[3]===cur.name) fresh[e.row[5]]={at:new Date(e.row[0]), by:e.row[1]}; });
     done = fresh; render();
   }catch(e){ /* keep local state */ }
