@@ -207,6 +207,8 @@ def main():
             sig = so[sysn].get(k, [])
             rows.append([t, p, tp, len(sig), [si(x) for x in sorted(set(sig))]])
             pi = str(TASKS.index(PURGE)) if PURGE in TASKS else None
+            if d.weekday() >= 5:   # plants don't usually work weekends: weekend days stay in the data but not in the counts
+                continue
             if pi in t:
                 st["purge_days"] += 1
                 if t[pi][0] == "d": st["purge_done"] += 1
@@ -237,12 +239,12 @@ def main():
     tot_signed = sum(s["skip_signed"] for _, _, s, _ in stats)
     rate = lambda s: s["purge_done"] / s["purge_days"] if s["purge_days"] else None
     ranked = sorted([x for x in stats if x[2]["purge_days"] >= 10], key=lambda x: rate(x[2]))
-    find = [f"<b>Maintenance Purge put off on {tot_skip} printer-days.</b> The printer asked for a purge, it was put off "
+    find = [f"<b>Maintenance Purge put off on {tot_skip} weekday printer-days.</b> The printer asked for a purge, it was put off "
             f"(Remind later, or the prompt kept repeating), and no purge cycle ran that day."]
     if ranked:
         best, worst = ranked[-1], ranked[:2]
         never = [x[0] for x in stats if x[2]["purge_days"] == 0 and x[2]["purge_cycle_days"]]
-        s = (f"<b>Best:</b> {best[0]} ran a purge on {best[2]['purge_done']} of {best[2]['purge_days']} prompt days. "
+        s = (f"<b>Best:</b> {best[0]} ran a purge on {best[2]['purge_done']} of {best[2]['purge_days']} weekday prompt days. "
              + "<b>Worst:</b> " + "; ".join(f"{w[0]} on {w[2]['purge_done']} of {w[2]['purge_days']}" for w in worst) + ".")
         if never:
             s += " " + ", ".join(never) + (" purges often enough that the prompt never fired." if len(never) == 1 else " purge often enough that the prompt never fired.")
@@ -252,7 +254,7 @@ def main():
         find.append("<b>Other prompts put off most:</b> " + "; ".join(f"{t} on {n}, {c} days" for n, t, c in other) + ".")
     low_tp = [x for x in stats if x[2]["active"] >= 20 and x[2]["tp_days"] < 0.3 * x[2]["active"]]
     for n, _, s_, _ in low_tp[:2]:
-        find.append(f"<b>{n} printed a nozzle test on only {s_['tp_days']} of {s_['active']} days with activity.</b>")
+        find.append(f"<b>{n} printed a nozzle test on only {s_['tp_days']} of {s_['active']} weekdays with activity.</b>")
     find.append(f"<b>The floor sign-off sheet doesn't catch it.</b> On {tot_signed} of those {tot_skip} days, operators still "
                 f"signed off tasks for that printer in the Machine Maintenance Log.")
     out["meta"]["find"] = find
