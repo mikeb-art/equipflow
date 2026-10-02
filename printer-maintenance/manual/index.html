@@ -39,6 +39,9 @@ h2 span{font-weight:400;letter-spacing:0;text-transform:none;font-size:13px}
 .foot{margin:22px 0 40px;font-size:13px;color:var(--muted)}
 #sync{font-size:13px;color:var(--ink-2)}
 .hidden{display:none}
+.signedout #tasks{opacity:.45;pointer-events:none}
+.shift{background:var(--card);border:1px solid var(--warn);border-radius:14px;padding:14px 16px;margin:0 0 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.shift b{color:var(--warn)}
 @media (max-width:520px){body{font-size:16px}.task{padding:12px}}
 </style>
 </head>
@@ -54,6 +57,7 @@ h2 span{font-weight:400;letter-spacing:0;text-transform:none;font-size:13px}
 <main>
   <div id="pick" class="pick"></div>
   <div id="sheet" class="hidden">
+    <div class="shift hidden" id="shift"><div><b>Shift change.</b> Sign in to log maintenance under your own name.</div><button class="btn primary" onclick="handleAuthClick()">Sign in with Google</button></div>
     <div class="auto" id="auto"></div>
     <div id="tasks"></div>
     <div class="foot">Manual maintenance only: tasks the printer cannot record itself. Tap a task when it is done and it is logged under your name for this printer. Everything the Durst records on its own (its maintenance prompts, purge cycles and nozzle checks) is not listed here; answer the prompt on the Durst screen and Analytics picks it up. <span id="sync"></span></div>
@@ -63,6 +67,7 @@ h2 span{font-weight:400;letter-spacing:0;text-transform:none;font-size:13px}
 /* ===== CONFIG: same Google client and Log sheet as /maintenance/ ===== */
 const CONFIG = { CLIENT_ID: "919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com", SPREADSHEET_ID: "1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo", LOG_SHEET: "Log" };
 const EQF_SCOPES = "openid email profile https://www.googleapis.com/auth/spreadsheets";
+const SESSION_HOURS = 8;   // operator is signed out of this page after a shift so the next person signs in as themselves
 
 /* ===== Printers (Durst system number = Analytics serial; names as PSU uses them) ===== */
 const PRINTERS = [
@@ -260,22 +265,31 @@ async function loadAuto(){
 /* ===== Google sign-in: the operator is signed in to Chrome on the workstation, so this is normally silent ===== */
 async function loadUser(){
   try{ const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+accessToken}}); user = await r.json(); }catch(e){ user={email:"(unknown)"}; }
+  try{ const k="wsd-manual-session"; const sess=JSON.parse(localStorage.getItem(k)||"null"); if(!sess || sess.email!==user.email) localStorage.setItem(k, JSON.stringify({email:user.email, at:Date.now()})); }catch(e){}
   updateUserUI(); flushQueue(); if(cur) loadDone();
 }
+function sessionExpired(){ try{ const sess=JSON.parse(localStorage.getItem("wsd-manual-session")||"null"); return !!(sess && user && sess.email===user.email && Date.now()-sess.at > SESSION_HOURS*3600*1000); }catch(e){ return false; } }
+function signOut(){ EQF.clearToken(); if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken,()=>{}); }catch(e){} } user=null; accessToken=null; try{ localStorage.removeItem("wsd-manual-session"); }catch(e){} updateUserUI(); }
+function checkShift(){ if(user && sessionExpired()){ signOut(); } }
 function initAuth(){
   if(!window.google||!google.accounts||!google.accounts.oauth2){ setTimeout(initAuth,300); return; }
   tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CONFIG.CLIENT_ID, scope: EQF_SCOPES, callback: async (resp)=>{ EQF.saveToken(resp, EQF_SCOPES); if(resp.error){ setSync("Sign-in failed: "+resp.error); return; } accessToken = resp.access_token; await loadUser(); } });
-  const c = EQF.cachedToken(EQF_SCOPES);
-  if(c){ accessToken = c.access_token; loadUser(); } else { try{ tokenClient.requestAccessToken({prompt:""}); }catch(e){} }
+  /* after a shift's worth of hours the page does not sign in silently: the next operator must pick their own account */
+  let stale=false; try{ const sess=JSON.parse(localStorage.getItem("wsd-manual-session")||"null"); stale = !!(sess && Date.now()-sess.at > SESSION_HOURS*3600*1000); }catch(e){}
+  const c = stale ? null : EQF.cachedToken(EQF_SCOPES);
+  if(stale){ try{ localStorage.removeItem("wsd-manual-session"); }catch(e){} EQF.clearToken(); updateUserUI(); }
+  else if(c){ accessToken = c.access_token; loadUser(); } else { try{ tokenClient.requestAccessToken({prompt:""}); }catch(e){} }
 }
 function handleAuthClick(){
-  if(user){ EQF.clearToken(); if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken,()=>{}); }catch(e){} } user=null; accessToken=null; updateUserUI(); return; }
+  if(user){ signOut(); return; }
   if(!tokenClient){ alert("Google sign-in is still loading — try again in a second."); return; }
   tokenClient.requestAccessToken({prompt:"select_account"});
 }
 function updateUserUI(){
   $("#who").innerHTML = user ? `Signed in as <b>${esc(user.name||user.email||"")}</b>` : "Not signed in";
   $("#authBtn").textContent = user ? "Not you? Switch" : "Sign in with Google";
+  document.body.classList.toggle("signedout", !user);
+  const sh=$("#shift"); if(sh) sh.classList.toggle("hidden", !!user);
 }
 
 /* ===== boot ===== */
@@ -286,7 +300,8 @@ const LOCKED = !!(pinned && PRINTERS.some(p=>p.sys===pinned));
 if(pinned || remembered) choose(pinned || remembered); else render();
 if(LOCKED){ document.getElementById("switchBtn").remove(); }
 initAuth();
-setInterval(()=>{ if(cur){ loadDone(); } }, 5*60*1000);
+setInterval(()=>{ checkShift(); if(cur && user){ loadDone(); } }, 60*1000);
+updateUserUI();
 </script>
 </body>
 </html>
