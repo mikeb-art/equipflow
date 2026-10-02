@@ -300,7 +300,9 @@ const LOCKED = !!(pinned && PRINTERS.some(p=>p.sys===pinned));
 if(pinned || remembered) choose(pinned || remembered); else render();
 if(LOCKED){ document.getElementById("switchBtn").remove(); }
 initAuth();
-setInterval(()=>{ checkShift(); if(cur && user){ loadDone(); } }, 60*1000);
+setInterval(checkShift, 5*60*1000);                                   /* shift clock: local check, no network */
+setInterval(()=>{ if(cur && user && !document.hidden) loadDone(); }, 15*60*1000);   /* shared state from the log sheet */
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden){ checkShift(); if(cur && user) loadDone(); } });
 updateUserUI();
 </script>
 </body>
