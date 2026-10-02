@@ -113,6 +113,17 @@ td .mini span{display:block;height:100%}
 .co-b.yes.on{background:var(--good);border-color:transparent;color:#fff}
 .co-b.no.on{background:var(--crit);border-color:transparent;color:#fff}
 .co-b:disabled{opacity:.45;cursor:not-allowed}
+.co-seg{margin-right:4px}
+.co-per{font-family:var(--sans);text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-2);font-size:12px}
+.co-nav{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--ink)}
+.co-nav .btn{padding:4px 10px}
+.co-nav .btn:disabled{opacity:.4;cursor:not-allowed}
+.co-hist{display:flex;align-items:center;gap:10px;justify-content:flex-end;min-width:200px}
+.co-cnt{font-size:12px;font-weight:600;white-space:nowrap}
+.co-cnt.good{color:var(--good-ink)}.co-cnt.warn{color:var(--warn-ink)}.co-cnt.crit{color:var(--crit-ink)}
+.co-bar{width:72px;height:6px;border-radius:3px;background:var(--inset);overflow:hidden;flex:0 0 72px}
+.co-bar i{display:block;height:100%}
+.co-bar i.good{background:var(--good)}.co-bar i.warn{background:var(--warn)}.co-bar i.crit{background:var(--crit)}
 .co-more{margin-top:12px}
 .co-more summary{cursor:pointer;font-size:12.5px;color:var(--ink-2)}
 @media (max-width:900px){.app{flex-direction:column;background:var(--bg)}.side{position:static;height:auto;width:100%;flex-basis:auto}.split{grid-template-columns:1fr}.wrap{padding-inline:16px}.topbar{padding-inline:16px}}
@@ -200,7 +211,7 @@ td .mini span{display:block;height:100%}
 
       <div class="card" id="closeout">
         <div class="co-head">
-          <div><h2 id="co-title">Close out maintenance</h2><div class="hint" id="co-sub">Mark each task done (✓) or not done (✕) for its current period. Entries go to the Machine Maintenance Log, the same sheet the Maintenance module uses.</div></div>
+          <div><h2 id="co-title">Close out maintenance</h2><div class="hint" id="co-sub"><b>Current periods</b>: mark each task done (✓) or not done (✕) for its own period. Daily tasks reset each day, weekly on Monday, monthly on the 1st. <b>Week</b> and <b>Month</b> show the sign-off record. Entries go to the Machine Maintenance Log, the same sheet the Maintenance module uses.</div></div>
           <div class="co-user"><span id="co-user">Not signed in</span><button class="btn pri" id="co-auth">Sign in with Google</button></div>
         </div>
         <div class="co-msg" id="co-msg" role="status"></div>
@@ -431,21 +442,67 @@ function states(m){const st={};if(!log)return st;
  for(const r of log){if(r[4]!==m[2]||r[3]!==m[1])continue;const iv=LABEL2IV[r[6]];if(!iv)continue;const d=new Date(r[0]);if(isNaN(d))continue;
   if(iv==="d2"){if((Date.now()-d.getTime())/86400000>2)continue}else if(iv==="wd3"){let n=0,x=new Date(d);x.setHours(0,0,0,0);const e=new Date();e.setHours(0,0,0,0);while(x<e){x.setDate(x.getDate()+1);const w=x.getDay();if(w&&w!==6)n++}if(n>3)continue}else if(periodKey(iv,d)!==periodKey(iv))continue;const a=r[7]||"";st[r[5]]={s:a==="Completed"?"done":a==="Marked NOT completed"?"notdone":"open",by:r[1],at:d}}
  return st}
-function draw(){const sys=window.__selSys&&window.__selSys();if(!sys)return;curSys=sys;const m=MACH[sys];const tasks=T[m[3]];
+let coView="now",coOff=0;
+const fD=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+const IVLEN={shift:1,daily:1,d2:2,wd3:3,week:7,biweek:14,wd15:14,month:28,wd45:45,qtr:90,half:180,year:365};
+const UNIT={shift:"days",daily:"days",d2:"2-day periods",wd3:"3-day periods",week:"weeks",biweek:"2-week periods",wd15:"2-week periods",month:"months",wd45:"45-day periods",qtr:"quarters",half:"half-years",year:"years"};
+function nowLabel(gi){const t=new Date();if(gi===0)return "today, "+t.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+ if(gi===1){const s=new Date(t);s.setDate(s.getDate()-((s.getDay()+6)%7));const e=new Date(s);e.setDate(e.getDate()+6);return "this week, "+fD(s)+" – "+fD(e)}
+ if(gi===2)return t.toLocaleDateString("en-US",{month:"long",year:"numeric"});return "this quarter, half-year or year"}
+/* Week = Monday–Sunday, Month = calendar month; off = how many weeks/months back. end stops at today. */
+function rangeOf(view,off){const t=new Date();t.setHours(12,0,0,0);let s,e;
+ if(view==="week"){s=new Date(t);s.setDate(s.getDate()-((s.getDay()+6)%7)+7*off);e=new Date(s);e.setDate(e.getDate()+6)}
+ else{s=new Date(t.getFullYear(),t.getMonth()+off,1,12);e=new Date(t.getFullYear(),t.getMonth()+off+1,0,12)}
+ return{s,e,end:e>t?t:e,cur:off===0,view}}
+function rangeLabel(v,r){return v==="week"?fD(r.s)+" – "+fD(r.e)+", "+r.e.getFullYear():r.s.toLocaleDateString("en-US",{month:"long",year:"numeric"})}
+/* For each scheduled task: the periods of its own interval that touch the range, and which of them were signed off
+   (latest Log action in each period wins, same rule as the current-period view). */
+function history(m,tasks,r){const res={};const lim=new Date(r.end);lim.setHours(23,59,59,999);
+ tasks.forEach(t=>{const iv=t[1];if(!GROUPS.some(g=>g[1].includes(iv)))return;const keys=new Set();
+  if((IVLEN[iv]||1)>=(r.view==="week"?7:28))keys.add(periodKey(iv,r.end));   /* period as long as the view or longer: just the one in progress at the range end */
+  else for(const d=new Date(r.s);d<=r.end;d.setDate(d.getDate()+1))keys.add(periodKey(iv,d));res[t[0]]={iv,slots:keys.size,keys,by:{},last:null,done:0,notdone:0}});
+ for(const row of(log||[])){if(row[4]!==m[2]||row[3]!==m[1])continue;const x=res[row[5]];if(!x)continue;const d=new Date(row[0]);if(isNaN(d)||d>lim)continue;
+  const k=periodKey(x.iv,d);if(!x.keys.has(k))continue;const p=x.by[k];if(!p||d>=p.at)x.by[k]={a:row[7]||"",at:d,who:row[1]||""}}
+ Object.values(res).forEach(x=>Object.values(x.by).forEach(v=>{if(v.a==="Completed"){x.done++;if(!x.last||v.at>x.last.at)x.last=v}else if(v.a==="Marked NOT completed")x.notdone++}));
+ return res}
+/* days in the range the printer showed activity in Durst (prompts, purges or test patterns) */
+function runDays(sys,r){if(typeof DATA==="undefined")return null;const p=DATA.printers.find(q=>q.sys===sys);if(!p)return null;
+ const a=r.s.toISOString().slice(0,10),b=new Date(r.end.getTime()).toISOString().slice(0,10);let n=0,tot=0;
+ DATA.days.forEach((d,i)=>{if(d<a||d>b)return;tot++;const x=p.d[i];if(x&&(Object.keys(x[0]||{}).length||x[1]||x[2]))n++});return tot?{n,tot}:null}
+function draw(){const sys=window.__selSys&&window.__selSys();if(!sys)return;if(sys!==curSys)coOff=0;curSys=sys;const m=MACH[sys];const tasks=T[m[3]];
  $("co-title").textContent="Close out maintenance · "+window.__selName();
  if(!user){$("co-prog").innerHTML="";$("co-list").innerHTML=`<div class="hint" style="margin-top:10px">Sign in with your wsdisplay.com Google account to see this period's sign-offs and close out tasks. Every entry is logged with your name and the time.</div>`;return}
  if(loading&&!log){$("co-list").innerHTML=`<div class="hint" style="margin-top:10px">Loading the Maintenance Log…</div>`;return}
- const st=states(m);const fmtT=d=>d.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
- const row=(t,i)=>{const s=st[t[0]]||{s:"open"};return`<div class="co-row ${s.s}"><div><div class="tx">${esc(t[0])}</div><div class="who">${CHIPS[t[1]][0]}${t[2]?" · "+esc(t[2]):""}${s.s!=="open"?" · "+(s.s==="done"?"Done":"Not done")+" by "+esc((s.by||"").split("@")[0])+", "+fmtT(s.at):""}</div></div>
+ const fmtT=d=>d.toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+ const seg=`<div class="seg co-seg" role="group" aria-label="Close-out view">${[["now","Current periods"],["week","Week"],["month","Month"]].map(([k,l])=>`<button type="button" data-v="${k}" class="${coView===k?"on":""}" aria-pressed="${coView===k}">${l}</button>`).join("")}</div>`;
+ const fact=`<span class="fact">${m[0]} · ${esc(m[1])} · ${esc(m[2])}</span>`;
+ let html="";
+ if(coView==="now"){
+  const st=states(m);
+  const row=(t,i)=>{const s=st[t[0]]||{s:"open"};return`<div class="co-row ${s.s}"><div><div class="tx">${esc(t[0])}</div><div class="who">${CHIPS[t[1]][0]}${t[2]?" · "+esc(t[2]):""}${s.s!=="open"?" · "+(s.s==="done"?"Done":"Not done")+" by "+esc((s.by||"").split("@")[0])+", "+fmtT(s.at):""}</div></div>
   <div class="co-btns"><button class="co-b yes${s.s==="done"?" on":""}" data-i="${i}" data-a="done" aria-label="Mark done: ${esc(t[0])}">✓</button><button class="co-b no${s.s==="notdone"?" on":""}" data-i="${i}" data-a="notdone" aria-label="Mark not done: ${esc(t[0])}">✕</button></div></div>`};
- let html="",due=0,done=0;
- GROUPS.forEach(([g,ivs])=>{const items=tasks.map((t,i)=>[t,i]).filter(([t])=>ivs.includes(t[1]));if(!items.length)return;
-  items.forEach(([t])=>{due++;if((st[t[0]]||{}).s==="done")done++});
-  html+=`<div class="co-group"><h3>${g}</h3>${items.map(([t,i])=>row(t,i)).join("")}</div>`});
- const extra=tasks.map((t,i)=>[t,i]).filter(([t])=>["use","req","purge"].includes(t[1]));
- if(extra.length)html+=`<details class="co-more"><summary>As needed and usage-based (${extra.length})</summary>${extra.map(([t,i])=>row(t,i)).join("")}</details>`;
- $("co-prog").innerHTML=`<span class="fact"><b>${done}</b> of <b>${due}</b> scheduled tasks done this period</span><span class="fact">${m[0]} · ${esc(m[1])} · ${esc(m[2])}</span>`;
+  GROUPS.forEach(([g,ivs],gi)=>{const items=tasks.map((t,i)=>[t,i]).filter(([t])=>ivs.includes(t[1]));if(!items.length)return;
+   const dn=items.filter(([t])=>(st[t[0]]||{}).s==="done").length;
+   html+=`<div class="co-group"><h3>${g} <span class="co-per">· ${nowLabel(gi)} · ${dn} of ${items.length} done</span></h3>${items.map(([t,i])=>row(t,i)).join("")}</div>`});
+  const extra=tasks.map((t,i)=>[t,i]).filter(([t])=>["use","req","purge"].includes(t[1]));
+  if(extra.length)html+=`<details class="co-more"><summary>As needed and usage-based (${extra.length})</summary>${extra.map(([t,i])=>row(t,i)).join("")}</details>`;
+  $("co-prog").innerHTML=seg+fact;
+ }else{
+  const r=rangeOf(coView,coOff),h=history(m,tasks,r),rd=runDays(sys,r);
+  const hrow=t=>{const x=h[t[0]];const pct=x.slots?x.done/x.slots:0,cls=pct>=1?"good":pct>=.5?"warn":"crit";
+   const txt=x.slots===1?(x.done?"Done":x.notdone?"Marked not done":"Not signed off"):`Done ${x.done} of ${x.slots} ${UNIT[t[1]]}`;
+   return`<div class="co-row${x.done?" done":""}"><div><div class="tx">${esc(t[0])}</div><div class="who">${CHIPS[t[1]][0]}${x.last?" · last done by "+esc(x.last.who.split("@")[0])+", "+fmtT(x.last.at):""}${x.notdone?" · marked not done "+x.notdone+"×":""}</div></div>
+   <div class="co-hist"><span class="co-cnt ${cls}">${txt}</span><span class="co-bar" aria-hidden="true"><i class="${cls}" style="width:${Math.round(pct*100)}%"></i></span></div></div>`};
+  GROUPS.forEach(([g,ivs])=>{const items=tasks.filter(t=>ivs.includes(t[1]));if(!items.length)return;
+   let dn=0,sl=0;items.forEach(t=>{dn+=h[t[0]].done;sl+=h[t[0]].slots});
+   html+=`<div class="co-group"><h3>${g} <span class="co-per">· ${dn} of ${sl} signed off</span></h3>${items.map(hrow).join("")}</div>`});
+  html=`<div class="co-nav"><button type="button" class="btn" id="co-prev" aria-label="Previous ${coView}">‹</button><b>${rangeLabel(coView,r)}</b><button type="button" class="btn" id="co-next" aria-label="Next ${coView}"${r.cur?" disabled":""}>›</button>${r.cur?`<span class="hint">through today</span>`:""}</div>`
+   +`<div class="hint" style="margin-top:6px">Sign-off record from the Maintenance Log. Periods longer than this ${coView} count if signed off anywhere in that period. To close out tasks, switch to Current periods.</div>`+html;
+  $("co-prog").innerHTML=seg+fact+(rd?`<span class="fact">Printer active in Durst on <b>${rd.n}</b> of ${rd.tot} ${rd.tot===1?"day":"days"}</span>`:"");
+ }
  $("co-list").innerHTML=html;
+ $("co-prog").querySelectorAll(".co-seg button").forEach(b=>b.onclick=()=>{coView=b.dataset.v;coOff=0;draw()});
+ const pv=$("co-prev"),nx=$("co-next");if(pv)pv.onclick=()=>{coOff--;draw()};if(nx)nx.onclick=()=>{if(coOff<0){coOff++;draw()}};
  $("co-list").querySelectorAll(".co-b").forEach(b=>b.onclick=()=>mark(m,tasks[+b.dataset.i],b.dataset.a,b))}
 async function mark(m,t,a,btn){if(!token){msg("Sign in first. Every close-out is logged with your name.");return}
  const prev=(states(m)[t[0]]||{s:"open"}).s;const now=prev===a?"open":a;
