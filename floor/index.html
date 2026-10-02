@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){var h=location.hostname;if(/\.vercel\.app$/.test(h)&&h!=="equipflow-lemon.vercel.app"){location.replace("https://equipflow-lemon.vercel.app"+location.pathname+location.search+location.hash)}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Printer Floor Checklist · EquipFlow</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script src="/assets/auth.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* Floor checklist: one printer, big touch targets, dark theme to match the Durst console room. Only the tasks Durst Analytics cannot see are listed; the ones the printer records itself (prompts, purges, nozzle checks) are shown read-only at the top. */
+:root{color-scheme:dark;--bg:#0a1122;--panel:#0e1830;--card:#131f38;--card-2:#182642;--ink:#e9effd;--ink-2:#9db0d5;--muted:#7186ad;--border:rgba(140,170,255,.14);--border-strong:rgba(140,170,255,.28);--accent:#29a9ff;--good:#0ca30c;--good-ink:#5fd75f;--warn:#fab219;--crit:#d03b3b;--crit-ink:#ff7b7b;--sans:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px}
+a{color:var(--accent)}
+.top{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.top .who{font-size:14px;color:var(--ink-2)}.top .who b{color:var(--ink)}
+.brand{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.brand a{color:var(--muted);text-decoration:none}
+h1{font-size:22px;margin:0}
+.btn{background:var(--card-2);color:var(--ink);border:1px solid var(--border-strong);border-radius:10px;padding:10px 14px;font-size:15px;cursor:pointer}
+.btn.primary{background:var(--accent);color:#06121f;border-color:transparent;font-weight:600}
+main{max-width:980px;margin:0 auto;padding:16px}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.pick button{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 16px;text-align:left;color:var(--ink);font-size:18px;cursor:pointer}
+.pick button small{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+.auto{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
+.auto .k{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.auto .v{font-size:18px;font-weight:600}
+.auto .v.ok{color:var(--good-ink)}.auto .v.bad{color:var(--crit-ink)}.auto .v.warn{color:var(--warn)}
+.auto .note{flex-basis:100%;font-size:13px;color:var(--ink-2)}
+h2{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+h2 span{font-weight:400;letter-spacing:0;text-transform:none;font-size:13px}
+.task{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.task:active{background:var(--card-2)}
+.task .box{flex:0 0 34px;height:34px;border-radius:9px;border:2px solid var(--border-strong);display:grid;place-items:center;font-size:20px}
+.task.done{border-color:rgba(12,163,12,.5);background:rgba(12,163,12,.10)}.task.done .box{background:var(--good);border-color:var(--good);color:#fff}
+.task .t{flex:1}.task .t .n{font-size:17px;line-height:1.3}.task .t .m{font-size:13px;color:var(--ink-2);margin-top:3px}
+.task .when{font-size:13px;color:var(--good-ink);white-space:nowrap}
+.task.stale .when{color:var(--muted)}
+.foot{margin:22px 0 40px;font-size:13px;color:var(--muted)}
+#sync{font-size:13px;color:var(--ink-2)}
+.hidden{display:none}
+@media (max-width:520px){body{font-size:16px}.task{padding:12px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="brand"><a href="/">EquipFlow</a> · Printer Maintenance · Floor</div><h1 id="title">Choose your printer</h1></div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span class="who" id="who">Not signed in</span>
+    <button class="btn" id="authBtn" onclick="handleAuthClick()">Sign in with Google</button>
+    <button class="btn hidden" id="switchBtn" onclick="choose(null)">Change printer</button>
+  </div>
+</div>
+<main>
+  <div id="pick" class="pick"></div>
+  <div id="sheet" class="hidden">
+    <div class="auto" id="auto"></div>
+    <div id="tasks"></div>
+    <div class="foot">Tap a task when it is done. It is logged to the Machine Maintenance Log under your name and this printer. Tasks the printer records itself (its maintenance prompts, purge cycles and nozzle checks) are not listed here: answer the prompt on the Durst screen and Analytics picks it up. <span id="sync"></span></div>
+  </div>
+</main>
+<script>
+/* ===== CONFIG: same Google client and Log sheet as /maintenance/ ===== */
+const CONFIG = { CLIENT_ID: "919263581465-0g7m20g0j2b9g6e1njsm9b9kmaspsf4e.apps.googleusercontent.com", SPREADSHEET_ID: "1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo", LOG_SHEET: "Log" };
+const EQF_SCOPES = "openid email profile https://www.googleapis.com/auth/spreadsheets";
+
+/* ===== Printers (Durst system number = Analytics serial; names as PSU uses them) ===== */
+const PRINTERS = [
+ {sys:"105857",loc:"PA",name:"Durst 325-1 - PA",t:"rhotex"},
+ {sys:"202921",loc:"PA",name:"Durst 325-2 - PA",t:"rhotex"},
+ {sys:"294130",loc:"PA",name:"Durst P5-350-1 - PA",t:"p5350"},
+ {sys:"400579",loc:"PA",name:"Durst P5 Tex - PA",t:"p5tex"},
+ {sys:"154652",loc:"MX",name:"Durst 325-1 - MX",t:"rhotex"},
+ {sys:"152619",loc:"MX",name:"Durst 325-2 - MX",t:"rhotex"},
+ {sys:"298128",loc:"MX",name:"Durst P5-350-1 - MX",t:"p5350"},
+ {sys:"298183",loc:"MX",name:"Durst P5 Tex-1 - MX",t:"p5tex"},
+ {sys:"405629",loc:"MX",name:"Durst P5 Tex-2 - MX",t:"p5tex"},
+ {sys:"142718",loc:"CA",name:"Durst 325-1 - CA",t:"rhotex"},
+ {sys:"298127",loc:"CA",name:"Durst P5-350-1 - CA",t:"p5350"},
+ {sys:"298155",loc:"CA",name:"Durst P5 Tex - CA",t:"p5tex"}
+];
+/* Analytics display names, to read the daily pull for the top bar */
+const ANALYTICS_NAME = {"105857":"Rhotex 325-1 - PA","202921":"Rhotex 325-2 - PA","294130":"P5-350 - PA","400579":"P5 Tex - PA","154652":"Rhotex 325-1 - MX","152619":"Rhotex 325-2 - MX","298128":"P5-350 - MX","298183":"P5 Tex-1 - MX","405629":"P5 Tex-2 - MX","142718":"Rhotex 325 - CA","298127":"P5-350 - CA","298155":"P5 Tex - CA"};
+
+const CHIPS = { shift:"Every Shift", daily:"Daily", d2:"Every 2 Days", week:"Weekly", biweek:"Bi-Weekly", month:"Monthly", qtr:"Quarterly", half:"Half-Yearly", year:"Yearly", use:"Usage-Based", req:"As Required" };
+
+/* ===== Manual tasks only. Anything the printer prompts for (Inspect Print Plane, Maintenance Purge, Dust/Air Filter, Roller, Guiding Rail Oiling, Service Call, Refill Bearings, Stretch Roller, Water Level, Aerosol Filter, lubricating plates, stretch rollers) and anything proven by a purge cycle or a nozzle-check print is left out on purpose. ===== */
+const T = {};
+T.rhotex = [
+ ["Check and empty both waste ink tanks as needed","shift"],
+ ["Clean machine and surrounding area","shift"],
+ ["Check crash sensors for contamination or overspray; clean if necessary","daily"],
+ ["Check cleaning station (left) and capping station (right); clean if necessary (wipe + distilled water)","daily"],
+ ["Check waste container (mesh tray and capping station); clean and empty if necessary","daily"],
+ ["Check and clean carriage sledge from below with distilled water","daily"],
+ ["Check the spitting pad; clean or change if necessary","daily"],
+ ["Clean interior of the machine free from dust","week"],
+ ["Check jar and filter on the ink suction wand; empty/replace if necessary","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Check ink level in on-board vacuum; empty if necessary","month"],
+ ["Quarterly basic cleaning (exterior/interior, top and underside)","qtr"],
+ ["Change cooling system (chiller) water","year"],
+ ["Grease transport motor","use","At 13,000 hours of operation"],
+ ["Check electrical system of the cooling system (specialist)","req"],
+ ["After printing direct to textile: check absorbent pads and clean mesh tray","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req"]
+];
+T.p5350 = [
+ ["Check glass of UV LED units for soiling; clean if necessary","daily"],
+ ["Check main tank ventilation (de-air) filters; clean/replace if necessary","week"],
+ ["Check conveyor belt for soiling or overspray; clean if necessary","month"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Maintenance on ionizer","month"],
+ ["Create backup of the workstation","half"],
+ ["Clean ventilation of the workstation","half"],
+ ["Refill ink","req"],
+ ["Clean housing of the printer","req"],
+ ["Empty catch tank","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req"]
+];
+T.p5tex = [
+ ["Check capping station","d2"],
+ ["Clean capping station and sealing lip","week"],
+ ["Clean capping station wire mesh, drain 2L of waterbath, top off with 2L of distilled water","biweek"],
+ ["Dryer: clean redirection rollers + support rolls, empty catch trays, clean pyrometer protective glasses","week"],
+ ["Check de-air filters of main ink tanks; clean/replace if necessary","week"],
+ ["Clean encoder ruler and check for scratches or other damage","month","Softly use a lint-free wipe, wiping straight up and down"],
+ ["Lubricate seals and toothed rack at the dryer","half"],
+ ["Refill ink","req"],
+ ["Check vacuum carrier on printing table for soiling; clean if necessary","req"],
+ ["Empty catch tank","req"],
+ ["Park print carriage on capping station ASAP after right-side maintenance (prevents nozzle dry-out)","req"],
+ ["Log every filter or head change on the Filter/Head Change Log","req","Carriage filter P/N 1392545 · main ink filter P/N 1392994"]
+];
+const CATS = [["Every shift / daily",["shift","daily","d2"]],["Weekly",["week","biweek"]],["Monthly and longer",["month","qtr","half","year"]],["As needed",["use","req"]]];
+
+/* period key: same rules as /maintenance/ so "done" means done in the current period */
+function periodKey(iv, when){
+  const now = when || new Date(), y = now.getFullYear(), m = now.getMonth(), days = Math.floor(now.getTime()/86400000);
+  switch(iv){
+    case "week": { const d = new Date(now); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return "W"+d.toDateString(); }
+    case "biweek": return "B"+Math.floor(days/14);
+    case "d2": return "D2-"+Math.floor(days/2);
+    case "month": return "M"+y+"-"+m;
+    case "qtr": return "Q"+y+"-"+Math.floor(m/3);
+    case "half": return "H"+y+"-"+(m<6?0:1);
+    case "year": return "Y"+y;
+    default: return "T"+now.toDateString();
+  }
+}
+
+/* ===== state ===== */
+let user=null, accessToken=null, tokenClient=null, cur=null;
+let done = {};           // task name -> {at: Date, by: email}
+let queue = []; try{ queue = JSON.parse(localStorage.getItem("wsd-floor-queue")||"[]"); }catch(e){}
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function saveQueue(){ try{ localStorage.setItem("wsd-floor-queue", JSON.stringify(queue)); }catch(e){} }
+function setSync(t){ $("#sync").textContent = t||""; }
+
+/* ===== printer picker (remembered per workstation; ?p=<sys> pins it) ===== */
+function choose(sys){
+  cur = PRINTERS.find(p=>p.sys===sys) || null;
+  try{ if(cur) localStorage.setItem("wsd-floor-printer", cur.sys); else localStorage.removeItem("wsd-floor-printer"); }catch(e){}
+  render();
+  if(cur){ loadDone(); loadAuto(); }
+}
+function renderPick(){
+  const el = $("#pick"); el.innerHTML = "";
+  ["PA","MX","CA"].forEach(loc=>{
+    PRINTERS.filter(p=>p.loc===loc).forEach(p=>{
+      const b = document.createElement("button");
+      b.innerHTML = `${esc(p.name)}<small>System # ${p.sys} · ${loc}</small>`;
+      b.onclick = ()=>choose(p.sys); el.appendChild(b);
+    });
+  });
+}
+
+/* ===== tasks ===== */
+function render(){
+  $("#pick").classList.toggle("hidden", !!cur);
+  $("#sheet").classList.toggle("hidden", !cur);
+  const sb=$("#switchBtn"); if(sb) sb.classList.toggle("hidden", !cur);
+  $("#title").textContent = cur ? cur.name : "Choose your printer";
+  if(!cur) return;
+  const wrap = $("#tasks"); wrap.innerHTML = "";
+  const tasks = T[cur.t];
+  CATS.forEach(([cat, ivs])=>{
+    const list = tasks.map((t,i)=>({t,i})).filter(x=>ivs.includes(x.t[1]));
+    if(!list.length) return;
+    const n = list.filter(x=>isDone(x.t)).length;
+    const h = document.createElement("h2"); h.innerHTML = `${cat} <span>${n} of ${list.length} done this period</span>`; wrap.appendChild(h);
+    list.forEach(({t,i})=>{
+      const d = done[t[0]], ok = isDone(t);
+      const row = document.createElement("div");
+      row.className = "task"+(ok?" done":"")+(d&&!ok?" stale":"");
+      row.innerHTML = `<div class="box">${ok?"✓":""}</div><div class="t"><div class="n">${esc(t[0])}</div><div class="m">${CHIPS[t[1]]||t[1]}${t[2]?" · "+esc(t[2]):""}</div></div><div class="when">${d?(ok?"":"last ")+fmt(d.at)+(d.by?" · "+esc(d.by.split("@")[0]):""):""}</div>`;
+      row.onclick = ()=>markDone(t);
+      wrap.appendChild(row);
+    });
+  });
+}
+function isDone(t){ const d = done[t[0]]; return !!d && periodKey(t[1], d.at) === periodKey(t[1]); }
+function fmt(d){ const now = new Date(); return d.toDateString()===now.toDateString() ? d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : d.toLocaleDateString([], {month:"short",day:"numeric"}); }
+function markDone(t){
+  if(!user){ handleAuthClick(); return; }
+  if(isDone(t)) return;
+  const now = new Date();
+  done[t[0]] = {at: now, by: user.email};
+  /* same columns as /maintenance/: when, who, location, machine, serial, task, interval, action */
+  queue.push({row:[now.toLocaleString(), user.email||"", cur.loc, cur.name, "SYS "+cur.sys, t[0], CHIPS[t[1]]||t[1], "done"]});
+  saveQueue(); render(); flushQueue();
+}
+
+/* ===== Sheet: write, and read back this printer's recent sign-offs so the state is shared, not per device ===== */
+async function appendRows(rows){
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(CONFIG.LOG_SHEET)}!A1:append?valueInputOption=USER_ENTERED`;
+  const r = await fetch(url,{method:"POST",headers:{Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},body:JSON.stringify({values:rows})});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+}
+async function flushQueue(){
+  if(!accessToken || !queue.length) return;
+  try{ await appendRows(queue.map(e=>e.row)); queue=[]; saveQueue(); setSync("Logged "+new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})); }
+  catch(err){ if(String(err).includes("401")) accessToken=null; setSync(queue.length+" entr"+(queue.length===1?"y":"ies")+" waiting to upload"); }
+}
+async function loadDone(){
+  if(!accessToken || !cur) return;
+  try{
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${encodeURIComponent(CONFIG.LOG_SHEET)}!A:H`;
+    const r = await fetch(url,{headers:{Authorization:"Bearer "+accessToken}}); const j = await r.json();
+    const rows = (j.values||[]).slice(-4000);
+    const fresh = {};
+    rows.forEach(v=>{ if(v[3]!==cur.name || v[7]!=="done") return; const at = new Date(v[0]); if(isNaN(at)) return; if(!fresh[v[5]] || fresh[v[5]].at<at) fresh[v[5]]={at, by:v[1]}; });
+    queue.forEach(e=>{ if(e.row[3]===cur.name) fresh[e.row[5]]={at:new Date(e.row[0]), by:e.row[1]}; });
+    done = fresh; render();
+  }catch(e){ /* keep local state */ }
+}
+
+/* ===== What the printer already recorded (from the last Analytics pull on the Printer Maintenance page) ===== */
+async function loadAuto(){
+  const el = $("#auto"); el.innerHTML = `<span class="note">Reading what the printer logged itself…</span>`;
+  try{
+    const html = await (await fetch("/printer-maintenance/index.html",{cache:"no-store"})).text();
+    const m = html.match(/const DATA=(\{[\s\S]*?\});\s*\(function/); const D = JSON.parse(m[1]);
+    const p = D.printers.find(x=>x.name===ANALYTICS_NAME[cur.sys]); const PURGE = D.tasks.indexOf("Maintenance Purge");
+    const i = D.days.length-1, x = p.d[i], t = x[0];
+    const purge = t[PURGE] ? (t[PURGE][0]==="d" ? ["ok","Done"] : ["bad","Put off ("+t[PURGE][1]+"×)"]) : ["", x[1]? "No prompt" : "No prompt"];
+    const off = Object.keys(t).filter(k=>t[k][0]==="o"&&+k!==PURGE).map(k=>D.tasks[k]);
+    const dn = Object.keys(t).filter(k=>t[k][0]==="d"&&+k!==PURGE).map(k=>D.tasks[k]);
+    el.innerHTML = `
+      <div><div class="k">Purge prompt ${esc(D.days[i])}</div><div class="v ${purge[0]}">${esc(purge[1])}</div></div>
+      <div><div class="k">Purge cycles run</div><div class="v ${x[1]?"ok":"warn"}">${x[1]}</div></div>
+      <div><div class="k">Nozzle checks printed</div><div class="v">${x[2]}</div></div>
+      <div><div class="k">Prompts answered Done</div><div class="v ok">${dn.length}</div></div>
+      <div><div class="k">Prompts put off</div><div class="v ${off.length?"bad":""}">${off.length}${off.length?": "+esc(off.join(", ")):""}</div></div>
+      <div class="note">Recorded by the printer, read from Durst Analytics (last pull ${esc(new Date(D.meta.pulled).toLocaleString())}). Answer the prompts on the Durst screen; nothing to tap here.</div>`;
+  }catch(e){ el.innerHTML = `<span class="note">Printer log not available right now (the Analytics pull runs each morning).</span>`; }
+}
+
+/* ===== Google sign-in: the operator is signed in to Chrome on the workstation, so this is normally silent ===== */
+async function loadUser(){
+  try{ const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:"Bearer "+accessToken}}); user = await r.json(); }catch(e){ user={email:"(unknown)"}; }
+  updateUserUI(); flushQueue(); if(cur) loadDone();
+}
+function initAuth(){
+  if(!window.google||!google.accounts||!google.accounts.oauth2){ setTimeout(initAuth,300); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CONFIG.CLIENT_ID, scope: EQF_SCOPES, callback: async (resp)=>{ EQF.saveToken(resp, EQF_SCOPES); if(resp.error){ setSync("Sign-in failed: "+resp.error); return; } accessToken = resp.access_token; await loadUser(); } });
+  const c = EQF.cachedToken(EQF_SCOPES);
+  if(c){ accessToken = c.access_token; loadUser(); } else { try{ tokenClient.requestAccessToken({prompt:""}); }catch(e){} }
+}
+function handleAuthClick(){
+  if(user){ EQF.clearToken(); if(accessToken){ try{ google.accounts.oauth2.revoke(accessToken,()=>{}); }catch(e){} } user=null; accessToken=null; updateUserUI(); return; }
+  if(!tokenClient){ alert("Google sign-in is still loading — try again in a second."); return; }
+  tokenClient.requestAccessToken({prompt:"select_account"});
+}
+function updateUserUI(){
+  $("#who").innerHTML = user ? `Signed in as <b>${esc(user.name||user.email||"")}</b>` : "Not signed in";
+  $("#authBtn").textContent = user ? "Not you? Switch" : "Sign in with Google";
+}
+
+/* ===== boot ===== */
+renderPick();
+/* Installed per workstation: the shortcut/start page carries ?p=<system number>, so the printer is fixed and nothing on screen can change it. Without ?p= (a roaming tablet) the picker shows and the choice is remembered on that device. */
+const pinned = new URLSearchParams(location.search).get("p"); let remembered=null; try{ remembered = localStorage.getItem("wsd-floor-printer"); }catch(e){}
+const LOCKED = !!(pinned && PRINTERS.some(p=>p.sys===pinned));
+if(pinned || remembered) choose(pinned || remembered); else render();
+if(LOCKED){ document.getElementById("switchBtn").remove(); }
+initAuth();
+setInterval(()=>{ if(cur){ loadDone(); } }, 5*60*1000);
+</script>
+</body>
+</html>
