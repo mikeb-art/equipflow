@@ -213,7 +213,11 @@ function isMeas(s){
 // Horizontal appears twice, with data landing in only one of them). Keep every candidate column and,
 // per row, use whichever one actually holds a measurement.
 function pickMeas(row, idxs){ for(const i of idxs){ if(isMeas(row[i])) return row[i]; } return ""; }
+// A lone number between 90 and 110 (e.g. Oscar's "100.5") is read as the measured length of a 100-inch ruler,
+// which is also the % of nominal size: 100.5 -> +0.5% / +0.5".
+function lone(s){ const t = String(s).replace(/["”]/g,"").trim(); if(!/^\d{2,3}(\.\d+)?$/.test(t)) return null; const v = parseFloat(t); return (v >= 90 && v <= 110) ? v : null; }
 function devPct(s){
+  const l = lone(s); if(l !== null) return l - 100;
   const nums = String(s).replace(/["”]/g," ").match(/-?\d+(\.\d+)?/g);
   if(!nums || nums.length < 2) return null;
   const exp = parseFloat(nums[0]), act = parseFloat(nums[1]);
@@ -222,6 +226,7 @@ function devPct(s){
 }
 // raw size deviation in inches (actual - expected) — drives the color coding
 function devIn(s){
+  const l = lone(s); if(l !== null) return l - 100;
   const nums = String(s).replace(/["”]/g," ").match(/-?\d+(\.\d+)?/g);
   if(!nums || nums.length < 2) return null;
   return parseFloat(nums[1]) - parseFloat(nums[0]);
