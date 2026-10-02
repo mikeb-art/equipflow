@@ -1,0 +1,49 @@
+# Posts the ruler-verification reminder to the Google Chat "Printing" space 7 days before each due Wednesday,
+# tagging Todd, Toan and Christian. Runs every Wednesday morning; rulers/tools/reminder.py decides whether a
+# due date is exactly a week away. Webhook: repo secret PRINTING_CHAT_WEBHOOK.
+name: Rulers reminder
+
+on:
+  schedule:
+    - cron: "10 13 * * 3"   # Wednesdays 13:10 UTC = 6:10 AM Pacific in summer (5:10 AM in winter)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Pretend today is this date (YYYY-MM-DD); blank = today"
+        required: false
+        default: ""
+      post:
+        description: "Actually post to Chat (otherwise only show the message in the log)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: rulers-reminder
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and post the reminder
+        env:
+          WEBHOOK: ${{ secrets.PRINTING_CHAT_WEBHOOK }}
+          DAY: ${{ github.event.inputs.date }}
+          POST: ${{ github.event_name == 'schedule' || github.event.inputs.post == 'true' }}
+        run: |
+          python3 rulers/tools/reminder.py "$DAY" > msg.txt
+          if [ ! -s msg.txt ]; then echo "No ruler due date 7 days from ${DAY:-today}; nothing to post."; exit 0; fi
+          cat msg.txt
+          if [ "$POST" != "true" ]; then echo "Dry run: not posted."; exit 0; fi
+          if [ -z "$WEBHOOK" ]; then echo "::error::PRINTING_CHAT_WEBHOOK secret is not set"; exit 1; fi
+          body=$(jq -Rs '{text: .}' msg.txt)
+          for attempt in 1 2; do
+            code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST "$WEBHOOK" \
+              -H 'Content-Type: application/json; charset=UTF-8' --data "$body") || code=000
+            echo "attempt $attempt: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          head -c 300 resp.txt; echo
+          exit 1
