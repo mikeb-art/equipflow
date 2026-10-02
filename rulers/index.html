@@ -18,14 +18,41 @@
   .user-card .role{font-size:11px;color:var(--muted)}
   .side-foot .signout{margin-top:10px;width:100%}
   .content{padding:22px 26px 60px}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:22px}
-  .stat{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:14px 18px;border-top:4px solid var(--blue)}
-  .stat .lbl{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
-  .stat .val{font-size:30px;font-weight:800;margin-top:2px}
-  .stat.ok{border-top-color:var(--green)} .stat.ok .val{color:#5fd75f}
-  .stat.due{border-top-color:var(--amber)} .stat.due .val{color:var(--amber)}
-  .stat.over{border-top-color:var(--red)} .stat.over .val{color:#ff7b7b}
-  .stat.tot{border-top-color:var(--blue)} .stat.tot .val{color:var(--ink)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:14px;padding:16px 18px}
+  .stat .lbl{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:1.8px;color:var(--ink-2);text-transform:uppercase}
+  .stat .val{font-size:26px;font-weight:500;margin-top:8px;color:var(--ink);display:flex;align-items:baseline;gap:8px}
+  .stat .val small{font-size:12px;color:var(--ink-2);font-weight:400}
+  .stat.ok{border-left-color:var(--green)} .stat.due{border-left-color:var(--amber)} .stat.over{border-left-color:var(--red)}
+  .attn{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:20px;overflow:hidden}
+  .attn-head{display:flex;align-items:baseline;gap:12px;padding:18px 18px 4px}
+  .attn-head h2{font-size:18px;font-weight:500;color:var(--ink);flex:1}
+  .attn-sort{background:none;border:0;color:#ff7b7b;font-weight:700;font-size:13px;cursor:pointer;padding:2px 0}
+  .attn-sort:hover{text-decoration:underline}
+  .attn-sub{font-size:13px;color:var(--ink-2);padding:0 18px 14px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 16px;border-bottom:1px solid var(--border)}
+  .tab{background:none;border:1px solid transparent;color:var(--ink-2);font:600 13px var(--sans);border-radius:20px;padding:7px 12px;cursor:pointer}
+  .tab:hover{color:var(--ink)}
+  .tab.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+  .pg{border-bottom:1px solid var(--border)}
+  .pg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;width:100%;background:none;border:0;color:inherit;text-align:left;padding:16px 18px 10px;cursor:pointer;font:inherit}
+  .pg-head:hover .pg-name{color:var(--accent)}
+  .pg-name{font-weight:700;font-size:14px;color:var(--ink)}
+  .pg-sub{font-size:12px;color:var(--ink-2);margin-top:8px}
+  .pg-when{text-align:right;font-size:13px;line-height:1.6}
+  .pg-when .d{color:#ff7b7b}
+  .pg-when .n{color:var(--ink-2)}
+  .pg-when.soon .d{color:var(--amber)}
+  .mchips{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 16px}
+  .mchip{font-size:12px;font-weight:600;color:var(--ink);background:rgba(208,59,59,.28);border:1px solid rgba(255,123,123,.35);border-radius:5px;padding:7px 9px;white-space:nowrap}
+  .mchip i{font-style:normal;color:#ff9b9b;font-weight:500;margin-left:5px}
+  .mchip.soon{background:var(--warn-soft);border-color:rgba(250,178,25,.4)}
+  .mchip.soon i{color:var(--amber)}
+  .mchip.more{cursor:pointer;background:rgba(208,59,59,.18);font:600 12px var(--sans);color:var(--ink)}
+  .pg-detail{padding:0 0 12px}
+  .pg-detail table{font-size:13px}
+  .attn-foot{font-size:12px;color:var(--muted);padding:12px 18px}
+  details.panel>summary{cursor:pointer;padding:14px 18px;font-size:15px;color:var(--ink);list-style:revert}
   .panel{margin-bottom:20px}
   .panel-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
   .panel-head h2{font-size:15.5px;flex:1;min-width:200px;color:var(--ink)}
@@ -247,7 +274,12 @@ function updateUserUI(){
 let DATA = {};              // press -> material -> {date, by, cadence, devH, devV, devInH, devInV, hist:[]}
 let currentLoc = "ALL";
 let locFilter = "all";      // all | monthly | quarterly | none — applies to the individual-location view
-let chartInst = null;       // the trend chart instance (destroyed/rebuilt each render)
+let chartInst = null;
+let attnSort = "oldest";            // oldest | az
+const openPress = new Set(), allChips = new Set();
+window.toggleSort = function(){ attnSort = attnSort==="oldest" ? "az" : "oldest"; render(); };
+window.togglePress = function(p){ openPress.has(p) ? openPress.delete(p) : openPress.add(p); render(); };
+window.moreChips = function(p, ev){ ev.stopPropagation(); allChips.add(p); render(); };       // the trend chart instance (destroyed/rebuilt each render)
 const PALETTE = ["#3987e5","#d95926","#199e70","#c98500","#d55181","#008300","#9085e9","#e66767"];   // EquipFlow categorical order — never cycled; extras go gray
 const seriesColor = i => PALETTE[i] || "#64789f";
 window.setLocFilter = function(f){ locFilter = f; render(); };
@@ -392,8 +424,8 @@ function matFilter(mat){
   if(locFilter === "quarterly") return CADENCE[mat] === "Quarterly";
   return true;
 }
-function matRows(press){
-  return MAT_ORDER.filter(matFilter).map(mat=>{
+function matRows(press, all){
+  return MAT_ORDER.filter(m => all || matFilter(m)).map(mat=>{
     const rec = recFor(press, mat), st = statusOf(rec);
     const label = rec.never ? (st==="ok" ? "— Not due yet" : "🔴 Never done") : STLABEL[st];
     const measured = rec.date ? `${fmt(rec.date)} <span class="ago">(${daysAgo(rec.date)}d ago)</span>` : '<span class="ago">never uploaded</span>';
@@ -447,48 +479,62 @@ function render(){
   const ps = presses(currentLoc);
   if(!ps.length){ el.innerHTML = '<div class="empty"><div class="ei">📭</div>No ruler measurements found for this view.</div>'; return; }
 
-  // rosters — "Needs a ruler" = behind right now; "Next Uploads Due" = the upcoming scheduled batch (forward-looking, any status)
-  const now = Date.now();
-  const overdue = [], duesoon = [];
-  ps.forEach(p => MAT_ORDER.forEach(mat=>{
-    const rec = recFor(p, mat), st = statusOf(rec);
-    if(st==="over") overdue.push({p, mat, rec, st});
-    const nxt = nextDue(rec.cadence, now);
-    if(nxt !== null && (nxt - now) <= LEAD_DAYS*86400000) duesoon.push({p, mat, rec, st, nxt});
-  }));
-  const overdueDays = r => r.date ? daysAgo(r.date) : 99999;
-  overdue.sort((x,y)=> overdueDays(y.rec)-overdueDays(x.rec));
-  duesoon.sort((x,y)=> (x.nxt-y.nxt) || x.p.localeCompare(y.p) || MAT_ORDER.indexOf(x.mat)-MAT_ORDER.indexOf(y.mat));
-  const overdueCard = a => {
-    const due = lastDue(a.rec.cadence, now);
-    const upl = a.rec.date ? "last uploaded "+fmt(a.rec.date) : "never uploaded";
-    return `<div class="alert"><div class="t">${a.p} · ${a.mat}</div>
-      <div class="d">${a.rec.cadence} · was due ${due?fmtT(due):"—"} · ${upl} — overdue</div></div>`;
+  // Needs attention: every heat press with an overdue or soon-due check, grouped by press
+  const now = Date.now(), DAY = 86400000;
+  const md = t => new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"});
+  const groupsFor = loc => presses(loc).map(p=>{
+    const items = MAT_ORDER.map(mat=>{
+      const rec = recFor(p, mat), st = statusOf(rec);
+      return { mat, rec, st, due: st==="over" ? lastDue(rec.cadence, now) : nextDue(rec.cadence, now) };
+    });
+    const over = items.filter(i=>i.st==="over"), soon = items.filter(i=>i.st==="due");   // material order, as on the floor sheet
+    const first = over.concat(soon).reduce((a,i)=>!a||i.due<a.due?i:a, null);   // oldest due date drives the sort and the right-hand date
+    return { p, items, over, soon, first, cur: items.length - over.length };
+  }).filter(g => g.over.length || g.soon.length);
+  const attnCount = loc => groupsFor(loc).reduce((n,g)=>n+g.over.length+g.soon.length, 0);
+  const groups = groupsFor(currentLoc);
+  if(attnSort==="oldest") groups.sort((a,b)=>{
+    if(!!a.over.length !== !!b.over.length) return a.over.length ? -1 : 1;   // overdue presses before due-soon ones
+    return (a.first.due-b.first.due) || (b.over.length-a.over.length) || a.p.localeCompare(b.p, undefined, {numeric:true});
+  }); else groups.sort((a,b)=>a.p.localeCompare(b.p, undefined, {numeric:true}));
+  const chip = i => {
+    const upl = i.rec.date ? "last uploaded "+md(i.rec.date.getTime()) : "never uploaded";
+    const when = i.st==="over" ? "was due "+md(i.due) : "due "+md(i.due);
+    return `<span class="mchip${i.st==="due"?" soon":""}" title="${i.mat} · ${i.rec.cadence} · ${when} · ${upl}">${i.mat}<i>${i.rec.cadence[0]}</i></span>`;
   };
-  const duesoonCard = a => {
-    const upl = a.rec.date ? "last uploaded "+fmt(a.rec.date) : "never uploaded";
-    const behind = a.st==="over" ? ' · <b style="color:#ff7b7b">behind now</b>' : "";
-    return `<div class="alert due"><div class="t">${a.p} · ${a.mat}</div>
-      <div class="d">${a.rec.cadence} · due ${fmtT(a.nxt)} · ${upl}${behind}</div></div>`;
+  const CHIP_MAX = 6;
+  const pressRow = g => {
+    const all = g.over.concat(g.soon), show = allChips.has(g.p) ? all : all.slice(0, CHIP_MAX);
+    const more = all.length - show.length;
+    const parts = [g.cur+" current"]; if(g.over.length) parts.push(g.over.length+" overdue"); if(g.soon.length) parts.push(g.soon.length+" due soon");
+    const first = g.first, ld = new Date(), today = Date.UTC(ld.getFullYear(), ld.getMonth(), ld.getDate()), days = Math.round(Math.abs(today - first.due)/DAY);   // calendar days, local date
+    const when = g.over.length ? `<div class="pg-when"><div class="d">${md(first.due)}</div><div class="n">${days} day${days===1?"":"s"}</div></div>`
+      : `<div class="pg-when soon"><div class="d">${md(first.due)}</div><div class="n">in ${days} day${days===1?"":"s"}</div></div>`;
+    const open = openPress.has(g.p), pid = "pg-"+g.p.replace(/\W+/g,"-");
+    return `<div class="pg"><button type="button" class="pg-head" onclick="togglePress('${g.p}')" aria-expanded="${open}" aria-controls="${pid}">
+        <div><div class="pg-name">${g.p}</div><div class="pg-sub">${parts.join(" · ")}</div></div>${when}</button>
+      <div class="mchips">${show.map(chip).join("")}${more>0?`<button type="button" class="mchip more" onclick="moreChips('${g.p}', event)" aria-label="Show ${more} more">+${more}</button>`:""}</div>
+      ${open?`<div class="pg-detail" id="${pid}"><table><thead><tr><th>Material</th><th>Cadence</th><th>Last measured</th><th>Status</th><th>Actual % H</th><th>Actual % V</th></tr></thead><tbody>${matRows(g.p, true)}</tbody></table></div>`:""}</div>`;
   };
-  const overdueHtml = overdue.length ? overdue.map(overdueCard).join("")
-    : '<div class="d" style="padding:0 4px;color:var(--muted)">Nothing overdue in this view. 🎉</div>';
-  const duesoonHtml = duesoon.length ? duesoon.map(duesoonCard).join("")
-    : '<div class="d" style="padding:0 4px;color:var(--muted)">Nothing coming due in the next window.</div>';
+  const tabs = ["ALL","CA","MX","PA"].map(l=>`<button type="button" class="tab${currentLoc===l?" on":""}" onclick="selectLoc('${l}')">${l==="ALL"?"All":LOC_NAMES[l]} · ${attnCount(l)}</button>`).join("");
+  const clear = presses(currentLoc).length - groups.length;
+  const attention = `<section class="attn" aria-labelledby="attnTitle">
+      <div class="attn-head"><h2 id="attnTitle">Needs attention</h2>
+        <button type="button" class="attn-sort" onclick="toggleSort()" title="Change sort order">${attnSort==="oldest"?"Oldest first":"A–Z"}</button></div>
+      <div class="attn-sub">Grouped by press so operators can clear related checks together. Click a press for its full list.</div>
+      <div class="tabs" role="group" aria-label="Location">${tabs}</div>
+      ${groups.length ? groups.map(pressRow).join("") : '<div class="empty">Nothing overdue or coming due in this view.</div>'}
+      ${clear>0 && groups.length ? `<div class="attn-foot">${clear} other press${clear>1?"es are":" is"} all current.</div>` : ""}
+    </section>`;
 
   const c = counts(currentLoc);
+  const nOver = groups.reduce((n,g)=>n+g.over.length,0), nSoon = groups.reduce((n,g)=>n+g.soon.length,0);
   const stats = `<div class="stats">
-    <div class="stat tot"><div class="lbl">Heat Press × Material</div><div class="val">${c.tot}</div></div>
-    <div class="stat ok"><div class="lbl">Current</div><div class="val">${c.tot - overdue.length}</div></div>
-    <div class="stat due"><div class="lbl">Next due</div><div class="val">${duesoon.length}</div></div>
-    <div class="stat over"><div class="lbl">Overdue</div><div class="val">${overdue.length}</div></div>
+    <div class="stat tot"><div class="lbl">Press × Material</div><div class="val">${c.tot}<small>${ps.length} press${ps.length>1?"es":""}</small></div></div>
+    <div class="stat ok"><div class="lbl">Current</div><div class="val">${c.tot - nOver}</div></div>
+    <div class="stat due"><div class="lbl">Due in ${LEAD_DAYS} days</div><div class="val">${nSoon}</div></div>
+    <div class="stat over"><div class="lbl">Overdue</div><div class="val">${nOver}<small>${currentLoc==="ALL"?"all locations":LOC_NAMES[currentLoc]}</small></div></div>
   </div>`;
-  const attention = `<div class="panel"><div class="panel-head"><h2>⏰ Needs a ruler</h2>
-      <span class="ago">Overdue by cadence (monthly / quarterly)</span></div>
-      <div class="alerts">${overdueHtml}</div></div>
-    <div class="panel"><div class="panel-head"><h2>🗓️ Next Uploads Due</h2>
-      <span class="ago">Uploads coming due within the next ${LEAD_DAYS} days</span></div>
-      <div class="alerts">${duesoonHtml}</div></div>`;
 
   // individual-location view gets a cadence filter and a trend chart
   const isLoc = currentLoc !== "ALL";
@@ -501,8 +547,9 @@ function render(){
     const blocks = lp.map(p=>`<div class="press-h">${p}</div>
       <table><thead><tr><th>Material</th><th>Cadence</th><th>Last measured</th><th>Status</th><th>Actual % H</th><th>Actual % V</th></tr></thead>
       <tbody>${matRows(p)}</tbody></table>`).join("");
-    return `<div class="panel"><div class="panel-head"><h2>${LOC_NAMES[loc]}</h2><span class="ago">${lp.length} heat press${lp.length>1?"es":""}</span></div>${blocks}
-      <div class="note">All 8 materials per heat press (4 monthly + 4 quarterly). "Never uploaded" counts as overdue. Numbers are % deviation; colors use the size gap in inches — under +0.5" red, +0.5–1.5" green, over +1.5" orange.</div></div>`;
+    const tag = isLoc ? "div" : "details";
+    return `<${tag} class="panel">${isLoc?`<div class="panel-head"><h2>${LOC_NAMES[loc]}</h2><span class="ago">${lp.length} heat press${lp.length>1?"es":""}</span></div>`:`<summary>All checks · ${LOC_NAMES[loc]} <span class="ago">(${lp.length} heat press${lp.length>1?"es":""})</span></summary>`}${blocks}
+      <div class="note">All 8 materials per heat press (4 monthly + 4 quarterly). "Never uploaded" counts as overdue. Numbers are % deviation; colors use the size gap in inches — under +0.5" red, +0.5–1.5" green, over +1.5" orange.</div></${tag}>`;
   }).join("");
 
   const chartToggle = m => `<button class="pill${chartMats.has(m)?" on":""}" onclick="setChartMats('${m}')">${m}</button>`;
