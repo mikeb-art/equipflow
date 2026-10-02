@@ -70,7 +70,7 @@ button:focus-visible,a:focus-visible,.cell:focus-visible{outline:2px solid var(-
 .heat{display:grid;gap:2px;min-width:720px}
 .heat .rl{font-size:12px;color:var(--ink-2);white-space:nowrap;padding-right:10px;display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:0;font-family:inherit;text-align:left}
 .heat .rl .pl{font-family:var(--mono);font-size:9.5px;color:var(--muted);width:20px}
-.heat .rl.sel{color:#fff;font-weight:700}
+.heat .rl.sel{color:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--accent);padding-left:8px}
 .cell{height:20px;border-radius:3px;cursor:pointer;border:1px solid transparent;position:relative}
 .cell:hover{border-color:#fff}
 .cell.sel{box-shadow:0 0 0 2px var(--accent)}
@@ -183,14 +183,14 @@ td .mini span{display:block;height:100%}
 
       <div class="card">
         <div class="head-row">
-          <div><h2>Daily status by printer</h2><div class="hint">One block per printer per day. Hover for the day's tasks; click to open the day log below. A dot means operators signed off tasks in the floor log that day. Faded blocks are weekends, which are left out of the counts.</div></div>
+          <div><h2>Daily status by printer</h2><div class="hint">One block per printer per day. Hover for the day's tasks; click a block or a printer name to show its details below (the selected printer is marked in the list). A dot means operators signed off tasks in the floor log that day. Faded blocks are weekends, which are left out of the counts.</div></div>
           <div class="legend"><span><i class="c-good"></i>Nothing put off</span><span><i class="c-warn"></i>A task put off</span><span><i class="c-crit"></i>Purge put off, no purge ran</span><span><i class="c-none"></i>No maintenance activity</span></div>
         </div>
         <div class="scroll"><div class="heat" id="heat"></div></div>
       </div>
 
       <div class="card trend">
-        <div class="head-row"><div><h2>Purge prompts acted on, by week</h2><div class="hint">Share of purge-prompt days where a purge cycle ran the same day, per plant</div></div>
+        <div class="head-row"><div><h2>Purge prompts acted on, by week</h2><div class="hint">Each point is one Monday–Friday week. Of the printer-days with a purge prompt (each printer counted separately), the share where a purge cycle ran the same day.</div></div>
           <div class="legend"><span><i style="background:var(--s1)"></i>CA</span><span><i style="background:var(--s2)"></i>PA</span><span><i style="background:var(--s3)"></i>MX</span></div></div>
         <div id="trend"></div>
       </div>
@@ -269,22 +269,23 @@ function dayTip(p,di){const x=p.d[di],t=x[0];let h=`<b>${esc(p.name)}</b> · ${f
   h+=`Purge cycles: ${x[1]} · Test patterns: ${x[2]}`;if(x[3])h+=`<br>Floor sign-offs: ${x[3]}`;if(!WD[di])h+=`<br><i>Weekend · not in the counts</i>`;return h}
 function heat(){const h=$("heat");h.innerHTML="";h.style.gridTemplateColumns=`minmax(160px,auto) repeat(${range},minmax(8px,1fr))`;
   const v=vis();if(!v.some(p=>p.i===sel.p))sel.p=v[0].i;
-  v.forEach(p=>{const rl=document.createElement("button");rl.className="rl"+(p.i===sel.p?" sel":"");rl.innerHTML=`${esc(p.name)} <span style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">${p.sys}</span>`;rl.onclick=()=>{sel.p=p.i;render()};h.appendChild(rl);
+  v.forEach(p=>{const rl=document.createElement("button");rl.className="rl"+(p.i===sel.p?" sel":"");rl.title=p.i===sel.p?"Selected · details below":"Show this printer's details below";if(p.i===sel.p)rl.setAttribute("aria-current","true");rl.innerHTML=`${esc(p.name)} <span style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">${p.sys}</span>`;rl.onclick=()=>{sel.p=p.i;render()};h.appendChild(rl);
     win(p).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.tabIndex=0;c.className=`cell c-${status(x)}${WD[di]?"":" we"}${x[3]?" so":""}${p.i===sel.p&&di===sel.d?" sel":""}`;
       c.setAttribute("aria-label",`${p.name} ${fmt(D[di])}: ${status(x)}`);
       c.onmousemove=e=>showTip(e,dayTip(p,di));c.onmouseleave=hideTip;c.onclick=()=>{sel={p:p.i,d:di};render()};c.onkeydown=e=>{if(e.key==="Enter"){sel={p:p.i,d:di};render()}};h.appendChild(c)})});
   h.appendChild(document.createElement("div"));const step=range>60?14:range>30?7:5;
   D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div");l.className="dl";l.textContent=(j%step===0)?fmt(d):"";h.appendChild(l)})}
-function trend(){const weeks=[];for(let s=N%7;s<N;s+=7)weeks.push([s,Math.min(s+7,N)]);
+const monOf=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
+function trend(){const weeks=[];D.forEach((d,k)=>{if(!k||d.getDay()===1)weeks.push([k,k+1]);else weeks[weeks.length-1][1]=k+1});   /* Monday–Sunday weeks; only Mon–Fri are counted */
   const W=900,H=230,L=44,R=16,T=14,B=28,x=i=>L+(W-L-R)*i/(weeks.length-1),y=v=>T+(H-T-B)*(1-v/100);
   let g="";[0,25,50,75,100].forEach(v=>{g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L-8}" y="${y(v)+4}" fill="var(--muted)" font-size="11" text-anchor="end" font-family="var(--mono)">${v}%</text>`});
-  weeks.forEach(([s],i)=>{if(i%2===0||i===weeks.length-1)g+=`<text x="${x(i)}" y="${H-6}" fill="var(--muted)" font-size="11" text-anchor="middle" font-family="var(--mono)">${fmt(D[s])}</text>`});
+  weeks.forEach(([s],i)=>{if(i%2===0||i===weeks.length-1)g+=`<text x="${x(i)}" y="${H-6}" fill="var(--muted)" font-size="11" text-anchor="middle" font-family="var(--mono)">${fmt(monOf(D[s]))}</text>`});
   const pts=[];
   [["CA","var(--s1)"],["PA","var(--s2)"],["MX","var(--s3)"]].forEach(([pl,col])=>{if(plant!=="ALL"&&plant!==pl)return;
-    const vals=weeks.map(([a,b])=>{let due=0,dn=0;DATA.printers.filter(p=>p.plant===pl).forEach(p=>{for(let k=a;k<b;k++){if(!WD[k])continue;const t=p.d[k][0][PURGE];if(t){due++;if(t[0]==="d")dn++}}});return due?{v:dn/due*100,due,dn}:null});
+    const nP=DATA.printers.filter(p=>p.plant===pl).length;const vals=weeks.map(([a,b])=>{let due=0,dn=0;DATA.printers.filter(p=>p.plant===pl).forEach(p=>{for(let k=a;k<b;k++){if(!WD[k])continue;const t=p.d[k][0][PURGE];if(t){due++;if(t[0]==="d")dn++}}});return due?{v:dn/due*100,due,dn}:null});
     let path="";vals.forEach((o,i)=>{if(!o)return;path+=(path?"L":"M")+x(i).toFixed(1)+" "+y(o.v).toFixed(1)});
     g+=`<path d="${path}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-    vals.forEach((o,i)=>{if(!o)return;pts.push({cx:x(i),cy:y(o.v),col,html:`<b>${pl}</b> · week of ${fmt(D[weeks[i][0]])}<br>${Math.round(o.v)}% · ${o.dn} of ${o.due} purge-prompt days`})});
+    vals.forEach((o,i)=>{if(!o)return;pts.push({cx:x(i),cy:y(o.v),col,html:`<b>${pl}</b> · week of Mon ${fmt(monOf(D[weeks[i][0]]))}<br>${Math.round(o.v)}% · a purge ran on ${o.dn} of ${o.due} prompt days<br><span style="color:var(--muted)">Counts each ${pl} printer separately (${nP} printers × Mon–Fri)</span>`})});
     const li=vals.map((o,i)=>o?i:-1).filter(i=>i>=0).pop();if(li!=null)g+=`<text x="${x(li)+6}" y="${y(vals[li].v)+4}" fill="var(--ink)" font-size="11" font-family="var(--mono)">${pl}</text>`});
   pts.forEach((p,k)=>{g+=`<circle cx="${p.cx}" cy="${p.cy}" r="4" fill="${p.col}" stroke="var(--card)" stroke-width="2"/><circle data-k="${k}" cx="${p.cx}" cy="${p.cy}" r="12" fill="transparent" style="cursor:default"/>`});
   $("trend").innerHTML=`<svg viewBox="0 0 ${W+20} ${H}" role="img" aria-label="Weekly share of purge prompts acted on, by plant">${g}</svg>`;
