@@ -291,7 +291,7 @@ def main():
                     late.append(f"{TASKS[int(k)]} (last {dt.date.fromisoformat(ld).strftime('%b %-d')})")
             if late: parts.append("Overdue: " + ", ".join(late))
             if parts:
-                lines.append(f"• {p['name']} ({p['sys']}): " + "; ".join(parts))
+                lines.append(f"• {p['name']}: " + "; ".join(parts))
         msg.append(f"\n*{plant}*")
         msg.extend(lines or ["• Nothing put off or overdue"])
     msg.append("\nDetails and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/")
