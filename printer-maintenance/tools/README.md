@@ -9,19 +9,23 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
 2. Open `http://50.232.157.54:8090/ui/?pull=3#/lfa/printers/printer-list` (`?pull=90` on Mondays for a full refresh).
    The script pulls that many days and replaces the page with `PULL ok len=… hash=… printers=…`, a `---` line, and the
    dump (or `PULL FAILED: …`). A login screen means Durst needs signing in again.
-3. Read the page text, save everything after the `---` line as `dump.txt`, and check its length and hash match
-   (hash: `h = (h*31 + charCode) % 2147483647` over the whole text).
-4. Read the Machine Maintenance Log (`Log!A1:H` of sheet 1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo)
-   and save it as `log.json` (`{"values": [...]}`).
-5. `python3 printer-maintenance/tools/build.py dump.txt log.json`
-   merges the pull into `printer-maintenance/data/history.txt` (rolling 91 days; the pulled days replace
-   what was stored), rewrites the data in `printer-maintenance/index.html`, and writes the Printing-space reminder
-   to `printer-maintenance/data/reminder.txt`.
-6. Commit `printer-maintenance/index.html`, `printer-maintenance/data/history.txt` and
-   `printer-maintenance/data/reminder.txt`, push to `main`; Vercel publishes the page.
-7. The push of a new `reminder.txt` starts the GitHub Action `.github/workflows/printing-reminder.yml`, which posts it
-   to the Google Chat "Printing" space. The webhook URL is the repo secret `PRINTING_CHAT_WEBHOOK`; it is never
-   stored in the repo or in the scheduled task. To re-send a reminder: Actions tab > Printing reminder > Run workflow.
+3. Read the page text, save everything after the `---` line as `printer-maintenance/data/pull.txt` (no trailing
+   newline), and check its length and hash match (hash: `h = (h*31 + charCode) % 2147483647` over the whole text).
+4. Commit and push only `pull.txt` to `main`. The Claude run never reads the Maintenance Log itself: the log is
+   ~900 KB, too big to pass through a connector reliably.
+5. The push starts the GitHub Action `.github/workflows/printer-maintenance-build.yml`, which
+   - reads the Machine Maintenance Log (`Log!A1:H` of sheet 1XSwBK8CyWAdOgR6cj9k-lF3pkBuDaeZTYwhDX2TeBBo) with
+     `tools/fetch_log.py`, using the service-account key in the repo secret `GOOGLE_SA_KEY` (that account needs
+     Viewer access to the sheet),
+   - runs `tools/build.py pull.txt log.json`, which merges the pull into `data/history.txt` (rolling 91 days; the
+     pulled days replace what was stored), rewrites the data in `index.html`, and writes `data/reminder.txt`,
+   - commits those three files to `main` (Vercel publishes the page), and
+   - posts `reminder.txt` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`).
+6. To rebuild or re-send by hand: Actions tab > Printer maintenance build > Run workflow (untick "Post" to rebuild
+   without posting). `printing-reminder.yml` can still post a test message or re-send the stored reminder.
+
+To build locally: `python3 printer-maintenance/tools/build.py printer-maintenance/data/pull.txt log.json`, where
+`log.json` is `{"values": [...]}` of the Log tab (a Drive CSV export also works).
 
 ## P5 "done" messages
 

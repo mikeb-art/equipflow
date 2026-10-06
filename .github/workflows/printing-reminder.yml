@@ -1,5 +1,6 @@
 # Posts the daily Printer Maintenance reminder to the Google Chat "Printing" space.
-# Runs when the daily refresh commits a new printer-maintenance/data/reminder.txt.
+# Manual re-send / test post. The daily reminder is now posted by printer-maintenance-build.yml; this still runs
+# if someone pushes reminder.txt by hand.
 # The webhook URL lives in the repo secret PRINTING_CHAT_WEBHOOK (Settings > Secrets and variables > Actions),
 # never in this file or anywhere else in the repo.
 name: Printing reminder

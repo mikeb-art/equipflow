@@ -1,0 +1,92 @@
+# Rebuilds the Printer Maintenance page and posts the daily reminder to the Google Chat "Printing" space.
+# Runs when the daily scheduled task pushes a new Durst pull to printer-maintenance/data/pull.txt
+# (or by hand: Actions tab > Printer maintenance build > Run workflow, which rebuilds from the stored pull.txt).
+#
+# Secrets (Settings > Secrets and variables > Actions), never stored in the repo:
+#   GOOGLE_SA_KEY          JSON key of a Google service account with Viewer access to the Machine Maintenance Log
+#   PRINTING_CHAT_WEBHOOK  Google Chat webhook of the Printing space
+name: Printer maintenance build
+
+on:
+  push:
+    branches: [main]
+    paths: [printer-maintenance/data/pull.txt]
+  workflow_dispatch:
+    inputs:
+      post:
+        description: "Post the reminder to the Printing space"
+        type: boolean
+        default: true
+
+concurrency:
+  group: printer-maintenance-build
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the Machine Maintenance Log
+        env:
+          GOOGLE_SA_KEY: ${{ secrets.GOOGLE_SA_KEY }}
+        run: |
+          pip install --quiet google-auth requests
+          python3 printer-maintenance/tools/fetch_log.py "$RUNNER_TEMP/log.json"
+
+      - name: Build page, history and reminder
+        run: |
+          out=$(python3 printer-maintenance/tools/build.py printer-maintenance/data/pull.txt "$RUNNER_TEMP/log.json")
+          echo "$out"
+          echo "$out" | grep -q '^ok: 12 printers' || { echo "::error::Expected 'ok: 12 printers', got: $out"; exit 1; }
+
+      - name: Commit
+        id: commit
+        run: |
+          f="printer-maintenance/index.html printer-maintenance/data/history.txt printer-maintenance/data/reminder.txt"
+          if git diff --quiet -- $f; then
+            echo "Nothing changed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          to=$(sed -n '1s/^D=[^|]*|\([^|]*\)|.*/\1/p' printer-maintenance/data/history.txt)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $f
+          git commit -q -m "Printer Maintenance data refresh through $to"
+          for i in 1 2 3; do
+            git pull -q --rebase origin main && git push -q origin HEAD:main && break
+            sleep 5
+            [ $i = 3 ] && { echo "::error::Push failed"; exit 1; }
+          done
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Post reminder to Google Chat
+        if: github.event_name == 'push' || inputs.post
+        env:
+          WEBHOOK: ${{ secrets.PRINTING_CHAT_WEBHOOK }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::PRINTING_CHAT_WEBHOOK secret is not set; nothing posted."
+            exit 1
+          fi
+          body=$(jq -Rs '{text: .}' printer-maintenance/data/reminder.txt)
+          for attempt in 1 2; do
+            code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST "$WEBHOOK" \
+              -H 'Content-Type: application/json; charset=UTF-8' --data "$body") || code=000
+            echo "attempt $attempt: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 10
+          done
+          head -c 300 resp.txt; echo
+          exit 1
