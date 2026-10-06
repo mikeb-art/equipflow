@@ -20,8 +20,21 @@ def main():
     key = os.environ.get("GOOGLE_SA_KEY", "").strip()
     if not key:
         sys.exit("GOOGLE_SA_KEY secret is not set")
+    # Tolerate common paste slips: a missing first "{" or last "}", and TextEdit's curly quotes.
+    key = key.replace("\u201c", '"').replace("\u201d", '"')
+    if not key.startswith("{"):
+        key = "{" + key
+    if not key.endswith("}"):
+        key = key + "}"
+    try:
+        info = json.loads(key)
+    except ValueError as e:
+        sys.exit(f"GOOGLE_SA_KEY is not valid JSON ({e.msg} at character {e.pos} of {len(key)}). "
+                 "Paste the whole downloaded .json key file, from the first {{ to the last }}.")
+    if info.get("type") != "service_account" or "private_key" not in info:
+        sys.exit(f"GOOGLE_SA_KEY is JSON but not a service-account key (fields: {sorted(info)[:8]})")
     creds = service_account.Credentials.from_service_account_info(
-        json.loads(key), scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
+        info, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
     r = AuthorizedSession(creds).get(f"https://sheets.googleapis.com/v4/spreadsheets/{SHEET}/values/{RANGE}",
                                      timeout=60)
     if r.status_code != 200:
