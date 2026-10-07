@@ -1,15 +1,13 @@
 *Printer maintenance: Tue Oct 6* (from Durst Analytics)
 
 *CA*
-• Rhotex 325 - CA: Overdue: Roller Inspect (last Sep 21)
+• Nothing put off or open
 
 *PA*
-• Rhotex 325-1 - PA: Purge put off, no purge ran; Overdue: Roller Inspect (last Sep 21)
-• Rhotex 325-2 - PA: Overdue: Roller Inspect (last Sep 28)
+• Rhotex 325-1 - PA: Purge put off, no purge ran
 • P5-350 - PA: Purge put off, no purge ran
 
 *MX*
-• Rhotex 325-1 - MX: Overdue: Roller Inspect (last Sep 18)
-• Rhotex 325-2 - MX: Overdue: Roller Inspect (last Sep 11)
+• Nothing put off or open
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
