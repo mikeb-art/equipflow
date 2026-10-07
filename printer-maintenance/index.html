@@ -200,8 +200,8 @@ td .mini span{display:block;height:100%}
           <h2 id="d-title">Printer</h2><div class="hint" id="d-sub"></div>
           <div class="facts" id="facts"></div>
           <div class="scroll" style="margin-top:12px"><table><thead><tr><th>Durst prompt</th><th class="n">Days logged</th><th class="n">Done</th><th class="n">Put off</th></tr></thead><tbody id="tasks"></tbody></table></div>
-          <h2 style="margin-top:22px">Last done</h2><div class="hint">From the printer's own task log. "Every" is the interval in the Durst maintenance schedule; the printer's screen keeps its own due dates.</div>
-          <div class="scroll" style="margin-top:8px"><table><thead><tr><th>Task</th><th class="n">Every</th><th class="n">Last done</th><th class="n">Status</th></tr></thead><tbody id="lastdone"></tbody></table></div>
+          <h2 style="margin-top:22px">Last done</h2><div class="hint">From the printer's own task log. Due dates are the printer's: a task is open when Durst asked for it and it hasn't been logged done since.</div>
+          <div class="scroll" style="margin-top:8px"><table><thead><tr><th>Task</th><th class="n">Last asked</th><th class="n">Last done</th><th class="n">Status</th></tr></thead><tbody id="lastdone"></tbody></table></div>
         </div>
         <div class="card">
           <h2 id="log-title">Day log</h2><div class="hint" id="log-sub"></div>
@@ -297,10 +297,9 @@ function detail(){const p=DATA.printers[sel.p],w=winW(p);
   const rows=TASKS.map((t,k)=>{let pr=0,dn=0,of=0;w.forEach(x=>{const v=x[0][k];if(v){pr++;if(v[0]==="d")dn++;if(v[0]==="o")of++}});return{t,pr,dn,of}}).filter(r=>r.pr).sort((a,b)=>b.of-a.of||b.pr-a.pr);
   const is325=p.model.startsWith("Rhotex");
   $("tasks").innerHTML=rows.length?rows.map(r=>{const unc=r.pr-r.dn-r.of;return`<tr><td>${esc(r.t)}<span class="mini"><span style="width:${r.dn/r.pr*100}%;background:var(--good)"></span><span style="width:${r.of/r.pr*100}%;background:var(--crit)"></span></span></td><td class="n">${r.pr}</td><td class="n">${r.dn}</td><td class="n">${r.of||"–"}</td></tr>`}).join(""):`<tr><td colspan="4">No Durst maintenance prompts in this window.</td></tr>`;
-  const end=D[N-1],ev=n=>n===1?"day":n===2?"2 days":n===7?"week":n>=180?"6 months":n+" days";
-  const lr=Object.entries(p.last||{}).map(([k,[ld,iv]])=>{const since=ld?Math.round((end-new Date(ld+"T12:00:00"))/864e5):null;
-    const late=iv&&(since===null||since>iv);return{t:TASKS[k],ld,iv,since,late,ord:late?(since===null?1e4:since-iv):-1}}).sort((a,b)=>b.ord-a.ord||(b.iv||0)-(a.iv||0));
-  $("lastdone").innerHTML=lr.length?lr.map(r=>`<tr><td>${esc(r.t)}</td><td class="n">${r.iv?ev(r.iv):"as asked"}</td><td class="n">${r.ld?fmt(new Date(r.ld+"T12:00:00")):"–"}</td><td class="n">${r.late?`<span class="chip o">${r.since===null?"None in "+N+" days":r.since+" days ago"}</span>`:r.ld?`<span class="chip d">${r.since===0?"Today":r.since===1?"Yesterday":r.since+" days ago"}</span>`:"–"}</td></tr>`).join(""):`<tr><td colspan="4">No task log for this printer.</td></tr>`;
+  const end=D[N-1],dd=s=>new Date(s+"T12:00:00"),ago=s=>Math.round((end-dd(s))/864e5);
+  const lr=Object.entries(p.last||{}).map(([k,[ld,la,od]])=>({t:TASKS[k],ld,la,od,since:ld?ago(ld):null,ord:od?ago(od):-1})).sort((a,b)=>b.ord-a.ord||(a.since??1e4)-(b.since??1e4));
+  $("lastdone").innerHTML=lr.length?lr.map(r=>`<tr><td>${esc(r.t)}</td><td class="n">${r.la?fmt(dd(r.la)):"–"}</td><td class="n">${r.ld?fmt(dd(r.ld)):"–"}</td><td class="n">${r.od?`<span class="chip o">Open since ${fmt(dd(r.od))}</span>`:r.ld?`<span class="chip d">${r.since===0?"Today":r.since===1?"Yesterday":r.since+" days ago"}</span>`:"–"}</td></tr>`).join(""):`<tr><td colspan="4">No task log for this printer.</td></tr>`;
   const x=p.d[sel.d],t=x[0];$("log-title").textContent=`Day log · ${fmtW(D[sel.d])}`;$("log-sub").textContent=p.name;
   const ks=Object.keys(t).sort((a,b)=>({o:0,p:1,d:2}[t[a][0]]-{o:0,p:1,d:2}[t[b][0]]));
   const lab={d:"✓ Done",o:"✕ Put off",p:"• Prompted"};
