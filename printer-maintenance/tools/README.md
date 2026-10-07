@@ -8,7 +8,13 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    acts when the Durst page is opened with `?pull=N`.
 2. Open `http://50.232.157.54:8090/ui/?pull=3#/lfa/printers/printer-list` (`?pull=90` on Mondays for a full refresh).
    The script pulls that many days and replaces the page with `PULL ok len=… hash=… printers=…`, a `---` line, and the
-   dump (or `PULL FAILED: …`). A login screen means Durst needs signing in again.
+   dump (or `PULL FAILED: …`).
+   Auto sign-in: when the Durst session has expired, the script signs in again by itself (`POST /frontend-api/login`)
+   with a sign-in saved in Tampermonkey's own storage on the Mac Studio (never in the repo). To save or change it, open
+   `http://50.232.157.54:8090/ui/?pullsetup=1` in that Chrome profile (or Tampermonkey menu > "Durst sign-in for the daily
+   pull…"), enter it and press "Test and save". `PULL FAILED: Durst auto sign-in …` means the saved sign-in is missing
+   or no longer works. The script also remembers `?pull=N` for 10 minutes in the tab, because the Durst app can reload
+   itself and drop it from the address.
 3. Read the page text, save everything after the `---` line as `printer-maintenance/data/pull.txt` (no trailing
    newline), and check its length and hash match (hash: `h = (h*31 + charCode) % 2147483647` over the whole text).
 4. Commit and push only `pull.txt` to `main`. The Claude run never reads the Maintenance Log itself: the log is

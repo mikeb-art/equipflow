@@ -3,18 +3,25 @@
    result as the page's only <article> so get_page_text can read it.
    Result value: {ok, len, hash, printers, error}. */
 (async () => {
+  // window.__durstLogin (set by the Tampermonkey script) signs in again with the saved Durst sign-in and returns a fresh token.
+  const relogin = typeof window.__durstLogin === "function" ? window.__durstLogin : null;
   let tok = null;
   for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) {
     const k = st.key(i), v = st.getItem(k);
     if (/token|auth/i.test(k)) { try { const j = JSON.parse(v); tok = typeof j === "string" ? j : (j.token || j.xAuthToken || j.accessToken || tok); } catch (e) { tok = v; } }
   }
+  try { if (!tok && relogin) tok = await relogin(); } catch (e) { return { ok: false, error: String(e.message || e) }; }
   if (!tok) return { ok: false, error: "Not signed in to Durst Analytics" };
   const H = { "Content-Type": "application/json", "x-auth-token": tok };
+  let reloggedIn = false;
   const post = async (url, body) => {
     for (let t = 0; t < 5; t++) {
       const r = await fetch(url, { method: "POST", headers: H, body: JSON.stringify(body) });
       if (r.status === 200) return r.json();
-      if (r.status === 401 || r.status === 403) throw new Error("Durst Analytics sign-in expired (HTTP " + r.status + ")");
+      if (r.status === 401 || r.status === 403) {
+        if (relogin && !reloggedIn) { reloggedIn = true; H["x-auth-token"] = await relogin(); t--; continue; }
+        throw new Error("Durst Analytics sign-in expired (HTTP " + r.status + ")" + (relogin ? " even after auto sign-in" : ""));
+      }
       await new Promise(s => setTimeout(s, 2000));
     }
     throw new Error("Durst Analytics kept failing: " + url);
