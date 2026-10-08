@@ -266,7 +266,7 @@ def main():
          - dt.timedelta(days=1)).isoformat()
     yi = out["days"].index(y) if y in out["days"] else len(days) - 2
     ydate = dt.date.fromisoformat(out["days"][yi])
-    msg = [f"*Printer maintenance: {ydate.strftime('%a %b %-d')}* (from Durst Analytics)"]
+    msg = [f"*Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}* (from Durst Analytics)"]
     for plant in ("CA", "PA", "MX"):
         lines = []
         for p in out["printers"]:
