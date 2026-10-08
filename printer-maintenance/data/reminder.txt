@@ -1,4 +1,4 @@
-*Printer maintenance: Wed Oct 7* (from Durst Analytics)
+*Previous 24 hrs maintenance: Wed Oct 7* (from Durst Analytics)
 
 *CA*
 • Nothing put off or open
@@ -14,3 +14,8 @@
 • P5 Tex-1 - MX: Put off: Inspect Print Plane, Aerosol Filter Inspect
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
+
+*Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
+• CA: 84% up to date (16 of 19), 3 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
+• PA: 88% up to date (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
+• MX: 73% up to date (45 of 62), 17 overdue; 22 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX

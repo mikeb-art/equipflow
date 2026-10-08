@@ -1,0 +1,126 @@
+{
+ "cardsV2": [
+  {
+   "cardId": "printer-maintenance-daily",
+   "card": {
+    "header": {
+     "title": "Previous 24 hrs maintenance: Wed Oct 7",
+     "subtitle": "From Durst Analytics and the Maintenance Log"
+    },
+    "sections": [
+     {
+      "header": "CA printers",
+      "widgets": [
+       {
+        "textParagraph": {
+         "text": "\u2022 Nothing put off or open"
+        }
+       }
+      ]
+     },
+     {
+      "header": "PA printers",
+      "widgets": [
+       {
+        "textParagraph": {
+         "text": "\u2022 Rhotex 325-1 - PA: Purge put off, no purge ran<br>\u2022 Rhotex 325-2 - PA: Put off: Guiding Rail Oiling<br>\u2022 P5 Tex - PA: Put off: Water Level Cooling Unit Inspect"
+        }
+       }
+      ]
+     },
+     {
+      "header": "MX printers",
+      "widgets": [
+       {
+        "textParagraph": {
+         "text": "\u2022 Rhotex 325-2 - MX: Put off: Inspect Print Plane, Stretch Roller Inspect<br>\u2022 P5-350 - MX: Put off: Inspect Print Plane<br>\u2022 P5 Tex-1 - MX: Put off: Inspect Print Plane, Aerosol Filter Inspect"
+        }
+       }
+      ]
+     },
+     {
+      "header": "Other maintenance status this morning",
+      "widgets": [
+       {
+        "image": {
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261008135130",
+         "altText": "Other maintenance up to date by location: CA 84%, PA 88%, MX 73%"
+        }
+       },
+       {
+        "textParagraph": {
+         "text": "<b>CA</b>: 84% up to date (16 of 19), 3 overdue<br><b>PA</b>: 88% up to date (15 of 17), 2 overdue<br><b>MX</b>: 73% up to date (45 of 62), 17 overdue"
+        }
+       },
+       {
+        "textParagraph": {
+         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>PA</b>: 5 (Monti: 3, Monti 2: 2)<br><b>MX</b>: 22 (Monti: 2, Monti 3: 2, Monti 2: 1, Vutek 3r: 10, Klieverik MX-2: 7)"
+        }
+       },
+       {
+        "buttonList": {
+         "buttons": [
+          {
+           "text": "CA other maintenance",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/maintenance/#CA"
+            }
+           }
+          },
+          {
+           "text": "PA other maintenance",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/maintenance/#PA"
+            }
+           }
+          },
+          {
+           "text": "MX other maintenance",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/maintenance/#MX"
+            }
+           }
+          }
+         ]
+        }
+       },
+       {
+        "buttonList": {
+         "buttons": [
+          {
+           "text": "CA printers",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/printer-maintenance/#CA"
+            }
+           }
+          },
+          {
+           "text": "PA printers",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/printer-maintenance/#PA"
+            }
+           }
+          },
+          {
+           "text": "MX printers",
+           "onClick": {
+            "openLink": {
+             "url": "https://equipflow-lemon.vercel.app/printer-maintenance/#MX"
+            }
+           }
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

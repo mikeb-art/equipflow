@@ -1,0 +1,348 @@
+{
+ "asof": "2026-10-08",
+ "plants": {
+  "CA": {
+   "name": "California",
+   "machines": [
+    {
+     "name": "Monti 1 (Mod. 91-3600)",
+     "serial": "SER # 2016216",
+     "ok": 8,
+     "over": 2,
+     "never": 0,
+     "overdue": [
+      [
+       "Clean filters inside all grates (filtered-air flow to electrical box)",
+       "Weekly",
+       "2026-09-25"
+      ],
+      [
+       "Clean fans for side panel cooling",
+       "Weekly",
+       "2026-09-25"
+      ]
+     ],
+     "no_record": []
+    },
+    {
+     "name": "Monti 2 (Mod. 91-3600)",
+     "serial": "SER # 2017445",
+     "ok": 8,
+     "over": 1,
+     "never": 1,
+     "overdue": [
+      [
+       "Clean filters inside all grates (filtered-air flow to electrical box)",
+       "Weekly",
+       "2026-09-25"
+      ]
+     ],
+     "no_record": [
+      [
+       "Clean fans for side panel cooling",
+       "Weekly"
+      ]
+     ]
+    }
+   ],
+   "ok": 16,
+   "over": 3,
+   "never": 1,
+   "pct": 84
+  },
+  "PA": {
+   "name": "Pennsylvania",
+   "machines": [
+    {
+     "name": "Monti (Mod. 91-3600)",
+     "serial": "SER # 2017370",
+     "ok": 5,
+     "over": 2,
+     "never": 3,
+     "overdue": [
+      [
+       "Clean and grease driving chains",
+       "Monthly",
+       "2026-08-20"
+      ],
+      [
+       "Grease paper separator supports",
+       "Monthly",
+       "2026-08-20"
+      ]
+     ],
+     "no_record": [
+      [
+       "Check tension of chains",
+       "Quarterly"
+      ],
+      [
+       "Grease bearings and supports",
+       "Quarterly"
+      ],
+      [
+       "Check greasing of felt guide, felt tightener and supplementary roller bearings",
+       "Quarterly"
+      ]
+     ]
+    },
+    {
+     "name": "Monti 2 (Mod. 902-3600)",
+     "serial": "SER # 2022314",
+     "ok": 10,
+     "over": 0,
+     "never": 2,
+     "overdue": [],
+     "no_record": [
+      [
+       "Check felt tightening pneumatic cylinders",
+       "Monthly"
+      ],
+      [
+       "Grease chains",
+       "Monthly"
+      ]
+     ]
+    }
+   ],
+   "ok": 15,
+   "over": 2,
+   "never": 5,
+   "pct": 88
+  },
+  "MX": {
+   "name": "Mexico",
+   "machines": [
+    {
+     "name": "Monti (Mod. 902-3600)",
+     "serial": "SER # 2019197",
+     "ok": 10,
+     "over": 0,
+     "never": 2,
+     "overdue": [],
+     "no_record": [
+      [
+       "Check tension of chains",
+       "Quarterly"
+      ],
+      [
+       "Grease bearings and supports",
+       "Quarterly"
+      ]
+     ]
+    },
+    {
+     "name": "Monti 3 (Mod. 902-3600)",
+     "serial": "SER # 2021393",
+     "ok": 10,
+     "over": 0,
+     "never": 2,
+     "overdue": [],
+     "no_record": [
+      [
+       "Check tension of chains",
+       "Quarterly"
+      ],
+      [
+       "Grease bearings and supports",
+       "Quarterly"
+      ]
+     ]
+    },
+    {
+     "name": "Monti 2 (Mod. 858-2200)",
+     "serial": "SER # 2021144",
+     "ok": 13,
+     "over": 0,
+     "never": 1,
+     "overdue": [],
+     "no_record": [
+      [
+       "Check tension of chains",
+       "Quarterly"
+      ]
+     ]
+    },
+    {
+     "name": "Vutek 3r (EFI)",
+     "serial": "SER # 9870418",
+     "ok": 8,
+     "over": 12,
+     "never": 10,
+     "overdue": [
+      [
+       "Clean print head plate / around print head area",
+       "Every Shift",
+       "2026-10-05"
+      ],
+      [
+       "Purge and wipe print heads; nozzle test until clean",
+       "Every Shift",
+       "2026-10-05"
+      ],
+      [
+       "Clean the print platen (IPA, scraper, tip cleaner)",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean the measure-media sensor",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean the ink sink",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean the LED lamp glass on both UV lamps",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean the ionizer bars",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean the carriage crash sensors (left and right)",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Print head care - 20s soak per head face, purge, standard clean",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "White ink maintenance - stir, 2s white purge, dry-wipe white heads",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Check facility air compressor and air filters; drain moisture",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Check exhaust filter; replace if dirty",
+       "Daily",
+       "2026-10-05"
+      ]
+     ],
+     "no_record": [
+      [
+       "Clean the vented exterior covers",
+       "Monthly"
+      ],
+      [
+       "Vacuum the cable carrier and shelf",
+       "Monthly"
+      ],
+      [
+       "Clean the three main exhaust vents",
+       "Monthly"
+      ],
+      [
+       "Wipe the linear encoder strip",
+       "Monthly"
+      ],
+      [
+       "Clean the carriage home sensor",
+       "Monthly"
+      ],
+      [
+       "Inspect/replace white ink degasser tubes",
+       "Quarterly"
+      ],
+      [
+       "Vacuum the power supplies and motorized drivers",
+       "Quarterly"
+      ],
+      [
+       "Create a printer configuration backup",
+       "Quarterly"
+      ],
+      [
+       "Replace the primary ink filters (all colors)",
+       "Half-Yearly"
+      ],
+      [
+       "Schedule EFI/dealer technician PM visit",
+       "Yearly"
+      ]
+     ]
+    },
+    {
+     "name": "Klieverik MX-2 (GTC111-3500)",
+     "serial": "SER # 891",
+     "ok": 4,
+     "over": 5,
+     "never": 7,
+     "overdue": [
+      [
+       "Grease heating roller supports on both sides",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean rollers",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean machine exterior (covers)",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Clean belts",
+       "Daily",
+       "2026-10-05"
+      ],
+      [
+       "Physical inspection of equipment (check for damaged or missing parts)",
+       "Daily",
+       "2026-10-05"
+      ]
+     ],
+     "no_record": [
+      [
+       "Clean burnt grease from walls",
+       "Monthly"
+      ],
+      [
+       "Clean grease from internal and external cabinets",
+       "Monthly"
+      ],
+      [
+       "Check ventilation filters (replace if necessary)",
+       "Monthly"
+      ],
+      [
+       "Clean exhaust grille",
+       "Monthly"
+      ],
+      [
+       "Check chain tension",
+       "Monthly"
+      ],
+      [
+       "Clean belt leveling sensors (felt)",
+       "Monthly"
+      ],
+      [
+       "Grease bearings",
+       "Monthly"
+      ]
+     ]
+    }
+   ],
+   "ok": 45,
+   "over": 17,
+   "never": 22,
+   "pct": 73
+  }
+ }
+}
