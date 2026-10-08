@@ -1,13 +1,16 @@
-*Printer maintenance: Tue Oct 6* (from Durst Analytics)
+*Printer maintenance: Wed Oct 7* (from Durst Analytics)
 
 *CA*
 • Nothing put off or open
 
 *PA*
 • Rhotex 325-1 - PA: Purge put off, no purge ran
-• P5-350 - PA: Purge put off, no purge ran
+• Rhotex 325-2 - PA: Put off: Guiding Rail Oiling
+• P5 Tex - PA: Put off: Water Level Cooling Unit Inspect
 
 *MX*
-• Nothing put off or open
+• Rhotex 325-2 - MX: Put off: Inspect Print Plane, Stretch Roller Inspect
+• P5-350 - MX: Put off: Inspect Print Plane
+• P5 Tex-1 - MX: Put off: Inspect Print Plane, Aerosol Filter Inspect
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
