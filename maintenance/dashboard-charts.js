@@ -428,9 +428,9 @@
       if (d === null) never++; else if (d > 7) stale++;
       var b = band(d);
       var ops = Object.keys(M.users).length;
-      return '<div title="' + esc(m.n + " — " + m.s) + '" style="border:1px solid rgba(140,170,255,.14);border-left:5px solid ' + b.color +
+      return '<div title="' + esc(m.d || m.n) + '" style="border:1px solid rgba(140,170,255,.14);border-left:5px solid ' + b.color +
         ';border-radius:7px;padding:9px 11px;background:#0c1529">' +
-        '<div style="font-size:12.5px;font-weight:650;color:#e9effd;line-height:1.25">' + esc(m.n) + '</div>' +
+        '<div style="font-size:12.5px;font-weight:650;color:#e9effd;line-height:1.25">' + esc(m.d || m.n) + '</div>' +
         '<div style="font-size:16px;font-weight:700;color:' + b.color + ';margin-top:3px">' + ageText(d) + '</div>' +
         '<div style="font-size:11px;color:#9db0d5;margin-top:2px">' +
           M.count30 + ' log' + (M.count30 === 1 ? '' : 's') + ' / 30d' +
@@ -489,7 +489,7 @@
       var loc = found.loc;
       items.push({
         ts: ts, loc: loc,
-        machine: found.m.n,
+        machine: found.m.d || found.m.n,
         task: String(r[5] || "").trim(),
         user: String(r[1] || "").trim(),
         st: actionState(r[7])
@@ -784,7 +784,7 @@
       if (ga === 0) return;                 // this printer has no tasks in this period
       var pct = ga ? Math.round(gd / ga * 100) : 0;
       blocks += '<div class="machine open"><div class="m-head" onclick="toggle(this)"><span class="caret">▶</span>'
-              + '<div><div class="m-title">' + m.n + '</div><div class="m-serial">' + m.s + '</div></div>'
+              + '<div><div class="m-title">' + (m.d || m.n) + '</div></div>'
               + '<div class="m-prog">' + gd + '/' + ga + ' done <span class="m-bar"><i style="width:' + pct + '%"></i></span></div></div>'
               + '<div class="m-body">' + (rows || '<div class="nodocs">No tasks in this filter.</div>') + '</div></div>';
     });

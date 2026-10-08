@@ -85,7 +85,7 @@ def status(spec, log_rows, today):
                     c["over"] += 1; over.append([t[0], spec["chips"][iv][0], ld.isoformat()])
                 else:
                     c["never"] += 1; never.append([t[0], spec["chips"][iv][0]])
-            machines.append({"name": m["n"], "serial": m["s"], "ok": c["ok"], "over": c["over"], "never": c["never"],
+            machines.append({"name": m.get("d") or m["n"], "serial": m["s"], "ok": c["ok"], "over": c["over"], "never": c["never"],
                              "overdue": over, "no_record": never})
         tot = {k: sum(x[k] for x in machines) for k in ("ok", "over", "never")}
         tot["pct"] = round(100 * tot["ok"] / (tot["ok"] + tot["over"])) if tot["ok"] + tot["over"] else None
@@ -172,7 +172,7 @@ def card(title, printer_lines, st, image_url):
     for p in PLANTS:
         s = st["plants"].get(p)
         if s and s["never"]:
-            per = ", ".join(f"{re.sub(r' [(].*[)]$', '', m['name'])}: {m['never']}" for m in s["machines"] if m["never"])
+            per = ", ".join(f"{m['name']}: {m['never']}" for m in s["machines"] if m["never"])
             nr.append(f"<b>{p}</b>: {s['never']} ({_esc(per)})")
     if nr:
         w.append({"textParagraph": {"text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br>" + "<br>".join(nr)}})

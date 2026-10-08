@@ -230,6 +230,7 @@ const CONFIG = {
 };
 
 /* ================= DATA ================= */
+/* Machines: n and s are what the Maintenance Log records (keep them stable); d is the name shown on the page. */
 const CHIPS = {
   shift:["Every Shift","c-shift"], daily:["Daily","c-daily"], d2:["Every 2 Days","c-2day"],
   week:["Weekly","c-week"], wd3:["Every 3 Working Days","c-daily"], wd15:["Every 15 Working Days","c-15wd"],
@@ -386,19 +387,19 @@ T.klieverik = [
 
 const LOCS = {
  CA:{name:"CA", full:"California", machines:[
-   {n:"Monti 1 (Mod. 91-3600)", s:"SER # 2016216", t:"monti91"},
-   {n:"Monti 2 (Mod. 91-3600)", s:"SER # 2017445", t:"monti91"}
+   {n:"Monti 1 (Mod. 91-3600)", s:"SER # 2016216", d:"Monti 1", t:"monti91"},
+   {n:"Monti 2 (Mod. 91-3600)", s:"SER # 2017445", d:"Monti 2", t:"monti91"}
  ]},
  PA:{name:"PA", full:"Pennsylvania", machines:[
-   {n:"Monti (Mod. 91-3600)", s:"SER # 2017370", t:"monti91"},
-   {n:"Monti 2 (Mod. 902-3600)", s:"SER # 2022314", t:"monti902"}
+   {n:"Monti (Mod. 91-3600)", s:"SER # 2017370", d:"Monti 1", t:"monti91"},
+   {n:"Monti 2 (Mod. 902-3600)", s:"SER # 2022314", d:"Monti 2", t:"monti902"}
  ]},
  MX:{name:"MX", full:"Mexico", machines:[
-   {n:"Monti (Mod. 902-3600)", s:"SER # 2019197", t:"monti902"},
-   {n:"Monti 3 (Mod. 902-3600)", s:"SER # 2021393", t:"monti902"},
-   {n:"Monti 2 (Mod. 858-2200)", s:"SER # 2021144", t:"monti858"},
-   {n:"Vutek 3r (EFI)", s:"SER # 9870418", t:"vutek3r"},
-   {n:"Klieverik MX-2 (GTC111-3500)", s:"SER # 891", t:"klieverik"}
+   {n:"Monti (Mod. 902-3600)", s:"SER # 2019197", d:"Monti 1", t:"monti902"},
+   {n:"Monti 3 (Mod. 902-3600)", s:"SER # 2021393", d:"Monti 3", t:"monti902"},
+   {n:"Monti 2 (Mod. 858-2200)", s:"SER # 2021144", d:"Monti 2", t:"monti858"},
+   {n:"Vutek 3r (EFI)", s:"SER # 9870418", d:"Vutek 3r", t:"vutek3r"},
+   {n:"Klieverik MX-2 (GTC111-3500)", s:"SER # 891", d:"Klieverik MX-2", t:"klieverik"}
  ]}
 };
 
@@ -623,7 +624,7 @@ function renderLoc(loc){
   h += `
   <div class="panel">
     <div class="panel-head">
-      <h2>🖨 ${L.name}${selMachine!==null && L.machines[selMachine] ? " — " + L.machines[selMachine].n : " — select a machine"}</h2>
+      <h2>🖨 ${L.name}${selMachine!==null && L.machines[selMachine] ? " — " + (L.machines[selMachine].d || L.machines[selMachine].n) : " — select a machine"}</h2>
       <input class="search" placeholder="Search tasks…" value="${query}" oninput="setQuery(this.value)">
       <button class="pill ${filter==='open'?'on':''}" onclick="setFilter('open')">Open</button>
       <button class="pill ${filter==='done'?'on':''}" onclick="setFilter('done')">Completed</button>
@@ -637,7 +638,7 @@ function renderLoc(loc){
   _sel.forEach((mi)=>{ const m = L.machines[mi];
     if(!m.t){
       h += `<div class="machine open"><div class="m-head" onclick="toggle(this)"><span class="caret">▶</span>
-        <div><div class="m-title">${m.n}</div><div class="m-serial">${m.s}</div></div>
+        <div><div class="m-title">${m.d||m.n}</div></div>
         <div class="m-prog">no schedule on file</div></div>
         <div class="m-body"><div class="nodocs">${m.flag || "No maintenance documents on file for this machine yet."}</div></div></div>`;
       return;
@@ -667,7 +668,7 @@ function renderLoc(loc){
     if(shown) any=true;
     const pct = mtot ? Math.round(mdone/mtot*100) : 0;
     h += `<div class="machine open"><div class="m-head" onclick="toggle(this)"><span class="caret">▶</span>
-      <div><div class="m-title">${m.n}</div><div class="m-serial">${m.s}</div></div>
+      <div><div class="m-title">${m.d||m.n}</div></div>
       <div class="m-prog">${mdone}/${mtot} due-tasks done <span class="m-bar"><i style="width:${pct}%"></i></span></div></div>
       <div class="m-body">${rows || `<div class="nodocs">No tasks in this filter.</div>`}</div></div>`;
   });
@@ -789,7 +790,7 @@ Object.keys(LOCS).forEach(l=>{
     const d = document.createElement("div");
     d.className = "nav-sub";
     d.dataset.loc = l; d.dataset.mi = mi;
-    d.textContent = m.n;
+    d.textContent = m.d || m.n;
     d.addEventListener("click", ()=>goMachine(l, mi));
     wrap.appendChild(d);
   });
