@@ -797,6 +797,10 @@ Object.keys(LOCS).forEach(l=>{
 });
 initAuth();
 updateUserUI();
+/* #CA / #PA / #MX open that location (links in the daily Printing post) */
+function viewFromHash(){ const h = location.hash.slice(1).toUpperCase(); return LOCS[h] ? h : null; }
+if(viewFromHash()) view = viewFromHash();
+window.addEventListener("hashchange", ()=>{ const h = viewFromHash(); if(h) go(h); });
 render();
 </script>
   <script src="dashboard-charts.js?v=13"></script><script src="kpi-daily.js?v=1"></script>

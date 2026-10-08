@@ -25,8 +25,15 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      Viewer access to the sheet),
    - runs `tools/build.py pull.txt log.json`, which merges the pull into `data/history.txt` (rolling 91 days; the
      pulled days replace what was stored), rewrites the data in `index.html`, and writes `data/reminder.txt`,
-   - commits those three files to `main` (Vercel publishes the page), and
-   - posts `reminder.txt` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`).
+   - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
+     and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
+     `data/other.json`, the chart to `data/other-chart.png`, and the Chat card to `data/card.json`. Tasks never signed
+     off in the log are listed separately and left out of the percentage,
+   - commits those files to `main` (Vercel publishes the page and the chart), and
+   - posts `card.json` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`) once the
+     chart is live on the site (up to 4 minutes; without the chart if it isn't). If the card post fails it posts
+     `reminder.txt` as plain text instead.
+   - Card buttons open `/maintenance/#CA` (etc.) and `/printer-maintenance/#CA`; both pages read that location tag.
 6. To rebuild or re-send by hand: Actions tab > Printer maintenance build > Run workflow (untick "Post" to rebuild
    without posting). `printing-reminder.yml` can still post a test message or re-send the stored reminder.
 

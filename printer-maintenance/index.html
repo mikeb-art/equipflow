@@ -317,6 +317,10 @@ window.__selSys=()=>DATA.printers[sel.p].sys;window.__selName=()=>DATA.printers[
 function render(){counts();kpis();heat();trend();detail();if(window.__coDraw)window.__coDraw()}
 document.querySelectorAll(".navitem[data-plant]").forEach(b=>b.onclick=()=>{plant=b.dataset.plant;render()});
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{range=+b.dataset.days;document.querySelectorAll(".seg button").forEach(z=>z.classList.toggle("on",z===b));if(sel.d<N-range)sel.d=N-1;render()});
+// #CA / #PA / #MX open that plant (links in the daily Printing post)
+const plantFromHash=()=>{const h=location.hash.slice(1).toUpperCase();if(!["CA","PA","MX"].includes(h))return false;plant=h;
+  if(!DATA.printers[sel.p]||DATA.printers[sel.p].plant!==h){const i=DATA.printers.findIndex(p=>p.plant===h);if(i>=0)sel.p=i}return true};
+plantFromHash();window.addEventListener("hashchange",()=>{if(plantFromHash())render()});
 render();
 })();
 </script>

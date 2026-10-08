@@ -132,6 +132,11 @@ def main():
     ap.add_argument("--reminder", default="printer-maintenance/data/reminder.txt")
     ap.add_argument("--history", default="printer-maintenance/data/history.txt",
                     help="stored rolling history; the new pull is merged into it and it is rewritten")
+    ap.add_argument("--maint-html", default="maintenance/index.html",
+                    help="Machine Maintenance page: machine and task list for the Other maintenance status")
+    ap.add_argument("--card", default="printer-maintenance/data/card.json", help="Google Chat card message")
+    ap.add_argument("--chart", default="printer-maintenance/data/other-chart.png", help="Other maintenance chart")
+    ap.add_argument("--other", default="printer-maintenance/data/other.json", help="Other maintenance status")
     a = ap.parse_args()
 
     new = parse_dump(open(a.dump).read())
@@ -149,7 +154,8 @@ def main():
 
     # floor sign-offs per system number per day
     so = collections.defaultdict(lambda: collections.defaultdict(list))
-    for r in load_log(a.log)[1:]:
+    log_rows = load_log(a.log)[1:]
+    for r in log_rows:
         if len(r) < 8 or r[7] != "Completed":
             continue
         m = re.search(r"Sys # (\d+)", r[4])
@@ -267,6 +273,7 @@ def main():
     yi = out["days"].index(y) if y in out["days"] else len(days) - 2
     ydate = dt.date.fromisoformat(out["days"][yi])
     msg = [f"*Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}* (from Durst Analytics)"]
+    printer_lines = {}
     for plant in ("CA", "PA", "MX"):
         lines = []
         for p in out["printers"]:
@@ -286,11 +293,25 @@ def main():
             if late: parts.append("Still open: " + ", ".join(late))
             if parts:
                 lines.append(f"• {p['name']}: " + "; ".join(parts))
+        printer_lines[plant] = [x[2:] for x in lines]
         msg.append(f"\n*{plant}*")
         msg.extend(lines or ["• Nothing put off or open"])
     msg.append("\nDetails and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/")
+
+    # Other maintenance (Monti, Vutek, Klieverik sign-offs) as of the post's morning, plus the Chat card
+    import other_maintenance as om
+    today = dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles")).date()
+    ost = om.status(om.load_spec(a.maint_html), log_rows, today)
+    json.dump(ost, open(a.other, "w"), indent=1)
+    msg.extend(om.text_lines(ost))
     open(a.reminder, "w").write("\n".join(msg) + "\n")
-    print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}")
+    om.chart(ost, a.chart)
+    ver = re.sub(r"\D", "", pulled)[:14]
+    img = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.chart)}?v={ver}"
+    title = f"Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}"
+    json.dump(om.card(title, printer_lines, ost, img), open(a.card, "w"), indent=1)
+    print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}, other maintenance as of {today}: "
+          + ", ".join(f"{p} {v['pct']}%" for p, v in ost["plants"].items()))
 
 
 if __name__ == "__main__":

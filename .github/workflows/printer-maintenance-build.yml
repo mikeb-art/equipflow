@@ -44,8 +44,9 @@ jobs:
           pip install --quiet google-auth requests
           python3 printer-maintenance/tools/fetch_log.py "$RUNNER_TEMP/log.json"
 
-      - name: Build page, history and reminder
+      - name: Build page, history, reminder and card
         run: |
+          pip install --quiet matplotlib
           out=$(python3 printer-maintenance/tools/build.py printer-maintenance/data/pull.txt "$RUNNER_TEMP/log.json")
           echo "$out"
           echo "$out" | grep -q '^ok: 12 printers' || { echo "::error::Expected 'ok: 12 printers', got: $out"; exit 1; }
@@ -54,6 +55,8 @@ jobs:
         id: commit
         run: |
           f="printer-maintenance/index.html printer-maintenance/data/history.txt printer-maintenance/data/reminder.txt"
+          f="$f printer-maintenance/data/card.json printer-maintenance/data/other.json printer-maintenance/data/other-chart.png"
+          git add -N $f
           if git diff --quiet -- $f; then
             echo "Nothing changed."
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -80,13 +83,38 @@ jobs:
             echo "::error::PRINTING_CHAT_WEBHOOK secret is not set; nothing posted."
             exit 1
           fi
-          body=$(jq -Rs '{text: .}' printer-maintenance/data/reminder.txt)
-          for attempt in 1 2; do
-            code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST "$WEBHOOK" \
-              -H 'Content-Type: application/json; charset=UTF-8' --data "$body") || code=000
-            echo "attempt $attempt: HTTP $code"
-            [ "$code" = "200" ] && exit 0
-            sleep 10
-          done
-          head -c 300 resp.txt; echo
-          exit 1
+          post() {
+            for attempt in 1 2; do
+              code=$(curl -sS -o resp.txt -w '%{http_code}' -X POST "$WEBHOOK" \
+                -H 'Content-Type: application/json; charset=UTF-8' --data @"$1") || code=000
+              echo "$2 attempt $attempt: HTTP $code"
+              [ "$code" = "200" ] && return 0
+              sleep 10
+            done
+            head -c 300 resp.txt; echo
+            return 1
+          }
+          card=printer-maintenance/data/card.json
+          png=printer-maintenance/data/other-chart.png
+          # The card's chart picture is served by the EquipFlow site; wait (up to 4 min) until Vercel has deployed it.
+          url=$(jq -r '.. | objects | select(has("imageUrl")) | .imageUrl' "$card" | head -1)
+          want=$(sha256sum "$png" | cut -d' ' -f1)
+          live=no
+          if [ -n "$url" ]; then
+            for i in $(seq 1 24); do
+              got=$(curl -sfL "$url" | sha256sum | cut -d' ' -f1) || got=
+              [ "$got" = "$want" ] && { live=yes; break; }
+              sleep 10
+            done
+          fi
+          echo "chart picture live: $live"
+          if [ "$live" != yes ]; then
+            echo "::warning::Chart picture not live on the site; posting the card without it."
+            jq '(.cardsV2[0].card.sections[].widgets) |= map(select(has("image") | not))' "$card" > card-post.json
+          else
+            cp "$card" card-post.json
+          fi
+          post card-post.json card && exit 0
+          echo "::warning::Card post failed; posting the plain-text reminder instead."
+          jq -Rs '{text: .}' printer-maintenance/data/reminder.txt > text-post.json
+          post text-post.json text || exit 1
