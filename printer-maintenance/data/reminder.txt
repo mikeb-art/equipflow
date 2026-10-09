@@ -1,21 +1,20 @@
-*Previous 24 hrs maintenance: Wed Oct 7* (from Durst Analytics)
+*Previous 24 hrs maintenance: Thu Oct 8* (from Durst Analytics)
 
 *CA*
-• Nothing put off or open
+• P5-350 - CA: Purge put off, no purge ran
 
 *PA*
-• Rhotex 325-1 - PA: Purge put off, no purge ran
-• Rhotex 325-2 - PA: Put off: Guiding Rail Oiling
-• P5 Tex - PA: Put off: Water Level Cooling Unit Inspect
+• P5-350 - PA: Put off: Guiding Rail Oiling, Dust/Air Filter Inspect, Refill Bearings
 
 *MX*
-• Rhotex 325-2 - MX: Put off: Inspect Print Plane, Stretch Roller Inspect
-• P5-350 - MX: Put off: Inspect Print Plane
-• P5 Tex-1 - MX: Put off: Inspect Print Plane, Aerosol Filter Inspect
+• Rhotex 325-1 - MX: Purge put off, no purge ran
+• Rhotex 325-2 - MX: Purge put off, no purge ran
+• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
+• P5 Tex-1 - MX: Put off: Stretch Roller Inspect
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
-• CA: 84% up to date (16 of 19), 3 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
-• PA: 88% up to date (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: 73% up to date (45 of 62), 17 overdue; 22 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• CA: 53% up to date (10 of 19), 9 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
+• PA: 12% up to date (2 of 17), 15 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
+• MX: 100% up to date (70 of 70); 14 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
