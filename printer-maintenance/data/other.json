@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-09",
+ "asof": "2026-10-10",
  "plants": {
   "CA": {
    "name": "California",
@@ -221,20 +221,11 @@
     {
      "name": "Monti 3",
      "serial": "SER # 2021393",
-     "ok": 10,
+     "ok": 12,
      "over": 0,
-     "never": 2,
+     "never": 0,
      "overdue": [],
-     "no_record": [
-      [
-       "Check tension of chains",
-       "Quarterly"
-      ],
-      [
-       "Grease bearings and supports",
-       "Quarterly"
-      ]
-     ]
+     "no_record": []
     },
     {
      "name": "Monti 2",
@@ -248,23 +239,11 @@
     {
      "name": "Vutek 3r",
      "serial": "SER # 9870418",
-     "ok": 25,
+     "ok": 28,
      "over": 0,
-     "never": 5,
+     "never": 2,
      "overdue": [],
      "no_record": [
-      [
-       "Inspect/replace white ink degasser tubes",
-       "Quarterly"
-      ],
-      [
-       "Vacuum the power supplies and motorized drivers",
-       "Quarterly"
-      ],
-      [
-       "Create a printer configuration backup",
-       "Quarterly"
-      ],
       [
        "Replace the primary ink filters (all colors)",
        "Half-Yearly"
@@ -278,45 +257,16 @@
     {
      "name": "Klieverik",
      "serial": "SER # 891",
-     "ok": 9,
+     "ok": 16,
      "over": 0,
-     "never": 7,
+     "never": 0,
      "overdue": [],
-     "no_record": [
-      [
-       "Clean burnt grease from walls",
-       "Monthly"
-      ],
-      [
-       "Clean grease from internal and external cabinets",
-       "Monthly"
-      ],
-      [
-       "Check ventilation filters (replace if necessary)",
-       "Monthly"
-      ],
-      [
-       "Clean exhaust grille",
-       "Monthly"
-      ],
-      [
-       "Check chain tension",
-       "Monthly"
-      ],
-      [
-       "Clean belt leveling sensors (felt)",
-       "Monthly"
-      ],
-      [
-       "Grease bearings",
-       "Monthly"
-      ]
-     ]
+     "no_record": []
     }
    ],
-   "ok": 70,
+   "ok": 82,
    "over": 0,
-   "never": 14,
+   "never": 2,
    "pct": 100
   }
  }

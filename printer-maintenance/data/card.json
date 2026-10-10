@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Thu Oct 8",
+     "title": "Previous 24 hrs maintenance: Fri Oct 9",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5-350 - CA: Purge put off, no purge ran"
+         "text": "\u2022 Rhotex 325 - CA: Put off: Change Stretch Rollers"
         }
        }
       ]
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5-350 - PA: Put off: Guiding Rail Oiling, Dust/Air Filter Inspect, Refill Bearings"
+         "text": "\u2022 Rhotex 325-1 - PA: Purge put off, no purge ran"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-1 - MX: Purge put off, no purge ran<br>\u2022 Rhotex 325-2 - MX: Purge put off, no purge ran<br>\u2022 P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane<br>\u2022 P5 Tex-1 - MX: Put off: Stretch Roller Inspect"
+         "text": "\u2022 Rhotex 325-2 - MX: Purge put off, no purge ran; Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect<br>\u2022 P5-350 - MX: Purge put off, no purge ran<br>\u2022 P5 Tex-1 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Guiding Rail Oiling, Water Level Cooling Unit Inspect"
         }
        }
       ]
@@ -43,18 +43,18 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261009154114",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261010135143",
          "altText": "Other maintenance up to date by location: CA 53%, PA 12%, MX 100%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: 53% up to date (10 of 19), 9 overdue<br><b>PA</b>: 12% up to date (2 of 17), 15 overdue<br><b>MX</b>: 100% up to date (70 of 70)"
+         "text": "<b>CA</b>: 53% up to date (10 of 19), 9 overdue<br><b>PA</b>: 12% up to date (2 of 17), 15 overdue<br><b>MX</b>: 100% up to date (82 of 82)"
         }
        },
        {
         "textParagraph": {
-         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>PA</b>: 5 (Monti 1: 3, Monti 2: 2)<br><b>MX</b>: 14 (Monti 3: 2, Vutek 3r: 5, Klieverik: 7)"
+         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>PA</b>: 5 (Monti 1: 3, Monti 2: 2)<br><b>MX</b>: 2 (Vutek 3r: 2)"
         }
        },
        {
