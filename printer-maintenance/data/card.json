@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Sun Oct 11",
+     "title": "Previous 24 hrs maintenance: Mon Oct 12",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325 - CA: Still open: Change Stretch Rollers (asked since Oct 9)"
+         "text": "\u2022 Nothing put off or open"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-2 - MX: Still open: Dust/Air Filter Inspect (asked since Oct 9), Aerosol Filter Inspect (asked since Oct 9)<br>\u2022 P5-350 - MX: Still open: Inspect Print Plane (asked since Oct 10)<br>\u2022 P5 Tex-1 - MX: Still open: Inspect Print Plane (asked since Oct 9), Dust/Air Filter Inspect (asked since Oct 9), Water Level Cooling Unit Inspect (asked since Oct 9), Guiding Rail Oiling (asked since Oct 9)"
+         "text": "\u2022 Rhotex 325-1 - MX: Put off: Change Stretch Rollers<br>\u2022 Rhotex 325-2 - MX: Still open: Dust/Air Filter Inspect (asked since Oct 9), Aerosol Filter Inspect (asked since Oct 9)<br>\u2022 P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane"
         }
        }
       ]
@@ -43,13 +43,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261012135205",
-         "altText": "Other maintenance up to date by location: CA 53%, PA 12%, MX 100%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261013135134",
+         "altText": "Other maintenance up to date by location: CA 53%, PA 12%, MX 49%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: 53% up to date (10 of 19), 9 overdue<br><b>PA</b>: 12% up to date (2 of 17), 15 overdue<br><b>MX</b>: 100% up to date (82 of 82)"
+         "text": "<b>CA</b>: 53% up to date (10 of 19), 9 overdue<br><b>PA</b>: 12% up to date (2 of 17), 15 overdue<br><b>MX</b>: 49% up to date (40 of 82), 42 overdue"
         }
        },
        {

@@ -1,19 +1,19 @@
-*Previous 24 hrs maintenance: Sun Oct 11* (from Durst Analytics)
+*Previous 24 hrs maintenance: Mon Oct 12* (from Durst Analytics)
 
 *CA*
-• Rhotex 325 - CA: Still open: Change Stretch Rollers (asked since Oct 9)
+• Nothing put off or open
 
 *PA*
 • Nothing put off or open
 
 *MX*
+• Rhotex 325-1 - MX: Put off: Change Stretch Rollers
 • Rhotex 325-2 - MX: Still open: Dust/Air Filter Inspect (asked since Oct 9), Aerosol Filter Inspect (asked since Oct 9)
-• P5-350 - MX: Still open: Inspect Print Plane (asked since Oct 10)
-• P5 Tex-1 - MX: Still open: Inspect Print Plane (asked since Oct 9), Dust/Air Filter Inspect (asked since Oct 9), Water Level Cooling Unit Inspect (asked since Oct 9), Guiding Rail Oiling (asked since Oct 9)
+• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: 53% up to date (10 of 19), 9 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: 12% up to date (2 of 17), 15 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: 100% up to date (82 of 82); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: 49% up to date (40 of 82), 42 overdue; 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
