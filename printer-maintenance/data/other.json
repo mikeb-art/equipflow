@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-13",
+ "asof": "2026-10-14",
  "plants": {
   "CA": {
    "name": "California",
@@ -212,226 +212,37 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2019197",
-     "ok": 4,
-     "over": 8,
+     "ok": 12,
+     "over": 0,
      "never": 0,
-     "overdue": [
-      [
-       "Machine cleaning and general checks",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Safety checks \u2014 e-stops, hand-saving microcontacts, emergency stop handle, entry protection, air pressure on manometers, labels/signs, overall condition",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "FRL (air filter-regulator-lubricator) check",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean filters inside grates of the lateral machine structure",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean electrical box grate filters",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean fans for side panel cooling",
-       "Weekly",
-       "2026-10-05"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Monti 3",
      "serial": "SER # 2021393",
-     "ok": 4,
-     "over": 8,
+     "ok": 12,
+     "over": 0,
      "never": 0,
-     "overdue": [
-      [
-       "Machine cleaning and general checks",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Safety checks \u2014 e-stops, hand-saving microcontacts, emergency stop handle, entry protection, air pressure on manometers, labels/signs, overall condition",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "FRL (air filter-regulator-lubricator) check",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean filters inside grates of the lateral machine structure",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean electrical box grate filters",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean fans for side panel cooling",
-       "Weekly",
-       "2026-10-05"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Monti 2",
      "serial": "SER # 2021144",
-     "ok": 5,
-     "over": 9,
+     "ok": 14,
+     "over": 0,
      "never": 0,
-     "overdue": [
-      [
-       "Machine cleaning and general checks",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Safety checks",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Compressed air group check",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean fans for side panel cooling",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Grease bearing of the main printing roller",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean filters inside grates that feed filtered air to the electrical box",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-05"
-      ],
-      [
-       "Remove condensation from the air system filter tray (open outlet valve at bottom of tray)",
-       "Weekly",
-       "2026-10-05"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Vutek 3r",
      "serial": "SER # 9870418",
-     "ok": 16,
-     "over": 12,
+     "ok": 28,
+     "over": 0,
      "never": 2,
-     "overdue": [
-      [
-       "Clean print head plate / around print head area",
-       "Every Shift",
-       "2026-10-09"
-      ],
-      [
-       "Purge and wipe print heads; nozzle test until clean",
-       "Every Shift",
-       "2026-10-09"
-      ],
-      [
-       "Clean the print platen (IPA, scraper, tip cleaner)",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean the measure-media sensor",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean the ink sink",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean the LED lamp glass on both UV lamps",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean the ionizer bars",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean the carriage crash sensors (left and right)",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Print head care - 20s soak per head face, purge, standard clean",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "White ink maintenance - stir, 2s white purge, dry-wipe white heads",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Check facility air compressor and air filters; drain moisture",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Check exhaust filter; replace if dirty",
-       "Daily",
-       "2026-10-09"
-      ]
-     ],
+     "overdue": [],
      "no_record": [
       [
        "Replace the primary ink filters (all colors)",
@@ -446,43 +257,17 @@
     {
      "name": "Klieverik",
      "serial": "SER # 891",
-     "ok": 11,
-     "over": 5,
+     "ok": 16,
+     "over": 0,
      "never": 0,
-     "overdue": [
-      [
-       "Grease heating roller supports on both sides",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean rollers",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean machine exterior (covers)",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Clean belts",
-       "Daily",
-       "2026-10-09"
-      ],
-      [
-       "Physical inspection of equipment (check for damaged or missing parts)",
-       "Daily",
-       "2026-10-09"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     }
    ],
-   "ok": 40,
-   "over": 42,
+   "ok": 82,
+   "over": 0,
    "never": 2,
-   "pct": 49
+   "pct": 100
   }
  }
 }
