@@ -7,7 +7,7 @@ body = src[src.index("(async () => {"):].rstrip().rstrip(";")
 head = """// ==UserScript==
 // @name         EquipFlow: Durst daily pull
 // @namespace    https://equipflow-lemon.vercel.app/
-// @version      1.1
+// @version      1.2
 // @description  Runs the Printer Maintenance pull only when the Durst page is opened with ?pull=N (N = days). Signs in again by itself with the sign-in saved via ?pullsetup=1. Generated from pull.js by make_userscript.py; do not edit by hand.
 // @match        http://50.232.157.54:8090/ui/*
 // @grant        GM_getValue
@@ -63,7 +63,7 @@ head = """// ==UserScript==
   };
   GM_registerMenuCommand("Durst sign-in for the daily pull…", showSetup);
   if (/[?&]pullsetup=1/.test(location.search)) { showSetup(); return; }
-  window.__durstLogin = () => signIn(GM_getValue("durstUser", ""), GM_getValue("durstPass", ""));
+  window.__durstLogin = async () => { const t = await signIn(GM_getValue("durstUser", ""), GM_getValue("durstPass", "")); window.__pullSignedIn = true; return t; };
 
   // The Durst app can reload itself and drop ?pull=N from the address, so remember the request for this tab for 10 minutes.
   const m = location.search.match(/[?&]pull=(\\d+)/);
@@ -72,13 +72,23 @@ head = """// ==UserScript==
   else { try { const p = JSON.parse(sessionStorage.getItem("__pullPending") || "null"); if (p && Date.now() - p.t < 600000) days = p.days; } catch (e) {} }
   if (!days) return;                    // normal use of Durst Analytics is untouched
   window.__pullDays = days;
+  // Show at once that a pull is running, so the page never looks like a plain Durst screen (e.g. its login page) meanwhile.
+  const started = new Date().toLocaleTimeString();
+  const banner = () => {
+    let b = document.getElementById("__pullRunning");
+    if (!b) { b = document.createElement("div"); b.id = "__pullRunning"; b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#1565c0;color:#fff;padding:10px 16px;font:15px system-ui,sans-serif"; document.body.appendChild(b); }
+    b.textContent = "PULL running: " + days + " days, started " + started + (window.__pullSignedIn ? ", signed in again automatically" : "") + ". Leave this tab open.";
+  };
+  banner();
+  const keep = setInterval(banner, 2000);   // the Durst app can re-render; put the banner back if it goes
   await new Promise(r => setTimeout(r, 3000));   // let the app finish starting
   let res;
   try { res = await __PULL_BODY__; } catch (e) { res = { ok: false, error: String(e.message || e) }; }
+  clearInterval(keep);
   sessionStorage.removeItem("__pullPending");
   const show = t => { document.body.innerHTML = '<article><pre id="__dump"></pre></article>'; document.getElementById("__dump").textContent = t; };
-  if (res && res.ok) show("PULL ok len=" + res.len + " hash=" + res.hash + " printers=" + res.printers + "\\n---\\n" + window.__dump);
-  else show("PULL FAILED: " + ((res && res.error) || "unknown error"));
+  if (res && res.ok) show("PULL ok len=" + res.len + " hash=" + res.hash + " printers=" + res.printers + " signin=" + (window.__pullSignedIn ? "auto" : "session") + "\\n---\\n" + window.__dump);
+  else show("PULL FAILED: " + ((res && res.error) || "unknown error") + (window.__pullSignedIn ? " (after auto sign-in)" : ""));
 })();
 """
 (here / "durst-pull.user.js").write_text(head.replace("__PULL_BODY__", body))

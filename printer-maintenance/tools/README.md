@@ -7,8 +7,11 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    installed. It is built from `pull.js` by `tools/make_userscript.py` (rerun after changing `pull.js`) and only
    acts when the Durst page is opened with `?pull=N`.
 2. Open `http://50.232.157.54:8090/ui/?pull=3#/lfa/printers/printer-list` (`?pull=90` on Mondays for a full refresh).
-   The script pulls that many days and replaces the page with `PULL ok len=… hash=… printers=…`, a `---` line, and the
-   dump (or `PULL FAILED: …`).
+   The script shows a blue `PULL running: N days, started …` banner at once, then pulls that many days and replaces the
+   page with `PULL ok len=… hash=… printers=… signin=auto|session`, a `---` line, and the dump (or `PULL FAILED: …`).
+   While the pull runs, the Durst page underneath may show its own login screen (expired session): that is normal, the
+   script signs in again behind it. Wait the full 5 minutes for `PULL ok` / `PULL FAILED`; only `PULL FAILED: Durst
+   auto sign-in …` means the saved sign-in needs fixing. `signin=auto` means the script had to sign in again itself.
    Auto sign-in: when the Durst session has expired, the script signs in again by itself (`POST /frontend-api/login`)
    with a sign-in saved in Tampermonkey's own storage on the Mac Studio (never in the repo). To save or change it, open
    `http://50.232.157.54:8090/ui/?pullsetup=1` in that Chrome profile (or Tampermonkey menu > "Durst sign-in for the daily
