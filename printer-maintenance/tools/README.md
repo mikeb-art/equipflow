@@ -31,7 +31,8 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
      and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
      `data/other.json`, the chart to `data/other-chart.png`, and the Chat card to `data/card.json`. Tasks never signed
-     off in the log are listed separately and left out of the percentage,
+     off in the log are listed separately and left out of the percentage.
+     Daily & every-shift tasks are shown apart from weekly & longer ones,
    - commits those files to `main` (Vercel publishes the page and the chart), and
    - in a second job ("post"), waits until 7:00 AM Pacific (posts at once if it is already later, or if the run was
      started by hand), then posts `card.json` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`) once the
