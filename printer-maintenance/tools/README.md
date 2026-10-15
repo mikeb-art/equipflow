@@ -33,7 +33,8 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      `data/other.json`, the chart to `data/other-chart.png`, and the Chat card to `data/card.json`. Tasks never signed
      off in the log are listed separately and left out of the percentage,
    - commits those files to `main` (Vercel publishes the page and the chart), and
-   - posts `card.json` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`) once the
+   - in a second job ("post"), waits until 7:00 AM Pacific (posts at once if it is already later, or if the run was
+     started by hand), then posts `card.json` to the Google Chat "Printing" space (webhook: repo secret `PRINTING_CHAT_WEBHOOK`) once the
      chart is live on the site (up to 4 minutes; without the chart if it isn't). If the card post fails it posts
      `reminder.txt` as plain text instead.
    - Card buttons open `/maintenance/#CA` (etc.) and `/printer-maintenance/#CA`; both pages read that location tag.

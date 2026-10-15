@@ -1,6 +1,8 @@
 # Rebuilds the Printer Maintenance page and posts the daily reminder to the Google Chat "Printing" space.
 # Runs when the daily scheduled task pushes a new Durst pull to printer-maintenance/data/pull.txt
 # (or by hand: Actions tab > Printer maintenance build > Run workflow, which rebuilds from the stored pull.txt).
+# Job "build" rebuilds and commits right away. Job "post" then waits until 7:00 AM Pacific (PST or PDT) before posting,
+# or posts at once if it is already past 7:00 or the run was started by hand.
 #
 # Secrets (Settings > Secrets and variables > Actions), never stored in the repo:
 #   GOOGLE_SA_KEY          JSON key of a Google service account with Viewer access to the Machine Maintenance Log
@@ -74,8 +76,30 @@ jobs:
           done
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
+  post:
+    needs: build
+    if: github.event_name == 'push' || inputs.post
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Wait until 7:00 AM Pacific
+        if: github.event_name == 'push'
+        run: |
+          now=$(date +%s)
+          target=$(TZ=America/Los_Angeles date -d 'today 07:00' +%s)
+          wait=$((target - now))
+          if [ "$wait" -gt 0 ]; then
+            echo "Waiting $((wait / 60)) min, until $(TZ=America/Los_Angeles date -d @$target '+%a %b %-d %H:%M %Z')."
+            sleep "$wait"
+          else
+            echo "Already past 7:00 AM Pacific; posting now."
+          fi
+
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
       - name: Post reminder to Google Chat
-        if: github.event_name == 'push' || inputs.post
         env:
           WEBHOOK: ${{ secrets.PRINTING_CHAT_WEBHOOK }}
         run: |
