@@ -57,7 +57,7 @@ jobs:
         id: commit
         run: |
           f="printer-maintenance/index.html printer-maintenance/data/history.txt printer-maintenance/data/reminder.txt"
-          f="$f printer-maintenance/data/card.json printer-maintenance/data/other.json printer-maintenance/data/other-chart.png"
+          f="$f printer-maintenance/data/card.json printer-maintenance/data/other.json printer-maintenance/data/charts"
           git add -N $f
           if git diff --quiet -- $f; then
             echo "Nothing changed."
@@ -119,9 +119,10 @@ jobs:
             return 1
           }
           card=printer-maintenance/data/card.json
-          png=printer-maintenance/data/other-chart.png
-          # The card's chart picture is served by the EquipFlow site; wait (up to 4 min) until Vercel has deployed it.
+          # The card's chart picture (its own dated file per post) is served by the EquipFlow site; wait (up to 4 min)
+          # until Vercel has deployed it.
           url=$(jq -r '.. | objects | select(has("imageUrl")) | .imageUrl' "$card" | head -1)
+          png="printer-maintenance/data/charts/$(basename "${url%%\?*}")"
           want=$(sha256sum "$png" | cut -d' ' -f1)
           live=no
           if [ -n "$url" ]; then

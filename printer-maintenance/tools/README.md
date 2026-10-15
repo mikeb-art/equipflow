@@ -30,7 +30,8 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      pulled days replace what was stored), rewrites the data in `index.html`, and writes `data/reminder.txt`,
    - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
      and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
-     `data/other.json`, the chart to `data/other-chart.png`, and the Chat card to `data/card.json`. Tasks never signed
+     `data/other.json`, the chart to `data/charts/other-<pull time>.png` (a new file per post, so
+     old Chat posts keep their own chart; kept 120 days), and the Chat card to `data/card.json`. Tasks never signed
      off in the log are listed separately and left out of the percentage.
      Daily & every-shift tasks are shown apart from weekly & longer ones,
    - commits those files to `main` (Vercel publishes the page and the chart), and

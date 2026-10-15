@@ -135,7 +135,7 @@ def main():
     ap.add_argument("--maint-html", default="maintenance/index.html",
                     help="Machine Maintenance page: machine and task list for the Other maintenance status")
     ap.add_argument("--card", default="printer-maintenance/data/card.json", help="Google Chat card message")
-    ap.add_argument("--chart", default="printer-maintenance/data/other-chart.png", help="Other maintenance chart")
+    ap.add_argument("--charts", default="printer-maintenance/data/charts", help="Folder for the dated Other maintenance charts")
     ap.add_argument("--other", default="printer-maintenance/data/other.json", help="Other maintenance status")
     a = ap.parse_args()
 
@@ -305,9 +305,18 @@ def main():
     json.dump(ost, open(a.other, "w"), indent=1)
     msg.extend(om.text_lines(ost))
     open(a.reminder, "w").write("\n".join(msg) + "\n")
-    om.chart(ost, a.chart)
+    # Each post gets its own chart file: Google Chat fetches the picture again when an old post is viewed, so a file
+    # overwritten every day made old posts show today's chart. Charts older than 120 days are removed.
     ver = re.sub(r"\D", "", pulled)[:14]
-    img = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.chart)}?v={ver}"
+    os.makedirs(a.charts, exist_ok=True)
+    name = f"other-{ver}.png"
+    om.chart(ost, os.path.join(a.charts, name))
+    cutoff = (today - dt.timedelta(120)).strftime("%Y%m%d")
+    for f in os.listdir(a.charts):
+        m = re.fullmatch(r"other-(\d{8})\d*\.png", f)
+        if m and m.group(1) < cutoff:
+            os.remove(os.path.join(a.charts, f))
+    img = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.charts)}/{name}"
     title = f"Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}"
     json.dump(om.card(title, printer_lines, ost, img), open(a.card, "w"), indent=1)
     print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}, other maintenance as of {today}: "
