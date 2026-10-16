@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Wed Oct 14",
+     "title": "Previous 24 hrs maintenance: Thu Oct 15",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-1 - PA: Purge put off, no purge ran"
+         "text": "\u2022 Nothing put off or open"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5-350 - MX: Put off: Inspect Print Plane"
+         "text": "\u2022 P5 Tex-2 - MX: Put off: Water Level Cooling Unit Inspect, Guiding Rail Oiling"
         }
        }
       ]
@@ -43,13 +43,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/other-chart.png?v=20261015200216",
-         "altText": "Other maintenance up to date by location: CA 53%, PA 12%, MX 79%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261016125318.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 53%, PA weekly & longer 88%, MX daily & every shift 0%, weekly & longer 100%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: 53% up to date (10 of 19), 9 overdue<br><b>PA</b>: 12% up to date (2 of 17), 15 overdue<br><b>MX</b>: 79% up to date (65 of 82), 17 overdue"
+         "text": "<b>CA</b>: Weekly &amp; longer 53% (10 of 19), 9 overdue<br><b>PA</b>: Weekly &amp; longer 88% (15 of 17), 2 overdue<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
         }
        },
        {
