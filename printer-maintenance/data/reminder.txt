@@ -1,17 +1,18 @@
-*Previous 24 hrs maintenance: Thu Oct 15* (from Durst Analytics)
+*Previous 24 hrs maintenance: Sat Oct 17* (from Durst Analytics)
 
 *CA*
-• Nothing put off or open
+• P5 Tex - CA: Still open: Guiding Rail Oiling (asked since Oct 16)
 
 *PA*
 • Nothing put off or open
 
 *MX*
-• P5 Tex-2 - MX: Put off: Water Level Cooling Unit Inspect, Guiding Rail Oiling
+• Rhotex 325-2 - MX: Purge put off, no purge ran; Put off: Stretch Roller Inspect, Inspect Print Plane, Dust/Air Filter Inspect, Aerosol Filter Inspect
+• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: Weekly & longer 53% (10 of 19), 9 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 88% (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: Daily & every shift 100% (17 of 17) · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
