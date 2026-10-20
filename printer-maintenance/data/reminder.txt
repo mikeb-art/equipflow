@@ -1,14 +1,13 @@
-*Previous 24 hrs maintenance: Sat Oct 17* (from Durst Analytics)
+*Previous 24 hrs maintenance: Mon Oct 19* (from Durst Analytics)
 
 *CA*
-• P5 Tex - CA: Still open: Guiding Rail Oiling (asked since Oct 16)
+• Nothing put off or open
 
 *PA*
 • Nothing put off or open
 
 *MX*
-• Rhotex 325-2 - MX: Purge put off, no purge ran; Put off: Stretch Roller Inspect, Inspect Print Plane, Dust/Air Filter Inspect, Aerosol Filter Inspect
-• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
+• P5-350 - MX: Put off: Inspect Print Plane
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
