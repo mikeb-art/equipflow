@@ -1,13 +1,14 @@
-*Previous 24 hrs maintenance: Mon Oct 19* (from Durst Analytics)
+*Previous 24 hrs maintenance: Tue Oct 20* (from Durst Analytics)
 
 *CA*
 • Nothing put off or open
 
 *PA*
-• Nothing put off or open
+• P5 Tex - PA: Put off: Change Stretch Rollers
 
 *MX*
-• P5-350 - MX: Put off: Inspect Print Plane
+• Rhotex 325-2 - MX: Put off: Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling
+• P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
