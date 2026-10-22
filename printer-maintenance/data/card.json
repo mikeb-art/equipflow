@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Tue Oct 20",
+     "title": "Previous 24 hrs maintenance: Wed Oct 21",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Nothing put off or open"
+         "text": "\u2022 Rhotex 325 - CA: Put off: Change Stretch Rollers"
         }
        }
       ]
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5 Tex - PA: Put off: Change Stretch Rollers"
+         "text": "\u2022 P5-350 - PA: Purge put off, no purge ran"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-2 - MX: Put off: Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling<br>\u2022 P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling"
+         "text": "\u2022 P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling"
         }
        }
       ]
@@ -43,7 +43,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261021125255.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261022125451.png",
          "altText": "Other maintenance up to date by location: CA weekly & longer 53%, PA weekly & longer 88%, MX daily & every shift 100%, weekly & longer 100%"
         }
        },
