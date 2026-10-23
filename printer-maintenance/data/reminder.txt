@@ -1,17 +1,19 @@
-*Previous 24 hrs maintenance: Wed Oct 21* (from Durst Analytics)
+*Previous 24 hrs maintenance: Thu Oct 22* (from Durst Analytics)
 
 *CA*
-• Rhotex 325 - CA: Put off: Change Stretch Rollers
+• Nothing put off or open
 
 *PA*
 • P5-350 - PA: Purge put off, no purge ran
 
 *MX*
-• P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling
+• Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Change Stretch Rollers
+• P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling, Dust/Air Filter Inspect
+• P5 Tex-2 - MX: Put off: Inspect Print Plane
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: Weekly & longer 53% (10 of 19), 9 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
-• PA: Weekly & longer 88% (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
+• PA: Weekly & longer 12% (2 of 17), 15 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
 • MX: Daily & every shift 100% (17 of 17) · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX

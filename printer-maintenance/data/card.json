@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Wed Oct 21",
+     "title": "Previous 24 hrs maintenance: Thu Oct 22",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325 - CA: Put off: Change Stretch Rollers"
+         "text": "\u2022 Nothing put off or open"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling"
+         "text": "\u2022 Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Change Stretch Rollers<br>\u2022 P5-350 - MX: Put off: Inspect Print Plane, Guiding Rail Oiling, Dust/Air Filter Inspect<br>\u2022 P5 Tex-2 - MX: Put off: Inspect Print Plane"
         }
        }
       ]
@@ -43,13 +43,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261022125451.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 53%, PA weekly & longer 88%, MX daily & every shift 100%, weekly & longer 100%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261023125403.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 53%, PA weekly & longer 12%, MX daily & every shift 100%, weekly & longer 100%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 53% (10 of 19), 9 overdue<br><b>PA</b>: Weekly &amp; longer 88% (15 of 17), 2 overdue<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
+         "text": "<b>CA</b>: Weekly &amp; longer 53% (10 of 19), 9 overdue<br><b>PA</b>: Weekly &amp; longer 12% (2 of 17), 15 overdue<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
         }
        },
        {
