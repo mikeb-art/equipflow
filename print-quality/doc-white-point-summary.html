@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>(function(){var h=location.hostname;if(/\.vercel\.app$/.test(h)&&h!=="equipflow-lemon.vercel.app"){location.replace("https://equipflow-lemon.vercel.app"+location.pathname+location.search+location.hash)}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>DOC White Point Summary</title>
+<style>
+:root { --bg:#fcfcfb; --panel:#fff; --line:#e3e2dd; --ink:#1b1b19; --ink2:#52514e; --ink3:#7a7975; --ca:#2a78d6; --mx:#eb6834; --pa:#1baf7a; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; --serif:Georgia,"Times New Roman",serif; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14.5px/1.5 var(--sans); }
+.wrap { max-width:860px; margin:0 auto; padding:28px max(16px, env(safe-area-inset-left,0px)) 48px max(16px, env(safe-area-inset-right,0px)); display:grid; gap:16px; }
+.back { font-size:12px; color:var(--ink3); } .back a { color:inherit; }
+h1 { font-family:var(--serif); font-weight:400; font-size:30px; line-height:1.15; margin:0; }
+.sub { color:var(--ink2); margin:4px 0 0; font-size:13px; }
+.bottom { background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:8px; padding:14px 18px; font-size:15.5px; }
+h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink3); margin:6px 0 0; font-weight:600; }
+ol, ul { margin:0; padding-left:20px; display:grid; gap:7px; }
+b { font-weight:600; }
+.chart { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 16px 8px; }
+.chart p { margin:0 0 6px; font-size:12.5px; color:var(--ink2); }
+.pill { display:inline-block; padding:0 7px; border-radius:9px; font-size:11px; font-weight:600; color:#fff; vertical-align:1px; }
+.foot { color:var(--ink3); font-size:12px; } .foot a { color:inherit; }
+@media print { body { background:#fff; font-size:12.5px; } .wrap { padding:0; gap:10px; max-width:none; } .noprint { display:none; } h1 { font-size:24px; } .bottom { font-size:13.5px; } }
+@page { size: letter; margin: 0.5in; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="back noprint"><a href="/print-quality/">← Print Quality</a></p>
+  <header>
+    <h1>DOC White Point Summary</h1>
+    <p class="sub">Barbieri DOC paper white (patch 1E2) · CA, MX, PA · Jul 2025 – Oct 2026 · 1,556 DOCs across 52 printer and media setups</p>
+  </header>
+
+  <div class="bottom"><b>Bottom line:</b> Color measurement at CA and MX has been stable for 15 months. PA’s readings shifted plant-wide twice, each time after its Barbieri was recalibrated, and had two bad stretches that were left out. PA’s Stretch references now need rebuilding, and a few fixes to how DOCs are filed would make the data cleaner.</div>
+
+  <h2>Key findings</h2>
+  <ol>
+    <li><span class="pill" style="background:var(--ca)">CA</span> <span class="pill" style="background:var(--mx)">MX</span> <b>Stable.</b> Plant-wide, whites stayed within about ±0.3 L* and ±0.25 b* all period, with no real drift for most materials.</li>
+    <li><span class="pill" style="background:var(--pa)">PA</span> <b>Measurement shifts after recalibration.</b> All PA whites moved together after the Nov 2025 recalibration (about 1.5 L* darker, 1 b* yellower) and again after Mar 2026. 19 DOCs from Sep 17–24 and Dec 24, 2025 read 5–14 L* too bright and were excluded. PA has been steady since March.</li>
+    <li><b>Most single-material jumps are media or lot changes, not printer drift.</b> Examples: CA SuperFlat (Jul 25, 2025), MX SuperFlat, PVC and 325-2 Stretch (Aug 2025), PA SuperFlat (Mar 2026), CA Tent Direct (3 weeks in Jul 2026).</li>
+    <li><b>Only one clear slow drift:</b> MX P5-350 SuperFlat is getting bluer by about 1.1 b* per year.</li>
+    <li><b>Furthest from reference today:</b> PA Durst 325-1 and 325-2 Stretch (ΔE00 2.3 and 2.1), a leftover from the recalibration shifts.</li>
+  </ol>
+
+  <div class="chart">
+    <p><b>Plant-wide white b* shift by month</b> (median across each plant’s materials; higher = yellower)</p>
+    <svg viewBox="0 0 640 200" width="100%" role="img" aria-label="Plant-wide white b* shift by month">
+<line x1="40" x2="606" y1="176.0" y2="176.0" stroke="#ecebe6"/>
+<text x="34" y="180.0" text-anchor="end" font-size="11" fill="#7a7975">−2</text>
+<line x1="40" x2="606" y1="134.5" y2="134.5" stroke="#ecebe6"/>
+<text x="34" y="138.5" text-anchor="end" font-size="11" fill="#7a7975">−1</text>
+<line x1="40" x2="606" y1="93.0" y2="93.0" stroke="#9b9a95"/>
+<text x="34" y="97.0" text-anchor="end" font-size="11" fill="#7a7975">0</text>
+<line x1="40" x2="606" y1="51.5" y2="51.5" stroke="#ecebe6"/>
+<text x="34" y="55.5" text-anchor="end" font-size="11" fill="#7a7975">+1</text>
+<line x1="40" x2="606" y1="10.0" y2="10.0" stroke="#ecebe6"/>
+<text x="34" y="14.0" text-anchor="end" font-size="11" fill="#7a7975">+2</text>
+<text x="40.0" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Jul 25</text>
+<text x="153.2" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Oct 25</text>
+<text x="266.4" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Jan 26</text>
+<text x="379.6" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Apr 26</text>
+<text x="492.8" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Jul 26</text>
+<text x="606.0" y="194" text-anchor="middle" font-size="11" fill="#7a7975">Oct 26</text>
+<line x1="190.9" x2="190.9" y1="10" y2="176" stroke="#1baf7a" stroke-dasharray="2 3"/>
+<line x1="341.9" x2="341.9" y1="10" y2="176" stroke="#1baf7a" stroke-dasharray="2 3"/>
+<text x="194.9" y="20" font-size="10.5" fill="#127a55">PA recalibrated</text>
+<text x="345.9" y="20" font-size="10.5" fill="#127a55">PA recalibrated</text>
+<path d="M40.0,90.1L77.7,95.5L115.5,91.8L153.2,95.1L190.9,93.8L228.7,93.0L266.4,93.0L304.1,88.8L341.9,95.9L379.6,93.4L417.3,92.6L455.1,93.8L492.8,91.3L530.5,83.5L568.3,92.2L606.0,93.8" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M40.0,90.9L77.7,92.6L115.5,93.8L153.2,87.6L190.9,95.1L228.7,93.8L266.4,95.1L304.1,90.5L341.9,86.8L379.6,91.3L417.3,92.2L455.1,96.3L492.8,98.4L530.5,91.8L568.3,88.0L606.0,94.7" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M40.0,140.7L77.7,144.9L115.5,161.9M190.9,42.0L228.7,48.2L266.4,65.2M341.9,84.7L379.6,98.8L417.3,86.4L455.1,89.3L492.8,93.4L530.5,102.1L568.3,126.6" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="611" y="97.8" font-size="11" font-weight="600" fill="#2a78d6">CA</text>
+<text x="611" y="109.8" font-size="11" font-weight="600" fill="#eb6834">MX</text>
+<text x="611" y="130.6" font-size="11" font-weight="600" fill="#1baf7a">PA</text>
+</svg>
+  </div>
+
+  <h2>Recommended actions</h2>
+  <ul>
+    <li><b>PA:</b> rebuild the 325-1 and 325-2 Stretch references; confirm the backlit measurement mode and rebuild the Backlit Film reference; export DOC PDFs straight from the Barbieri software (44 recent DOCs were saved as images and can’t be read).</li>
+    <li><b>All plants:</b> add a roll/lot number to the DOC form so media changes can be confirmed, and fix the mislabeled DOC sheet columns.</li>
+    <li><b>MX:</b> check the SuperFlat lot history behind its slow drift.</li>
+  </ul>
+
+  <p class="foot">Full report with every material, charts and the data clean-up list: <a href="/print-quality/doc-white-point.html">DOC white point drift</a>. Built Oct 27, 2026 from the plants’ “Barbieri DOC &amp; dE Uploads” sheets and the DOC PDFs they link to.</p>
+</div>
+</body>
+</html>
