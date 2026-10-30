@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-23",
+ "asof": "2026-10-30",
  "plants": {
   "CA": {
    "name": "California",
@@ -7,8 +7,8 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2016216",
-     "ok": 5,
-     "over": 5,
+     "ok": 8,
+     "over": 2,
      "never": 0,
      "groups": {
       "daily": {
@@ -17,31 +17,16 @@
        "never": 0
       },
       "long": {
-       "ok": 5,
-       "over": 5,
+       "ok": 8,
+       "over": 2,
        "never": 0
       }
      },
      "overdue": [
       [
-       "Grease bearing of the main printing roller",
-       "Weekly",
-       "2026-10-01"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-01"
-      ],
-      [
        "Clean filters inside all grates (filtered-air flow to electrical box)",
        "Weekly",
        "2026-09-25"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-01"
       ],
       [
        "Clean fans for side panel cooling",
@@ -54,8 +39,8 @@
     {
      "name": "Monti 2",
      "serial": "SER # 2017445",
-     "ok": 5,
-     "over": 4,
+     "ok": 8,
+     "over": 1,
      "never": 1,
      "groups": {
       "daily": {
@@ -64,31 +49,16 @@
        "never": 0
       },
       "long": {
-       "ok": 5,
-       "over": 4,
+       "ok": 8,
+       "over": 1,
        "never": 1
       }
      },
      "overdue": [
       [
-       "Grease bearing of the main printing roller",
-       "Weekly",
-       "2026-10-01"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-01"
-      ],
-      [
        "Clean filters inside all grates (filtered-air flow to electrical box)",
        "Weekly",
        "2026-09-25"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-01"
       ]
      ],
      "no_record": [
@@ -99,10 +69,10 @@
      ]
     }
    ],
-   "ok": 10,
-   "over": 9,
+   "ok": 16,
+   "over": 3,
    "never": 1,
-   "pct": 53,
+   "pct": 84,
    "groups": {
     "daily": {
      "ok": 0,
@@ -111,10 +81,10 @@
      "pct": null
     },
     "long": {
-     "ok": 10,
-     "over": 9,
+     "ok": 16,
+     "over": 3,
      "never": 1,
-     "pct": 53
+     "pct": 84
     }
    }
   },
