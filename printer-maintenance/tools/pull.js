@@ -5,8 +5,9 @@
 (async () => {
   // window.__durstLogin (set by the Tampermonkey script) signs in again with the saved Durst sign-in and returns a fresh token.
   const relogin = typeof window.__durstLogin === "function" ? window.__durstLogin : null;
-  let tok = null;
-  for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) {
+  // The Durst app keeps its token as plain text under "@Analytics|Server|Token"; the scan below is only a fallback.
+  let tok = localStorage.getItem("@Analytics|Server|Token");
+  if (!tok) for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) {
     const k = st.key(i), v = st.getItem(k);
     if (/token|auth/i.test(k)) { try { const j = JSON.parse(v); tok = typeof j === "string" ? j : (j.token || j.xAuthToken || j.accessToken || tok); } catch (e) { tok = v; } }
   }

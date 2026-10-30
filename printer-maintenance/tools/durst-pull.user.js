@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EquipFlow: Durst daily pull
 // @namespace    https://equipflow-lemon.vercel.app/
-// @version      1.3
+// @version      1.4
 // @description  Runs the Printer Maintenance pull only when the Durst page is opened with ?pull=N (N = days). Signs in again by itself with the sign-in saved via ?pullsetup=1. Generated from pull.js by make_userscript.py; do not edit by hand.
 // @match        http://50.232.157.54:8090/ui/*
 // @grant        GM_getValue
@@ -49,7 +49,7 @@
       try {
         await signIn(f.u.value.trim(), f.p.value);
         GM_setValue("durstUser", f.u.value.trim()); GM_setValue("durstPass", f.p.value); f.p.value = "";
-        msg.style.color = "#060"; msg.textContent = "Signed in and saved. The daily pull will use it.";
+        msg.style.color = "#060"; msg.textContent = "Signed in and saved. The daily pull will use it. Reload the page (Cmd+R) to use Durst.";
       } catch (e) { msg.style.color = "#b00"; msg.textContent = String(e.message || e) + " (not saved)"; }
     };
   };
@@ -60,10 +60,9 @@
     let tok = r.headers.get("x-auth-token");
     if (!tok) r.headers.forEach((v, k) => { if (!tok && /token|auth/i.test(k)) tok = v; });
     if (!tok) throw new Error("Durst auto sign-in: no token in the login reply");
-    // Keep the Durst app itself signed in too, under the key it already uses.
-    let key = null;
-    for (let i = 0; i < localStorage.length; i++) if (/token|auth/i.test(localStorage.key(i))) key = localStorage.key(i);
-    localStorage.setItem(key || "x-auth-token", tok);
+    // Keep the Durst app itself signed in too. It keeps its token (plain text) under exactly this key; other keys
+    // with "auth" in the name (e.g. "@LFA|authModule|localStore") are its saved settings and must not be touched.
+    localStorage.setItem("@Analytics|Server|Token", tok);
     return tok;
   };
   GM_registerMenuCommand("Durst sign-in for the daily pull…", showSetup);
@@ -90,8 +89,9 @@
   try { res = await (async () => {
   // window.__durstLogin (set by the Tampermonkey script) signs in again with the saved Durst sign-in and returns a fresh token.
   const relogin = typeof window.__durstLogin === "function" ? window.__durstLogin : null;
-  let tok = null;
-  for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) {
+  // The Durst app keeps its token as plain text under "@Analytics|Server|Token"; the scan below is only a fallback.
+  let tok = localStorage.getItem("@Analytics|Server|Token");
+  if (!tok) for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) {
     const k = st.key(i), v = st.getItem(k);
     if (/token|auth/i.test(k)) { try { const j = JSON.parse(v); tok = typeof j === "string" ? j : (j.token || j.xAuthToken || j.accessToken || tok); } catch (e) { tok = v; } }
   }
