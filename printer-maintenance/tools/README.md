@@ -18,6 +18,8 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    pull…"), enter it and press "Test and save". `PULL FAILED: Durst auto sign-in …` means the saved sign-in is missing
    or no longer works. The script also remembers `?pull=N` for 10 minutes in the tab, because the Durst app can reload
    itself and drop it from the address.
+   Since v1.3 the script runs at document-start and saves `?pull=N` / `?pullsetup=1` before the Durst app can redirect to
+   its login screen (it does that at once when the session has expired, e.g. after the Durst PC restarts) and drop them.
 3. Read the page text, save everything after the `---` line as `printer-maintenance/data/pull.txt` (no trailing
    newline), and check its length and hash match (hash: `h = (h*31 + charCode) % 2147483647` over the whole text).
 4. Commit and push only `pull.txt` to `main`. The Claude run never reads the Maintenance Log itself: the log is

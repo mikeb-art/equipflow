@@ -1,18 +1,29 @@
 // ==UserScript==
 // @name         EquipFlow: Durst daily pull
 // @namespace    https://equipflow-lemon.vercel.app/
-// @version      1.2
+// @version      1.3
 // @description  Runs the Printer Maintenance pull only when the Durst page is opened with ?pull=N (N = days). Signs in again by itself with the sign-in saved via ?pullsetup=1. Generated from pull.js by make_userscript.py; do not edit by hand.
 // @match        http://50.232.157.54:8090/ui/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_registerMenuCommand
-// @run-at       document-idle
+// @run-at       document-start
 // @downloadURL  https://raw.githubusercontent.com/mikeb-art/equipflow/main/printer-maintenance/tools/durst-pull.user.js
 // @updateURL    https://raw.githubusercontent.com/mikeb-art/equipflow/main/printer-maintenance/tools/durst-pull.user.js
 // ==/UserScript==
 (async () => {
+  // Runs at document-start: read ?pull=N / ?pullsetup=1 before the Durst app can redirect to its login screen
+  // (it does that at once when the session has expired, e.g. after the Durst PC restarts) and drop them from the address.
+  // They are remembered for this tab (pull: 10 minutes, setup: 2 minutes), so the rest can wait for the page to load.
+  {
+    const q = location.search, now = Date.now();
+    const m0 = q.match(/[?&]pull=(\d+)/);
+    if (m0 && Number(m0[1])) sessionStorage.setItem("__pullPending", JSON.stringify({ days: Number(m0[1]), t: now }));
+    if (/[?&]pullsetup=1/.test(q)) sessionStorage.setItem("__pullSetupPending", String(now));
+  }
+  if (document.readyState === "loading") await new Promise(r => document.addEventListener("DOMContentLoaded", r, { once: true }));
+  await new Promise(r => setTimeout(r, 1500));   // let the Durst app put up its first screen
   // The Durst sign-in is kept only in Tampermonkey's own storage in this Chrome profile (never in the repo or the page).
   const showSetup = () => {
     if (document.getElementById("__pullSetup")) return;
@@ -56,14 +67,13 @@
     return tok;
   };
   GM_registerMenuCommand("Durst sign-in for the daily pull…", showSetup);
-  if (/[?&]pullsetup=1/.test(location.search)) { showSetup(); return; }
+  { const sp = Number(sessionStorage.getItem("__pullSetupPending") || 0);
+    if (sp && Date.now() - sp < 120000) { sessionStorage.removeItem("__pullSetupPending"); showSetup(); return; } }
   window.__durstLogin = async () => { const t = await signIn(GM_getValue("durstUser", ""), GM_getValue("durstPass", "")); window.__pullSignedIn = true; return t; };
 
-  // The Durst app can reload itself and drop ?pull=N from the address, so remember the request for this tab for 10 minutes.
-  const m = location.search.match(/[?&]pull=(\d+)/);
-  let days = m ? Number(m[1]) : 0;
-  if (days) sessionStorage.setItem("__pullPending", JSON.stringify({ days, t: Date.now() }));
-  else { try { const p = JSON.parse(sessionStorage.getItem("__pullPending") || "null"); if (p && Date.now() - p.t < 600000) days = p.days; } catch (e) {} }
+  // The request was saved at document-start above (or by an earlier load of this tab within 10 minutes).
+  let days = 0;
+  try { const p = JSON.parse(sessionStorage.getItem("__pullPending") || "null"); if (p && Date.now() - p.t < 600000) days = p.days; } catch (e) {}
   if (!days) return;                    // normal use of Durst Analytics is untouched
   window.__pullDays = days;
   // Show at once that a pull is running, so the page never looks like a plain Durst screen (e.g. its login page) meanwhile.
