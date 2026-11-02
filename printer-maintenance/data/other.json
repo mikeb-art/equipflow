@@ -1,5 +1,5 @@
 {
- "asof": "2026-10-31",
+ "asof": "2026-11-02",
  "plants": {
   "CA": {
    "name": "California",
@@ -7,8 +7,8 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2016216",
-     "ok": 8,
-     "over": 2,
+     "ok": 6,
+     "over": 4,
      "never": 0,
      "groups": {
       "daily": {
@@ -17,8 +17,8 @@
        "never": 0
       },
       "long": {
-       "ok": 8,
-       "over": 2,
+       "ok": 6,
+       "over": 4,
        "never": 0
       }
      },
@@ -32,6 +32,16 @@
        "Clean fans for side panel cooling",
        "Weekly",
        "2026-09-25"
+      ],
+      [
+       "Clean and grease driving chains",
+       "Monthly",
+       "2026-10-01"
+      ],
+      [
+       "Grease paper separator supports",
+       "Monthly",
+       "2026-10-01"
       ]
      ],
      "no_record": []
@@ -39,8 +49,8 @@
     {
      "name": "Monti 2",
      "serial": "SER # 2017445",
-     "ok": 8,
-     "over": 1,
+     "ok": 6,
+     "over": 3,
      "never": 1,
      "groups": {
       "daily": {
@@ -49,8 +59,8 @@
        "never": 0
       },
       "long": {
-       "ok": 8,
-       "over": 1,
+       "ok": 6,
+       "over": 3,
        "never": 1
       }
      },
@@ -59,6 +69,16 @@
        "Clean filters inside all grates (filtered-air flow to electrical box)",
        "Weekly",
        "2026-09-25"
+      ],
+      [
+       "Clean and grease driving chains",
+       "Monthly",
+       "2026-10-01"
+      ],
+      [
+       "Grease paper separator supports",
+       "Monthly",
+       "2026-10-01"
       ]
      ],
      "no_record": [
@@ -69,10 +89,10 @@
      ]
     }
    ],
-   "ok": 16,
-   "over": 3,
+   "ok": 12,
+   "over": 7,
    "never": 1,
-   "pct": 84,
+   "pct": 63,
    "groups": {
     "daily": {
      "ok": 0,
@@ -81,10 +101,10 @@
      "pct": null
     },
     "long": {
-     "ok": 16,
-     "over": 3,
+     "ok": 12,
+     "over": 7,
      "never": 1,
-     "pct": 84
+     "pct": 63
     }
    }
   },
