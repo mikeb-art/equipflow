@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-02",
+ "asof": "2026-11-03",
  "plants": {
   "CA": {
    "name": "California",
@@ -114,8 +114,8 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2017370",
-     "ok": 0,
-     "over": 7,
+     "ok": 5,
+     "over": 2,
      "never": 3,
      "groups": {
       "daily": {
@@ -124,37 +124,12 @@
        "never": 0
       },
       "long": {
-       "ok": 0,
-       "over": 7,
+       "ok": 5,
+       "over": 2,
        "never": 3
       }
      },
      "overdue": [
-      [
-       "Grease bearing of the main printing roller",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean filters inside all grates (filtered-air flow to electrical box)",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean fans for side panel cooling",
-       "Weekly",
-       "2026-10-15"
-      ],
       [
        "Clean and grease driving chains",
        "Monthly",
@@ -184,8 +159,8 @@
     {
      "name": "Monti 2",
      "serial": "SER # 2022314",
-     "ok": 2,
-     "over": 8,
+     "ok": 10,
+     "over": 0,
      "never": 2,
      "groups": {
       "daily": {
@@ -194,53 +169,12 @@
        "never": 0
       },
       "long": {
-       "ok": 2,
-       "over": 8,
+       "ok": 10,
+       "over": 0,
        "never": 2
       }
      },
-     "overdue": [
-      [
-       "Machine cleaning and general checks",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Safety checks \u2014 e-stops, hand-saving microcontacts, emergency stop handle, entry protection, air pressure on manometers, labels/signs, overall condition",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "FRL (air filter-regulator-lubricator) check",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean filters inside grates of the lateral machine structure",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Grease heated roller supports (left and right side)",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean electrical box grate filters",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean resistance slip ring and brushes",
-       "Weekly",
-       "2026-10-15"
-      ],
-      [
-       "Clean fans for side panel cooling",
-       "Weekly",
-       "2026-10-15"
-      ]
-     ],
+     "overdue": [],
      "no_record": [
       [
        "Check felt tightening pneumatic cylinders",
@@ -253,10 +187,10 @@
      ]
     }
    ],
-   "ok": 2,
-   "over": 15,
+   "ok": 15,
+   "over": 2,
    "never": 5,
-   "pct": 12,
+   "pct": 88,
    "groups": {
     "daily": {
      "ok": 0,
@@ -265,10 +199,10 @@
      "pct": null
     },
     "long": {
-     "ok": 2,
-     "over": 15,
+     "ok": 15,
+     "over": 2,
      "never": 5,
-     "pct": 12
+     "pct": 88
     }
    }
   },
