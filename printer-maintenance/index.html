@@ -78,6 +78,9 @@ button:focus-visible,a:focus-visible,.cell:focus-visible{outline:2px solid var(-
 .heat .dl{font-family:var(--mono);font-size:9px;color:var(--muted);padding-top:4px;white-space:nowrap;overflow:visible}
 .cell.we{opacity:.4}
 .c-good{background:var(--good)}.c-warn{background:var(--warn)}.c-crit{background:var(--crit)}.c-none{background:var(--none)}
+.shcell{display:flex;flex-direction:column;gap:1px;height:26px;cursor:default;border-radius:3px;overflow:hidden;border:1px solid transparent}
+.shcell:hover{border-color:#fff}.shcell.we{opacity:.4}
+.shcell i{flex:1;display:block}.shcell i.c-u{background:var(--none);opacity:.35}
 .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 th{color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;text-align:left;padding:8px;border-bottom:1px solid var(--border);white-space:nowrap}
@@ -189,6 +192,14 @@ td .mini span{display:block;height:100%}
         <div class="scroll"><div class="heat" id="heat"></div></div>
       </div>
 
+      <div class="card" id="shiftcard">
+        <div class="head-row">
+          <div><h2>Purge at the start of each shift</h2><div class="hint" id="sh-hint">One column per day, one stripe per shift (top = first shift of the day). A shift counts as purged when a purge cycle finished within the first 2 hours after it started, by the printer's own clock. CA's P5-350 and P5 Tex run one shift and stay on the daily check above. Weekends are faded and left out of the counts.</div><div class="facts" id="sh-facts"></div></div>
+          <div class="legend"><span><i class="c-good"></i>Purged at shift start</span><span><i class="c-warn"></i>Purged later in the shift</span><span><i class="c-crit"></i>Printer ran, no purge</span><span><i class="c-none"></i>Printer idle</span><span><i class="c-none" style="opacity:.35"></i>No data yet</span></div>
+        </div>
+        <div class="scroll"><div class="heat" id="shheat"></div></div>
+      </div>
+
       <div class="card trend">
         <div class="head-row"><div><h2>Purge prompts acted on, by week</h2><div class="hint">Each point is one Monday–Friday week. Of the printer-days with a purge prompt (each printer counted separately), the share where a purge cycle ran the same day.</div></div>
           <div class="legend"><span><i style="background:var(--s1)"></i>CA</span><span><i style="background:var(--s2)"></i>PA</span><span><i style="background:var(--s3)"></i>MX</span></div></div>
@@ -222,7 +233,7 @@ td .mini span{display:block;height:100%}
 
       <div class="method">
         <div class="card"><h2>Where this comes from</h2><p>Pulled <span id="pm-pulled">Sep 30, 2026</span> from the Durst Analytics+ server (the same data as each printer's Maintenance tab), all 12 active printers, the last 90 days. It refreshes every morning at 7:00 AM Pacific. Floor sign-offs come from the Machine Maintenance Log sheet, which starts Jul 9.</p><p>If this page or its data is down, the old manual sign-off app is archived as a backup at <a href="https://mikeb-art.github.io/machine-maintenance/archive/">mikeb-art.github.io/machine-maintenance/archive</a>. It logs to the same sheet.</p></div>
-        <div class="card"><h2>How "done" and "put off" are read</h2><p><b>Rhotex 325:</b> the printer logs each prompt as "done" or "Remind later". <b>P5 350 / P5 Tex:</b> the printer logs the on-screen prompt, and when the operator taps Execute it logs the task again with a separate "done" ID. A prompt with no Execute that day counts as put off. A purge also counts as done when a purge cycle ran the same day.</p></div>
+        <div class="card"><h2>How "done" and "put off" are read</h2><p><b>Rhotex 325:</b> the printer logs each prompt as "done" or "Remind later". <b>P5 350 / P5 Tex:</b> the printer logs the on-screen prompt, and when the operator taps Execute it logs the task again with a separate "done" ID. A prompt with no Execute that day counts as put off. A purge also counts as done when a purge cycle ran the same day.</p><p><b>Purge at the start of each shift:</b> every Durst printer is to run a Maintenance Purge at the start of every shift (P5s included, Nov 2026). The shift panel uses the time each purge cycle finished on the printer: within the first 2 hours of the shift counts as purged. A shift with printer activity but no purge counts as missed; a shift with no activity at all is left out.</p></div>
         <div class="card"><h2>Daily chat reminder</h2><p>Each morning after the pull, a bot posts to the Printing space, per plant: yesterday's put-off tasks, and weekly-and-longer tasks past their interval, with the date each was last done.</p></div>
       </div>
     </div>
@@ -275,6 +286,24 @@ function heat(){const h=$("heat");h.innerHTML="";h.style.gridTemplateColumns=`mi
       c.onmousemove=e=>showTip(e,dayTip(p,di));c.onmouseleave=hideTip;c.onclick=()=>{sel={p:p.i,d:di};render()};c.onkeydown=e=>{if(e.key==="Enter"){sel={p:p.i,d:di};render()}};h.appendChild(c)})});
   h.appendChild(document.createElement("div"));const step=range>60?14:range>30?7:5;
   D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div");l.className="dl";l.textContent=(j%step===0)?fmt(d):"";h.appendChild(l)})}
+const SHN=pl=>((DATA.meta.shifts||{})[pl]||[]);const WH=DATA.meta.window_h||2;
+const hhmm=t=>t?t.slice(0,2)+":"+t.slice(2,4):"";
+function shTip(p,di){const x=p.sh[di],names=SHN(p.plant);let h=`<b>${esc(p.name)}</b> · ${fmtW(D[di])}`;
+  const lab={g:t=>`✓ purged ${hhmm(t)}`,l:t=>`late: first purge ${hhmm(t)}, not in the first ${WH} hrs`,m:()=>"✕ printer ran, no purge",n:()=>"printer idle",u:()=>"no data (before the per-shift pull)"};
+  [...x[0]].forEach((c,i)=>{h+=`<br>${names[i]?names[i][0]+" ("+names[i][1]+")":"Shift "+(i+1)}: ${lab[c](x[1][i])}`});
+  if(!WD[di])h+=`<br><i>Weekend · not in the counts</i>`;return h}
+function shCount(list){let a=0,g=0;list.forEach(p=>p.sh.slice(N-range).forEach((x,j)=>{if(!WD[N-range+j])return;for(const c of x[0]){if("glm".includes(c))a++;if(c==="g")g++}}));return{a,g}}
+function shiftsView(){const h=$("shheat");if(!h)return;h.innerHTML="";const v=vis().filter(p=>p.sh);
+  $("shiftcard").hidden=!v.length;if(!v.length)return;
+  h.style.gridTemplateColumns=`minmax(160px,auto) repeat(${range},minmax(8px,1fr))`;
+  v.forEach(p=>{const rl=document.createElement("button");rl.className="rl"+(p.i===sel.p?" sel":"");rl.innerHTML=`${esc(p.name)} <span style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">${SHN(p.plant).length} shifts</span>`;rl.onclick=()=>{sel.p=p.i;render()};h.appendChild(rl);
+    p.sh.slice(N-range).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.className="shcell"+(WD[di]?"":" we");
+      c.innerHTML=[...x[0]].map(k=>`<i class="${{g:"c-good",l:"c-warn",m:"c-crit",n:"c-none",u:"c-u"}[k]}"></i>`).join("");
+      c.onmousemove=e=>showTip(e,shTip(p,di));c.onmouseleave=hideTip;c.onclick=()=>{sel={p:p.i,d:di};render()};h.appendChild(c)})});
+  h.appendChild(document.createElement("div"));const step=range>60?14:range>30?7:5;
+  D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div");l.className="dl";l.textContent=(j%step===0)?fmt(d):"";h.appendChild(l)});
+  const all=shCount(v),byP=["MX","PA","CA"].map(pl=>[pl,shCount(v.filter(p=>p.plant===pl))]).filter(([,o])=>o.a);
+  $("sh-facts").innerHTML=all.a?`<span class="fact">Purged at shift start on <b>${all.g}</b> of ${all.a} weekday shifts the printers ran (<b>${Math.round(all.g/all.a*100)}%</b>)</span>`+(byP.length>1?byP.map(([pl,o])=>`<span class="fact">${pl} <b>${Math.round(o.g/o.a*100)}%</b> · ${o.g} of ${o.a}</span>`).join(""):""):`<span class="fact">No per-shift data in this window yet</span>`}
 const monOf=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
 function trend(){const weeks=[];D.forEach((d,k)=>{if(!k||d.getDay()===1)weeks.push([k,k+1]);else weeks[weeks.length-1][1]=k+1});   /* Monday–Sunday weeks; only Mon–Fri are counted */
   const W=900,H=230,L=44,R=16,T=14,B=28,x=i=>L+(W-L-R)*i/(weeks.length-1),y=v=>T+(H-T-B)*(1-v/100);
@@ -293,7 +322,8 @@ function trend(){const weeks=[];D.forEach((d,k)=>{if(!k||d.getDay()===1)weeks.pu
 function detail(){const p=DATA.printers[sel.p],w=winW(p);
   $("d-title").textContent=p.name;$("d-sub").textContent=`${p.model} · S/N ${p.serial} · Sys ${p.sys} · weekdays in the last ${range} days`;
   const act=w.filter(x=>Object.keys(x[0]).length||x[1]||x[2]).length;
-  $("facts").innerHTML=[[act,"with activity"],[w.filter(x=>x[1]).length,"a purge cycle ran"],[w.filter(x=>x[2]).length,"a test pattern printed"],[w.filter(x=>x[3]).length,"with floor sign-offs"]].map(([n,s])=>`<span class="fact"><b>${n}</b> ${n===1?"weekday":"weekdays"} ${s}</span>`).join("");
+  $("facts").innerHTML=[[act,"with activity"],[w.filter(x=>x[1]).length,"a purge cycle ran"],[w.filter(x=>x[2]).length,"a test pattern printed"],[w.filter(x=>x[3]).length,"with floor sign-offs"]].map(([n,s])=>`<span class="fact"><b>${n}</b> ${n===1?"weekday":"weekdays"} ${s}</span>`).join("")
+    +(p.sh?(o=>o.a?`<span class="fact">Purged at the start of <b>${o.g}</b> of ${o.a} weekday shifts</span>`:"")(shCount([p])):"");
   const rows=TASKS.map((t,k)=>{let pr=0,dn=0,of=0;w.forEach(x=>{const v=x[0][k];if(v){pr++;if(v[0]==="d")dn++;if(v[0]==="o")of++}});return{t,pr,dn,of}}).filter(r=>r.pr).sort((a,b)=>b.of-a.of||b.pr-a.pr);
   const is325=p.model.startsWith("Rhotex");
   $("tasks").innerHTML=rows.length?rows.map(r=>{const unc=r.pr-r.dn-r.of;return`<tr><td>${esc(r.t)}<span class="mini"><span style="width:${r.dn/r.pr*100}%;background:var(--good)"></span><span style="width:${r.of/r.pr*100}%;background:var(--crit)"></span></span></td><td class="n">${r.pr}</td><td class="n">${r.dn}</td><td class="n">${r.of||"–"}</td></tr>`}).join(""):`<tr><td colspan="4">No Durst maintenance prompts in this window.</td></tr>`;
@@ -314,7 +344,7 @@ window.__selSys=()=>DATA.printers[sel.p].sys;window.__selName=()=>DATA.printers[
  const pu=new Date(M.pulled);document.getElementById("pm-pulled").textContent=pu.toLocaleString("en-US",{timeZone:"America/Los_Angeles",month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});
  document.getElementById("pm-foot").textContent=pu.toISOString().slice(0,10);
  if(M.find&&M.find.length)document.getElementById("find").innerHTML=M.find.map(x=>"<li>"+x+"</li>").join("")})();
-function render(){counts();kpis();heat();trend();detail();if(window.__coDraw)window.__coDraw()}
+function render(){counts();kpis();heat();shiftsView();trend();detail();if(window.__coDraw)window.__coDraw()}
 document.querySelectorAll(".navitem[data-plant]").forEach(b=>b.onclick=()=>{plant=b.dataset.plant;render()});
 document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{range=+b.dataset.days;document.querySelectorAll(".seg button").forEach(z=>z.classList.toggle("on",z===b));if(sel.d<N-range)sel.d=N-1;render()});
 // #CA / #PA / #MX open that plant (links in the daily Printing post)
@@ -370,7 +400,7 @@ T.rhotex = [
  ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
 ];
 T.p5350 = [
- ["Carry out print head maintenance","daily","At start of shift"],
+ ["Carry out print head maintenance","shift","Maintenance Purge at the start of every shift"],
  ["Check printing plate for soiling; clean if necessary","daily"],
  ["Check glass of UV LED units for soiling; clean if necessary","daily"],
  ["Check conveyor belt, dancing rollers and redirection rolls of feed table; clean if necessary","d2"],
@@ -394,7 +424,7 @@ T.p5350 = [
  ["Log every filter or head change on the Filter/Head Change Log","req","Click + Log for what to record"]
 ];
 T.p5tex = [
- ["Carry out print head maintenance","daily","At start of shift"],
+ ["Carry out print head maintenance","shift","Maintenance Purge at the start of every shift"],
  ["Check tensioning rolls for soiling; clean if necessary","daily"],
  ["Check rollers for soiling; clean if necessary","daily"],
  ["Check capping station","d2"],
