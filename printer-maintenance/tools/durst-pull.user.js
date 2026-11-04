@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         EquipFlow: Durst daily pull
 // @namespace    https://equipflow-lemon.vercel.app/
-// @version      1.4
+// @version      1.5
 // @description  Runs the Printer Maintenance pull only when the Durst page is opened with ?pull=N (N = days). Signs in again by itself with the sign-in saved via ?pullsetup=1. Generated from pull.js by make_userscript.py; do not edit by hand.
 // @match        http://50.232.157.54:8090/ui/*
 // @grant        GM_getValue
@@ -120,6 +120,8 @@
     const iso = d => d.toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
     const FROM = iso(from), TO = iso(today);
     const dayOf = (d, tz) => new Date(d).toLocaleDateString("en-CA", { timeZone: tz });
+    // printer-local HHMM, for the per-shift purge check (purge at the start of each shift)
+    const hmOf = (d, tz) => new Date(d).toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).replace(":", "");
     const norm = t => {
       const m = t.replace(/^[\d\-: ]+(?=Maint)/, "");
       const w = m.match(/^Maintenance warning: (.+?)( (done|Remind later|remind later))?$/i);
@@ -129,7 +131,7 @@
       return null;
     };
     const tasks = [], ti = t => { let i = tasks.indexOf(t); if (i < 0) { tasks.push(t); i = tasks.length - 1; } return i; };
-    const lines = [], pc = [];
+    const lines = [], pc = [], pt = [], ph = [];
     for (const p of printers) {
       let all = [], page = 0, total = null;
       while (true) {
@@ -142,11 +144,16 @@
         const e = j.entities || []; total = j.meta && j.meta.totalCount; all.push(...e);
         if (!e.length || all.length >= total || page > 80) break; page++;
       }
-      const days = {}, purge = {};
+      const days = {}, purge = {}, ptimes = {}, hours = {};
       for (const r of all) {
-        const d = dayOf(r.datetime, p.timeZone);
-        if (String(r.errorNr).split("|")[0] === "41002") purge[d] = (purge[d] || 0) + 1;   // P5 purge cycle
-        const n = norm(r.errorText); if (!n) continue;
+        const d = dayOf(r.datetime, p.timeZone), hm = hmOf(r.datetime, p.timeZone);
+        hours[d] = (hours[d] || 0) | (1 << Number(hm.slice(0, 2)));   // hours of the day the printer logged anything
+        const isP5Purge = String(r.errorNr).split("|")[0] === "41002";
+        if (isP5Purge) purge[d] = (purge[d] || 0) + 1;   // P5 purge cycle
+        const n = norm(r.errorText);
+        // purge times: "c" = P5 purge cycle (41002), "t" = Rhotex "Purge cycle finished"
+        if (isP5Purge || (n && n.task === "Purge cycle run")) (ptimes[d] = ptimes[d] || []).push(hm + (isP5Purge ? "c" : "t"));
+        if (!n) continue;
         // P5: the same "Maintenance warning: X" text is sent for the on-screen prompt and for the operator's Execute.
         // Execute carries a zero-padded second ID (…|00000000000003089282); prompts carry a different one. Found Oct 1, 2026.
         const [code, sub] = String(r.errorNr).split("|");
@@ -155,8 +162,11 @@
       }
       lines.push("P" + p.id + "|" + p.systemNumber + "=" + Object.keys(days).sort().map(d => d + ":" + Object.entries(days[d]).map(([k, c]) => k + c).join(".")).join(" "));
       pc.push("PC" + p.id + "=" + Object.keys(purge).sort().map(d => d + ":" + purge[d]).join(" "));
+      pt.push("PT" + p.id + "=" + Object.keys(ptimes).sort().map(d => d + ":" + [...new Set(ptimes[d])].sort().join(".")).join(" "));
+      ph.push("PH" + p.id + "=" + Object.keys(hours).sort().map(d => d + ":" + hours[d].toString(16)).join(" "));
     }
-    const s = "D=" + FROM + "|" + TO + "|" + new Date().toISOString() + "\nT=" + tasks.join(";") + "\n" + lines.join("\n") + "\n" + pc.join("\n");
+    const s = "D=" + FROM + "|" + TO + "|" + new Date().toISOString() + "\nT=" + tasks.join(";") + "\n" + lines.join("\n") + "\n" + pc.join("\n")
+      + "\n" + pt.join("\n") + "\n" + ph.join("\n");
     let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) % 2147483647;
     window.__dump = s;
     document.body.innerHTML = '<article><pre id="__dump"></pre></article>';
