@@ -1,4 +1,4 @@
-*Previous 24 hrs maintenance: Mon Nov 2* (from Durst Analytics)
+*Previous 24 hrs maintenance: Tue Nov 3* (from Durst Analytics)
 
 *CA*
 • Nothing put off or open
@@ -7,14 +7,13 @@
 • Nothing put off or open
 
 *MX*
-• Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
-• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane, Roller Inspect
-• P5 Tex-1 - MX: Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers
-• P5 Tex-2 - MX: Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling
+• Rhotex 325-1 - MX: Put off: Inspect Print Plane
+• P5 Tex-1 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers
+• P5 Tex-2 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
-• CA: Weekly & longer 63% (12 of 19), 7 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
+• CA: Weekly & longer 32% (6 of 19), 13 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 88% (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: Daily & every shift 100% (17 of 17) · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX

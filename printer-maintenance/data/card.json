@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Mon Nov 2",
+     "title": "Previous 24 hrs maintenance: Tue Nov 3",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane<br>\u2022 P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane, Roller Inspect<br>\u2022 P5 Tex-1 - MX: Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers<br>\u2022 P5 Tex-2 - MX: Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Inspect Print Plane, Stretch Roller Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling"
+         "text": "\u2022 Rhotex 325-1 - MX: Put off: Inspect Print Plane<br>\u2022 P5 Tex-1 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers<br>\u2022 P5 Tex-2 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers"
         }
        }
       ]
@@ -43,13 +43,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261103135156.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 63%, PA weekly & longer 88%, MX daily & every shift 0%, weekly & longer 100%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261104135151.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 88%, MX daily & every shift 100%, weekly & longer 100%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 63% (12 of 19), 7 overdue<br><b>PA</b>: Weekly &amp; longer 88% (15 of 17), 2 overdue<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
+         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 88% (15 of 17), 2 overdue<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
         }
        },
        {
