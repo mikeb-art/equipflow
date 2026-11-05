@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-04",
+ "asof": "2026-11-05",
  "plants": {
   "CA": {
    "name": "California",
@@ -144,54 +144,9 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2017370",
-     "ok": 5,
-     "over": 2,
-     "never": 3,
-     "groups": {
-      "daily": {
-       "ok": 0,
-       "over": 0,
-       "never": 0
-      },
-      "long": {
-       "ok": 5,
-       "over": 2,
-       "never": 3
-      }
-     },
-     "overdue": [
-      [
-       "Clean and grease driving chains",
-       "Monthly",
-       "2026-08-20"
-      ],
-      [
-       "Grease paper separator supports",
-       "Monthly",
-       "2026-08-20"
-      ]
-     ],
-     "no_record": [
-      [
-       "Check tension of chains",
-       "Quarterly"
-      ],
-      [
-       "Grease bearings and supports",
-       "Quarterly"
-      ],
-      [
-       "Check greasing of felt guide, felt tightener and supplementary roller bearings",
-       "Quarterly"
-      ]
-     ]
-    },
-    {
-     "name": "Monti 2",
-     "serial": "SER # 2022314",
      "ok": 10,
      "over": 0,
-     "never": 2,
+     "never": 0,
      "groups": {
       "daily": {
        "ok": 0,
@@ -201,26 +156,38 @@
       "long": {
        "ok": 10,
        "over": 0,
-       "never": 2
+       "never": 0
       }
      },
      "overdue": [],
-     "no_record": [
-      [
-       "Check felt tightening pneumatic cylinders",
-       "Monthly"
-      ],
-      [
-       "Grease chains",
-       "Monthly"
-      ]
-     ]
+     "no_record": []
+    },
+    {
+     "name": "Monti 2",
+     "serial": "SER # 2022314",
+     "ok": 12,
+     "over": 0,
+     "never": 0,
+     "groups": {
+      "daily": {
+       "ok": 0,
+       "over": 0,
+       "never": 0
+      },
+      "long": {
+       "ok": 12,
+       "over": 0,
+       "never": 0
+      }
+     },
+     "overdue": [],
+     "no_record": []
     }
    ],
-   "ok": 15,
-   "over": 2,
-   "never": 5,
-   "pct": 88,
+   "ok": 22,
+   "over": 0,
+   "never": 0,
+   "pct": 100,
    "groups": {
     "daily": {
      "ok": 0,
@@ -229,10 +196,10 @@
      "pct": null
     },
     "long": {
-     "ok": 15,
-     "over": 2,
-     "never": 5,
-     "pct": 88
+     "ok": 22,
+     "over": 0,
+     "never": 0,
+     "pct": 100
     }
    }
   },

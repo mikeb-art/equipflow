@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Tue Nov 3",
+     "title": "Previous 24 hrs maintenance: Wed Nov 4",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Nothing put off or open"
+         "text": "\u2022 Rhotex 325 - CA: No purge in the first 2 hrs of: Evening (purged 17:25, late) shift"
         }
        }
       ]
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Nothing put off or open"
+         "text": "\u2022 Rhotex 325-1 - PA: No purge in the first 2 hrs of: Evening shift<br>\u2022 Rhotex 325-2 - PA: No purge in the first 2 hrs of: Evening shift<br>\u2022 P5-350 - PA: No purge in the first 2 hrs of: Day (purged 09:24, late) shift<br>\u2022 P5 Tex - PA: No purge in the first 2 hrs of: Day, Evening (purged 17:42, late) shift"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-1 - MX: Put off: Inspect Print Plane<br>\u2022 P5 Tex-1 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers<br>\u2022 P5 Tex-2 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers"
+         "text": "\u2022 Rhotex 325-1 - MX: No purge in the first 2 hrs of: Day, Night shift<br>\u2022 Rhotex 325-2 - MX: No purge in the first 2 hrs of: Day (purged 13:56, late) shift<br>\u2022 P5-350 - MX: No purge in the first 2 hrs of: Day (purged 12:28, late), Night shift<br>\u2022 P5 Tex-1 - MX: No purge in the first 2 hrs of: Day, Evening (purged 22:15, late), Night shift<br>\u2022 P5 Tex-2 - MX: No purge in the first 2 hrs of: Day, Evening, Night shift"
         }
        }
       ]
@@ -43,18 +43,18 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261104135151.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 88%, MX daily & every shift 100%, weekly & longer 100%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261105135145.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 100%, weekly & longer 100%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 88% (15 of 17), 2 overdue<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
+         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
         }
        },
        {
         "textParagraph": {
-         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>PA</b>: 5 (Monti 1: 3, Monti 2: 2)<br><b>MX</b>: 2 (Vutek 3r: 2)"
+         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>MX</b>: 2 (Vutek 3r: 2)"
         }
        },
        {

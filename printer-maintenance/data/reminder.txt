@@ -1,19 +1,24 @@
-*Previous 24 hrs maintenance: Tue Nov 3* (from Durst Analytics)
+*Previous 24 hrs maintenance: Wed Nov 4* (from Durst Analytics)
 
 *CA*
-• Nothing put off or open
+• Rhotex 325 - CA: No purge in the first 2 hrs of: Evening (purged 17:25, late) shift
 
 *PA*
-• Nothing put off or open
+• Rhotex 325-1 - PA: No purge in the first 2 hrs of: Evening shift
+• Rhotex 325-2 - PA: No purge in the first 2 hrs of: Evening shift
+• P5-350 - PA: No purge in the first 2 hrs of: Day (purged 09:24, late) shift
+• P5 Tex - PA: No purge in the first 2 hrs of: Day, Evening (purged 17:42, late) shift
 
 *MX*
-• Rhotex 325-1 - MX: Put off: Inspect Print Plane
-• P5 Tex-1 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers
-• P5 Tex-2 - MX: Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect, Water Level Cooling Unit Inspect, Guiding Rail Oiling, Change Stretch Rollers
+• Rhotex 325-1 - MX: No purge in the first 2 hrs of: Day, Night shift
+• Rhotex 325-2 - MX: No purge in the first 2 hrs of: Day (purged 13:56, late) shift
+• P5-350 - MX: No purge in the first 2 hrs of: Day (purged 12:28, late), Night shift
+• P5 Tex-1 - MX: No purge in the first 2 hrs of: Day, Evening (purged 22:15, late), Night shift
+• P5 Tex-2 - MX: No purge in the first 2 hrs of: Day, Evening, Night shift
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: Weekly & longer 32% (6 of 19), 13 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
-• PA: Weekly & longer 88% (15 of 17), 2 overdue; 5 never signed off · https://equipflow-lemon.vercel.app/maintenance/#PA
+• PA: Weekly & longer 100% (22 of 22) · https://equipflow-lemon.vercel.app/maintenance/#PA
 • MX: Daily & every shift 100% (17 of 17) · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
