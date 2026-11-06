@@ -30,11 +30,10 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      Viewer access to the sheet),
    - runs `tools/build.py pull.txt log.json`, which merges the pull into `data/history.txt` (rolling 91 days; the
      pulled days replace what was stored), rewrites the data in `index.html`, and writes `data/reminder.txt`,
-   - checks the daily purge the way the Durst operating manuals state it (Rhotex 325 §H.14.2.1, P5 Tex §H.17.2.1:
-     "daily before starting work (once every 24 hours in case of 24-hour operation)"). CA and PA: the day's first purge
-     must come before work starts, allowing `GRACE_H` (1) hour for power-on, initializing and ink heating. MX runs 24/7
-     (`ROLLING_24H`): late when the printer kept working more than 24 hours after its last purge. No fixed clock time,
-     no per-shift check (replaced the Nov 4 "within 2 hours of each shift start" check on Nov 5, 2026),
+   - checks purges and nozzle checks against Durst Analytics times (WS Display policy, Nov 2026): a nozzle check
+     (test pattern) before work at every startup (first activity after `IDLE_H` (4) quiet hours), and a purge cycle at
+     least once every 24 hours, counted from the last purge (late when the printer kept working past that, not counting
+     the `GRACE_H` (1) hour before the next purge). Nozzle-check times (`PN` lines) need pull script 1.6 or later,
    - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
      and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
      `data/other.json`, the chart to `data/charts/other-<pull time>.png` (a new file per post, so

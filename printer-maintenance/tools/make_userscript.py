@@ -7,7 +7,7 @@ body = src[src.index("(async () => {"):].rstrip().rstrip(";")
 head = """// ==UserScript==
 // @name         EquipFlow: Durst daily pull
 // @namespace    https://equipflow-lemon.vercel.app/
-// @version      1.5
+// @version      1.6
 // @description  Runs the Printer Maintenance pull only when the Durst page is opened with ?pull=N (N = days). Signs in again by itself with the sign-in saved via ?pullsetup=1. Generated from pull.js by make_userscript.py; do not edit by hand.
 // @match        http://50.232.157.54:8090/ui/*
 // @grant        GM_getValue
