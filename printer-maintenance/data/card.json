@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5 Tex - CA: No purge; printer active from 09:00"
+         "text": "\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 3 09:33)"
         }
        }
       ]
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 P5 Tex - PA: Purged 17:42, after work started (active from 06:00)"
+         "text": "\u2022 P5 Tex - PA: Purged 17:42, 58 hrs after the last one"
         }
        }
       ]
