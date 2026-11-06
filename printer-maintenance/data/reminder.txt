@@ -1,20 +1,15 @@
 *Previous 24 hrs maintenance: Wed Nov 4* (from Durst Analytics)
 
 *CA*
-• Rhotex 325 - CA: No purge in the first 2 hrs of: Evening (purged 17:25, late) shift
+• P5 Tex - CA: No purge; printer active from 09:00
 
 *PA*
-• Rhotex 325-1 - PA: No purge in the first 2 hrs of: Evening shift
-• Rhotex 325-2 - PA: No purge in the first 2 hrs of: Evening shift
-• P5-350 - PA: No purge in the first 2 hrs of: Day (purged 09:24, late) shift
-• P5 Tex - PA: No purge in the first 2 hrs of: Day, Evening (purged 17:42, late) shift
+• P5 Tex - PA: Purged 17:42, after work started (active from 06:00)
 
 *MX*
-• Rhotex 325-1 - MX: No purge in the first 2 hrs of: Day, Night shift
-• Rhotex 325-2 - MX: No purge in the first 2 hrs of: Day (purged 13:56, late) shift
-• P5-350 - MX: No purge in the first 2 hrs of: Day (purged 12:28, late), Night shift
-• P5 Tex-1 - MX: No purge in the first 2 hrs of: Day, Evening (purged 22:15, late), Night shift
-• P5 Tex-2 - MX: No purge in the first 2 hrs of: Day, Evening, Night shift
+• Rhotex 325-2 - MX: Purged 13:56, 40 hrs after the last one
+• P5 Tex-1 - MX: Purged 22:15, first since Nov 2
+• P5 Tex-2 - MX: Over 24 hrs without a purge (none since Nov 2)
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
