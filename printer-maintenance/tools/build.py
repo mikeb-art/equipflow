@@ -30,16 +30,16 @@ ORDER = list(PRINTERS)
 ACT = ("Test pattern printed", "Purge cycle run")
 PURGE = "Maintenance Purge"
 
-# Purge at the start of every shift (Nov 2026): a shift counts as purged when a purge cycle finished within the first
-# PURGE_WINDOW_H hours after the shift started. Times are printer-local. Shift starts come from the sheet
-# "WS Display - Shift/Personell hours by location". CA's P5s run one shift, so they stay on the once-a-day check.
-SHIFTS = {
-    "MX": [("Day", "07:00", "15:00"), ("Evening", "15:00", "23:00"), ("Night", "23:00", "07:00")],
-    "PA": [("Day", "06:00", "14:00"), ("Evening", "14:00", "23:00")],
-    "CA": [("Day", "07:00", "14:00"), ("Evening", "14:00", "23:00")],
-}
-NO_SHIFT_CHECK = {"298127", "298155"}   # CA P5-350, CA P5 Tex: one shift, daily check only
-PURGE_WINDOW_H = 2
+# Daily purge, per the Durst operating manuals (Rhotex 325 §H.14.2.1, P5 Tex §H.17.2.1, "Beginning of shift"): a purge
+# cycle "daily before starting work (once every 24 hours in case of 24-hour operation) and, if necessary, during the
+# shift". No fixed clock time. Times are printer-local; activity is known by the hour (PH mask), purges to the minute.
+#  - Plants that stop overnight (CA, PA): the day's first purge must come before the printer's work starts, i.e. no
+#    hour with activity before (first purge hour - GRACE_H). The grace covers power-on, initializing and ink heating,
+#    which the printer logs before the purge can run.
+#  - Plants running 24/7 (MX): rolling 24 hours. Overdue when the printer was active more than 24 hours after its last
+#    purge, not counting the GRACE_H hour(s) before the next purge.
+ROLLING_24H = {"MX"}
+GRACE_H = 1
 
 # Due dates come from the printer itself: a task counts as open when Durst asked for it (prompt or Remind later)
 # and it hasn't been logged done since. No fixed intervals.
@@ -155,30 +155,82 @@ def hm(s):
     return int(s[:2]) * 60 + int(s[2:4]) if s[2:3] != ":" else int(s[:2]) * 60 + int(s[3:5])
 
 
-def shift_status(plant, day, nxt, times, hours):
-    """One entry per shift starting on `day`: [code, first purge HHMM or ""].
-    code: g = purge within the first PURGE_WINDOW_H hours, l = purge later in the shift only,
-    m = printer active in the shift but no purge, n = no activity, u = no data (before the per-shift pull)."""
+def _active_hours(hours):
+    """Absolute printer-local hours (days since 2000-01-01 * 24 + hour) with logged activity."""
+    base = dt.date(2000, 1, 1)
     out = []
-    for name, a, b in SHIFTS[plant]:
-        sa, sb = hm(a), hm(b)
-        if sb <= sa:
-            sb += 1440   # overnight shift runs into the next day
-        tl = [(hm(t), t[:4]) for t in times.get(day, [])] + [(1440 + hm(t), t[:4]) for t in times.get(nxt, [])]
-        if day not in hours:
+    for d, m in hours.items():
+        o = (dt.date.fromisoformat(d) - base).days * 24
+        out += [o + h for h in range(24) if m >> h & 1]
+    return sorted(out)
+
+
+def _abs_min(d, t):
+    return (dt.date.fromisoformat(d) - dt.date(2000, 1, 1)).days * 1440 + hm(t)
+
+
+def _fmt_min(m):
+    d = dt.date(2000, 1, 1) + dt.timedelta(m // 1440)
+    return f"{d.strftime('%b %-d')} {m % 1440 // 60:02d}:{m % 60:02d}"
+
+
+def purge_status(plant, days, times, hours):
+    """One entry per day: [code, text]. code: g = purged per the Durst daily rule, l = purged, but late,
+    m = printer worked and no purge that day, n = no activity, u = no data (before purge times were pulled).
+    text: short explanation for the page tooltip and the Chat reminder."""
+    act = _active_hours(hours)
+    purges = sorted(_abs_min(d, t) for d, ts in times.items() for t in ts)
+    first_data = min(hours) if hours else None
+    out = []
+    for day in days:
+        k = day.isoformat()
+        if first_data is None or k < first_data or k not in hours:
             out.append(["u", ""]); continue
-        inwin = sorted(x for x in tl if sa <= x[0] < sa + 60 * PURGE_WINDOW_H)
-        later = sorted(x for x in tl if sa + 60 * PURGE_WINDOW_H <= x[0] < sb)
-        mask = hours.get(day, 0) | (hours.get(nxt, 0) << 24)
-        active = any(mask >> h & 1 for h in range(sa // 60, (sb + 59) // 60))
-        if inwin:
-            out.append(["g", inwin[0][1]])
-        elif later:
-            out.append(["l", later[0][1]])
-        elif active:
-            out.append(["m", ""])
+        o = (day - dt.date(2000, 1, 1)).days
+        day_act = [h for h in act if o * 24 <= h < o * 24 + 24]
+        day_p = [x for x in purges if o * 1440 <= x < o * 1440 + 1440]
+        if not day_act:
+            out.append(["n", ""]); continue
+        if plant not in ROLLING_24H:
+            start = day_act[0] % 24
+            if not day_p:
+                out.append(["m", f"No purge; printer active from {start:02d}:00"]); continue
+            q = day_p[0] // 60
+            early = [h for h in day_act if h < q - GRACE_H]
+            if early:
+                out.append(["l", f"Purged {_fmt_min(day_p[0])[-5:]}, after work started (active from {start:02d}:00)"])
+            else:
+                out.append(["g", f"Purged {_fmt_min(day_p[0])[-5:]}, before work (active from {start:02d}:00)"])
+            continue
+        # rolling 24 hours: walk the purge gaps that touch this day
+        prev = [x for x in purges if x < o * 1440]
+        lastp = prev[-1] if prev else (dt.date.fromisoformat(first_data) - dt.date(2000, 1, 1)).days * 1440
+        known = bool(prev)
+        later = [x for x in purges if x >= (o + 1) * 1440]
+        late, missing = [], None
+        for nxt in day_p + [None]:
+            due = lastp + 1440
+            qh = (nxt // 60) if nxt is not None else (later[0] // 60 if later else 10 ** 9)
+            over = [h for h in day_act if h * 60 + 60 > due and h < qh - GRACE_H]
+            if over:
+                since = f"last one {_fmt_min(lastp)}" if known else f"none since {_fmt_min(lastp)[:-6]}"
+                if nxt is None:
+                    missing = f"Over 24 hrs without a purge ({since})"
+                else:
+                    late.append(f"Purged {_fmt_min(nxt)[-5:]}, {round((nxt - lastp) / 60)} hrs after the last one"
+                                if known else f"Purged {_fmt_min(nxt)[-5:]}, first since {_fmt_min(lastp)[:-6]}")
+            if nxt is None:
+                break
+            lastp, known = nxt, True
+        if missing and not day_p:
+            out.append(["m", missing])
+        elif not known and not day_p:
+            out.append(["u", ""])   # first days of purge-time data: last purge unknown
+        elif late or missing:
+            out.append(["l", "; ".join(late + ([missing] if missing else []))])
         else:
-            out.append(["n", ""])
+            out.append(["g", f"Purged {', '.join(_fmt_min(x)[-5:] for x in day_p)}" if day_p
+                        else f"Within 24 hrs of the last purge ({_fmt_min(lastp)})"])
     return out
 
 
@@ -231,8 +283,7 @@ def main():
         return sotl.index(t)
 
     out = {"days": [d.isoformat() for d in days], "tasks": TASKS, "so": sotl, "printers": [],
-           "meta": {"pulled": pulled, "from": d0, "to": d1, "window_h": PURGE_WINDOW_H,
-                    "shifts": {pl: [[n, a] for n, a, _ in v] for pl, v in SHIFTS.items()}}}
+           "meta": {"pulled": pulled, "from": d0, "to": d1, "grace_h": GRACE_H, "rolling": sorted(ROLLING_24H)}}
     S = {"done": "d", "off": "o", "open": "p"}
     stats = []
     for sysn in ORDER:
@@ -291,14 +342,12 @@ def main():
                 last[str(i)] = [ld.isoformat() if ld else None, la.isoformat() if la else None, od.isoformat() if od else None]
         rec = {"id": int(pid), "plant": plant, "name": name, "model": model,
                "serial": ser, "sys": sysn, "d": rows, "last": last}
-        if sysn not in NO_SHIFT_CHECK:
-            pt_, ph_ = ptimes.get(pid, {}), phours.get(pid, {})
-            rec["sh"] = [["".join(c for c, _ in s), [t for _, t in s]] for s in
-                         (shift_status(plant, d.isoformat(), (d + dt.timedelta(1)).isoformat(), pt_, ph_) for d in days)]
-            for d, (codes, _) in zip(days, rec["sh"]):
-                if d.weekday() < 5:
-                    st["sh_active"] += sum(c in "glm" for c in codes)
-                    st["sh_ok"] += codes.count("g")
+        # daily purge per the Durst rule (see purge_status); rec["sh"][day] = [code, text]
+        rec["sh"] = purge_status(plant, days, ptimes.get(pid, {}), phours.get(pid, {}))
+        for d, (code, _) in zip(days, rec["sh"]):
+            if d.weekday() < 5 and code in "glm":
+                st["sh_active"] += 1
+                st["sh_ok"] += code == "g"
         out["printers"].append(rec)
         stats.append((name, plant, st, offt))
 
@@ -329,8 +378,8 @@ def main():
         for pl in ("MX", "PA", "CA"):
             a_ = sum(s["sh_active"] for _, p_, s, _ in stats if p_ == pl); o_ = sum(s["sh_ok"] for _, p_, s, _ in stats if p_ == pl)
             if a_: by.append(f"{pl} {round(o_ / a_ * 100)}%")
-        find.append(f"<b>Purge at the start of the shift:</b> done within {PURGE_WINDOW_H} hours on "
-                    f"{sum(s['sh_ok'] for _, _, s, _ in stats)} of {sh_act} weekday shifts the printers ran ({', '.join(by)}).")
+        find.append(f"<b>Daily purge (Durst rule):</b> on time on {sum(s['sh_ok'] for _, _, s, _ in stats)} of {sh_act} "
+                    f"weekday printer-days with activity ({', '.join(by)}). CA and PA: before work starts; MX: every 24 hours.")
     find.append(f"<b>The floor sign-off sheet doesn't catch it.</b> On {tot_signed} of those {tot_skip} days, operators still "
                 f"signed off tasks for that printer in the Machine Maintenance Log.")
     out["meta"]["find"] = find
@@ -356,12 +405,9 @@ def main():
             t, pc, tp, sc, _ = p["d"][yi]
             off = [TASKS[int(k)] for k, v in t.items() if v[0] == "o"]
             parts = []
-            if "sh" in p:
-                codes, tms = p["sh"][yi]
-                names = [n for n, _ in out["meta"]["shifts"][plant]]
-                miss = [names[i] + (f" (purged {tms[i][:2]}:{tms[i][2:]}, late)" if c == "l" else "")
-                        for i, c in enumerate(codes) if c in "lm"]
-                if miss: parts.append(f"No purge in the first {PURGE_WINDOW_H} hrs of: " + ", ".join(miss) + " shift")
+            code, txt = p["sh"][yi]
+            if code in "lm":
+                parts.append(txt)
             if PURGE in off: parts.append("Purge put off, no purge ran")
             rest = [x for x in off if x != PURGE]
             if rest: parts.append("Put off: " + ", ".join(rest))

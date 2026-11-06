@@ -154,12 +154,12 @@ const PRINTERS=[
 const MODELS={
  r325:{title:"Durst Rhotex 325",kicker:"Dye-sublimation roll printer · 5 printers",lanes:[
   ["Every shift","Start of each shift",[
-   ["Start cleaning cycle and gently wipe heads with distilled water","op","Maintenance Purge",1],
    ["Clean rollers and dancer between loading each roll of paper (wipe + water)","op",null,1],
    ["Check motorized stretch/spreading rolls between each roll; clean if needed","op","Stretch Roller Inspect",1],
    ["Check and empty both waste ink tanks as needed","op",null,1],
    ["Clean machine and surrounding area","op",null,1]]],
   ["Daily","Also at start of shift",[
+   ["Run a purge cycle (daily print head maintenance) before starting work; once every 24 hours where the printer runs 24/7 (MX)","op","Maintenance Purge",1],
    ["Check and clean carriage sledge from below with distilled water","op",null,1],
    ["Check cleaning station (left) and capping station (right); clean with wipe + distilled water","op",null,1],
    ["Check crash sensors for contamination or overspray; clean if needed","op",null,1],
@@ -193,14 +193,13 @@ const MODELS={
    ["Inspect the aerosol filter when the printer asks","op","Aerosol Filter Inspect",0]]]],
   gaps:[
    "<b>The CA Rhotex 325 sign-off form stops at monthly.</b> It has no quarterly cleaning, no lubrication-plate change and no carriage-bushing lubrication. The 325-1 forms have all of them; the 325-2 forms lack the bushing lubrication and transport-motor greasing.",
-   "<b>The Maintenance Purge prompt has no line of its own on the form.</b> \"Start cleaning cycle\" is signed every shift, but the printer logs the purge separately, and most PA and MX days show it put off. See Printer Maintenance.",
+   "<b>The Maintenance Purge prompt has no line of its own on the form.</b> \"Start cleaning cycle\" is signed every shift, though Durst asks for the purge daily before work (every 24 hrs in 24/7 operation); the printer logs the purge separately, and most PA and MX days show it put off. See Printer Maintenance.",
    "<b>Inspect Print Plane is a daily Durst prompt with no form line.</b> MX 325-1 and 325-2 put it off on 59 and 49 of the last 90 days.",
    "<b>The 6-month and yearly Durst service visits</b> aren't tracked anywhere on the floor form. Add a last-done date per printer."],
   docs:[["Maintenance chart · Rhotex 325 (generic)","Shift to half-yearly chart, PDF","153w5LfbWWxRUVa-aE3Ti-gQfcIhlfBjS"],["Maintenance chart · Rhotex 325 CA","AD28-042, PDF","1L4_kADQDWqE7n43Ehmy75odOYHMVetlc"],["Durst 6-month / yearly service checklist","Rhotex 325, technician, PDF","1T5-nd79IY40wsQ2Px2Ul4D4WpIPQ2qn8"],["Rhotex 325 Machine TPM (SOP)","WS Display, rev 1.0, PDF","16h7xzOOlSF-EEVJG8iHc_TUY64HHZ8Bn"]]},
  p5350:{title:"Durst P5 350",kicker:"UV LED hybrid printer · 3 printers",lanes:[
-  ["Every shift","Start of each shift (CA runs one shift)",[
-   ["Run a Maintenance Purge (print head maintenance) at the start of every shift","op","Maintenance Purge",1]]],
-  ["Daily","Start of shift",[
+  ["Daily","Before starting work (every 24 hrs at MX)",[
+   ["Run a purge cycle (daily print head maintenance) before starting work; once every 24 hours where the printer runs 24/7 (MX)","op","Maintenance Purge",1],
    ["Check safety devices: emergency switches and housing covers","op",null,0],
    ["Check housing covers and warning signs","op",null,0],
    ["Check and clean the printing plate","op","Inspect Print Plane",1],
@@ -240,9 +239,8 @@ const MODELS={
   docs:[["Durst maintenance checklists · P5 350","Daily to 4-year intervals, WS Display edition, PDF","12AOtZ_JOrxl1SLybcVxAV1Mj78DysxSC"],["Daily/weekly checklist · P5-350","Durst form, image","1IxoAxNCrWLnRBIFVojXg2kXB4mOyrvYA"],["P5-350 daily printhead maintenance procedure","WS Display guide, Word","1S2jdyWC-JJikCGbg7AmFWXcSGitW5LIB"]]},
  p5tex:{title:"Durst P5 Tex / P5 Tex iSub",kicker:"Textile and dye-sub printer · 4 printers",lanes:[
   ["After each purge","",[["Wipe the print heads with a wet cloth","op",null,0]]],
-  ["Every shift","Start of each shift (CA runs one shift)",[
-   ["Run a Maintenance Purge (print head maintenance) at the start of every shift","op","Maintenance Purge",1]]],
-  ["Daily","Start of shift",[
+  ["Daily","Before starting work (every 24 hrs at MX)",[
+   ["Run a purge cycle (daily print head maintenance) before starting work; once every 24 hours where the printer runs 24/7 (MX)","op","Maintenance Purge",1],
    ["Check safety devices: housing cover switches and covers","op",null,0],
    ["Check all warning signs are clean and readable","op",null,0],
    ["Check and clean the printing plate","op","Inspect Print Plane",0],
