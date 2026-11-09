@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-07",
+ "asof": "2026-11-09",
  "plants": {
   "CA": {
    "name": "California",
@@ -209,8 +209,8 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2019197",
-     "ok": 12,
-     "over": 0,
+     "ok": 10,
+     "over": 2,
      "never": 0,
      "groups": {
       "daily": {
@@ -219,19 +219,30 @@
        "never": 0
       },
       "long": {
-       "ok": 12,
-       "over": 0,
+       "ok": 10,
+       "over": 2,
        "never": 0
       }
      },
-     "overdue": [],
+     "overdue": [
+      [
+       "Check felt tightening pneumatic cylinders",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Grease chains",
+       "Monthly",
+       "2026-10-08"
+      ]
+     ],
      "no_record": []
     },
     {
      "name": "Monti 3",
      "serial": "SER # 2021393",
-     "ok": 12,
-     "over": 0,
+     "ok": 10,
+     "over": 2,
      "never": 0,
      "groups": {
       "daily": {
@@ -240,19 +251,30 @@
        "never": 0
       },
       "long": {
-       "ok": 12,
-       "over": 0,
+       "ok": 10,
+       "over": 2,
        "never": 0
       }
      },
-     "overdue": [],
+     "overdue": [
+      [
+       "Check felt tightening pneumatic cylinders",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Grease chains",
+       "Monthly",
+       "2026-10-08"
+      ]
+     ],
      "no_record": []
     },
     {
      "name": "Monti 2",
      "serial": "SER # 2021144",
-     "ok": 14,
-     "over": 0,
+     "ok": 10,
+     "over": 4,
      "never": 0,
      "groups": {
       "daily": {
@@ -261,19 +283,40 @@
        "never": 0
       },
       "long": {
-       "ok": 14,
-       "over": 0,
+       "ok": 10,
+       "over": 4,
        "never": 0
       }
      },
-     "overdue": [],
+     "overdue": [
+      [
+       "Check felt tightening pneumatic cylinders",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean and grease chains",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Grease bearings and supports",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Check greasing of felt guide, felt tightener and supplementary roller bearings",
+       "Monthly",
+       "2026-10-08"
+      ]
+     ],
      "no_record": []
     },
     {
      "name": "Vutek 3r",
      "serial": "SER # 9870418",
-     "ok": 28,
-     "over": 0,
+     "ok": 23,
+     "over": 5,
      "never": 2,
      "groups": {
       "daily": {
@@ -282,12 +325,38 @@
        "never": 0
       },
       "long": {
-       "ok": 16,
-       "over": 0,
+       "ok": 11,
+       "over": 5,
        "never": 2
       }
      },
-     "overdue": [],
+     "overdue": [
+      [
+       "Clean the vented exterior covers",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Vacuum the cable carrier and shelf",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean the three main exhaust vents",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Wipe the linear encoder strip",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean the carriage home sensor",
+       "Monthly",
+       "2026-10-08"
+      ]
+     ],
      "no_record": [
       [
        "Replace the primary ink filters (all colors)",
@@ -302,8 +371,8 @@
     {
      "name": "Klieverik",
      "serial": "SER # 891",
-     "ok": 16,
-     "over": 0,
+     "ok": 9,
+     "over": 7,
      "never": 0,
      "groups": {
       "daily": {
@@ -312,19 +381,55 @@
        "never": 0
       },
       "long": {
-       "ok": 11,
-       "over": 0,
+       "ok": 4,
+       "over": 7,
        "never": 0
       }
      },
-     "overdue": [],
+     "overdue": [
+      [
+       "Clean burnt grease from walls",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean grease from internal and external cabinets",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Check ventilation filters (replace if necessary)",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean exhaust grille",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Check chain tension",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Clean belt leveling sensors (felt)",
+       "Monthly",
+       "2026-10-08"
+      ],
+      [
+       "Grease bearings",
+       "Monthly",
+       "2026-10-08"
+      ]
+     ],
      "no_record": []
     }
    ],
-   "ok": 82,
-   "over": 0,
+   "ok": 62,
+   "over": 20,
    "never": 2,
-   "pct": 100,
+   "pct": 76,
    "groups": {
     "daily": {
      "ok": 17,
@@ -333,10 +438,10 @@
      "pct": 100
     },
     "long": {
-     "ok": 65,
-     "over": 0,
+     "ok": 45,
+     "over": 20,
      "never": 2,
-     "pct": 100
+     "pct": 69
     }
    }
   }

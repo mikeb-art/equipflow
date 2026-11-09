@@ -1,22 +1,20 @@
-*Previous 24 hrs maintenance: Fri Nov 6* (from Durst Analytics)
+*Previous 24 hrs maintenance: Sun Nov 8* (from Durst Analytics)
 
 *CA*
-• Rhotex 325 - CA: Purged 09:17, 26 hrs after the last one
-• P5-350 - CA: Nozzle check 12:23, after work started at 09:00
+• Rhotex 325 - CA: Over 24 hrs without a purge (last one Nov 6 09:32); No nozzle check after startup at 19:00; Purge put off, no purge ran
 
 *PA*
-• Rhotex 325-1 - PA: Nozzle check 09:18, after work started at 06:00
-• P5-350 - PA: No nozzle check after startup at 06:00; No nozzle check after startup at 12:00
+• Nothing put off or open
 
 *MX*
-• Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 4 13:56); No nozzle check after startup at 11:00; Put off: Dust/Air Filter Inspect
-• P5-350 - MX: Nozzle check 10:50, after work started at 06:00; Nozzle check 18:59 at startup (18:00)
-• P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15)
-• P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37)
+• Rhotex 325-1 - MX: Over 24 hrs without a purge (last one Nov 6 22:19); Purge put off, no purge ran; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect
+• Rhotex 325-2 - MX: Still open: Dust/Air Filter Inspect (asked since Nov 6)
+• P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect
+• P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); No nozzle check after startup at 23:00; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: Weekly & longer 32% (6 of 19), 13 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 100% (22 of 22) · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: Daily & every shift 100% (17 of 17) · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: Daily & every shift 100% (17 of 17) · Weekly & longer 69% (45 of 65), 20 overdue; 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
