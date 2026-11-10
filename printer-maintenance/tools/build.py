@@ -37,7 +37,7 @@ PURGE = "Maintenance Purge"
 #    (check hour - GRACE_H); the grace covers power-on, initializing and ink heating.
 #  - Purge every 24 hours, all plants: late when the printer worked more than 24 hours after its last purge, not
 #    counting the GRACE_H hour(s) before the next purge. Idle time doesn't count until the printer works again.
-# For reference, the Durst manuals (Rhotex 325 §H.14.2.1, P5 Tex §H.17.2.1) ask for a purge cycle "daily before starting
+# For reference, the Durst manuals (Rhotex 325 §H.14.2.1, P5 Tex §H.17.2.1, P5 350 §H.15.2.1) ask for a purge cycle "daily before starting
 # work (once every 24 hours in case of 24-hour operation)" followed by a test image.
 GRACE_H = 1
 IDLE_H = 4
