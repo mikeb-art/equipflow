@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Sun Nov 8",
+     "title": "Previous 24 hrs maintenance: Mon Nov 9",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325 - CA: Over 24 hrs without a purge (last one Nov 6 09:32); No nozzle check after startup at 19:00; Purge put off, no purge ran"
+         "text": "\u2022 Rhotex 325 - CA: Put off: Inspect Print Plane, Stretch Roller Inspect"
         }
        }
       ]
@@ -23,7 +23,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Nothing put off or open"
+         "text": "\u2022 P5-350 - PA: Nozzle check 07:58 at startup (07:00); No nozzle check after startup at 14:00<br>\u2022 P5 Tex - PA: Over 24 hrs without a purge (last one Nov 4 17:50); No nozzle check after startup at 11:00; Put off: Inspect Print Plane, Stretch Roller Inspect, Dust/Air Filter Inspect, Aerosol Filter Inspect, Roller Inspect"
         }
        }
       ]
@@ -33,7 +33,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "\u2022 Rhotex 325-1 - MX: Over 24 hrs without a purge (last one Nov 6 22:19); Purge put off, no purge ran; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect<br>\u2022 Rhotex 325-2 - MX: Still open: Dust/Air Filter Inspect (asked since Nov 6)<br>\u2022 P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect<br>\u2022 P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); No nozzle check after startup at 23:00; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect"
+         "text": "\u2022 Rhotex 325-1 - MX: Purged 06:51, 57 hrs after the last one<br>\u2022 Rhotex 325-2 - MX: No nozzle check after startup at 07:00; No nozzle check after startup at 13:00<br>\u2022 P5-350 - MX: Nozzle check 06:36 at startup (06:00); Nozzle check 16:17, after work started at 14:00; Nozzle check 22:04 at startup (22:00)<br>\u2022 P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Nozzle check 07:36, after work started at 05:00; No nozzle check after startup at 23:00; Put off: Inspect Print Plane, Stretch Roller Inspect, Dust/Air Filter Inspect, Aerosol Filter Inspect<br>\u2022 P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); No nozzle check after startup at 22:00"
         }
        }
       ]
@@ -43,7 +43,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261109135416.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261110135254.png",
          "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 100%, weekly & longer 69%"
         }
        },
