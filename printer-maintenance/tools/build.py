@@ -228,6 +228,43 @@ def purge_status(days, times, hours):
     return out
 
 
+def _starts(act):
+    """Startup hours: first activity after IDLE_H+ hours with nothing logged."""
+    aset = set(act)
+    return [h for h in act if not any(h - k in aset for k in range(1, IDLE_H + 1))]
+
+
+def purge_start_warning(days, times, hours, pcodes):
+    """Warning only (doesn't change the 24-hour purge code): the Durst manuals ask for the purge daily before starting
+    work. Checks the first startup of each day. Returns one text per day, "" when fine or not applicable (no startup,
+    no purge-time data, or already flagged as over 24 hrs without a purge)."""
+    act = _active_hours(hours)
+    starts = _starts(act)
+    purges = sorted(_abs_min(d, t) for d, ts in times.items() for t in ts)
+    first_data = min(hours) if hours else None
+    out = []
+    for day, pc in zip(days, pcodes):
+        k = day.isoformat()
+        o = (day - dt.date(2000, 1, 1)).days
+        st_ = [h for h in starts if o * 24 <= h < o * 24 + 24]
+        if first_data is None or k < first_data or k not in hours or not st_ or pc in "mnu":
+            out.append(""); continue
+        s0 = st_[0]
+        if any(o * 1440 <= x < s0 * 60 - 60 for x in purges):   # already purged earlier that day (e.g. a run from overnight)
+            out.append(""); continue
+        nxt_start = next((h for h in starts if h > s0), 10 ** 9)
+        hh = f"{s0 % 24:02d}:00"
+        c = next((x for x in purges if s0 * 60 - 60 <= x < nxt_start * 60), None)
+        if c is None:
+            later = [x for x in purges if s0 * 60 <= x < (o + 1) * 1440]
+            out.append(f"No purge before work at {hh}" + (f" (purged {_fmt_min(later[0])[-5:]})" if later else ""))
+        elif any(h < c // 60 - GRACE_H for h in act if s0 <= h < nxt_start):
+            out.append(f"Purge {_fmt_min(c)[-5:]}, after work started at {hh}")
+        else:
+            out.append("")
+    return out
+
+
 def nozzle_status(days, ntimes, hours):
     """Nozzle check before work at each startup. One entry per day: [code, text]. code: g = every startup that day
     had its nozzle check before work, l = a check ran, but after work started, m = no check after a startup,
@@ -373,8 +410,10 @@ def main():
         # rec["sh"][day] = [purge code + nozzle-check code, [purge text, nozzle text]] (see purge_status, nozzle_status)
         ps = purge_status(days, ptimes.get(pid, {}), phours.get(pid, {}))
         ns = nozzle_status(days, ntimes.get(pid, {}), phours.get(pid, {}))
-        rec["sh"] = [[a_[0] + b_[0], [a_[1], b_[1]]] for a_, b_ in zip(ps, ns)]
-        for d, (code, _) in zip(days, rec["sh"]):
+        pw = purge_start_warning(days, ptimes.get(pid, {}), phours.get(pid, {}), [x[0] for x in ps])
+        # third element (only when set): warning that the purge didn't come before work at the day's first startup
+        rec["sh"] = [[a_[0] + b_[0], [a_[1], b_[1]]] + ([w_] if w_ else []) for a_, b_, w_ in zip(ps, ns, pw)]
+        for d, (code, *_) in zip(days, rec["sh"]):
             if d.weekday() < 5:
                 st["sh_active"] += code[0] in "glm"; st["sh_ok"] += code[0] == "g"
                 st["nz_active"] += code[1] in "glm"; st["nz_ok"] += code[1] == "g"
@@ -437,8 +476,10 @@ def main():
             t, pc, tp, sc, _ = p["d"][yi]
             off = [TASKS[int(k)] for k, v in t.items() if v[0] == "o"]
             parts = []
-            code, txt = p["sh"][yi]
+            code, txt = p["sh"][yi][:2]
             parts += [t for c, t in zip(code, txt) if c in "lm"]
+            if len(p["sh"][yi]) > 2:
+                parts.insert(1 if code[0] in "lm" else 0, p["sh"][yi][2])
             if PURGE in off: parts.append("Purge put off, no purge ran")
             rest = [x for x in off if x != PURGE]
             if rest: parts.append("Put off: " + ", ".join(rest))

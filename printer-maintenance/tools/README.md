@@ -33,7 +33,7 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
    - checks purges and nozzle checks against Durst Analytics times (WS Display policy, Nov 2026): a nozzle check
      (test pattern) before work at every startup (first activity after `IDLE_H` (4) quiet hours), and a purge cycle at
      least once every 24 hours, counted from the last purge (late when the printer kept working past that, not counting
-     the `GRACE_H` (1) hour before the next purge). Nozzle-check times (`PN` lines) need pull script 1.6 or later,
+     the `GRACE_H` (1) hour before the next purge). Warning only (not pass/fail): the day's first startup without a purge before work is listed as "No purge before work at HH:00" or "Purge HH:MM, after work started at HH:00" (Durst manuals: purge daily before starting work). Nozzle-check times (`PN` lines) need pull script 1.6 or later,
    - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
      and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
      `data/other.json`, the chart to `data/charts/other-<pull time>.png` (a new file per post, so
