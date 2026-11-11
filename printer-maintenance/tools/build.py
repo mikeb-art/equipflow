@@ -51,7 +51,7 @@ def parse_dump(text):
     d0, d1, pulled = lines[0][2:].split("|")
     tasks = lines[1][2:].split(";")
     events, purges = {}, {}
-    ptimes, phours, ntimes = {}, {}, {}
+    ptimes, phours, ntimes, whours, jhours = {}, {}, {}, {}, {}
     for l in lines[2:]:
         key, val = l.split("=", 1)
         if key.startswith("PT"):   # purge cycle times, HHMM + c|t, printer-local
@@ -60,6 +60,10 @@ def parse_dump(text):
             ntimes[key[2:]] = {x.split(":")[0]: [t for t in x.split(":")[1].split(".") if t] for x in val.split()}
         elif key.startswith("PH"):   # hex mask of the hours the printer logged anything
             phours[key[2:]] = {x.split(":")[0]: int(x.split(":")[1], 16) for x in val.split()}
+        elif key.startswith("PW"):   # hex mask of work hours: printing, head tests, loading media (pull 1.7+)
+            whours[key[2:]] = {x.split(":")[0]: int(x.split(":")[1], 16) for x in val.split()}
+        elif key.startswith("PJ"):   # hex mask of the hours an order job was printing (pull 1.7+)
+            jhours[key[2:]] = {x.split(":")[0]: int(x.split(":")[1], 16) for x in val.split()}
         elif key.startswith("PC"):
             pid = key[2:]
             purges[pid] = {x.split(":")[0]: int(x.split(":")[1]) for x in val.split()}
@@ -74,7 +78,7 @@ def parse_dump(text):
                     m[(tasks[int(a)], kind)] = int(c)
                 days[day] = m
             events[sysn] = (pid, days)
-    return d0, d1, pulled, tasks, events, purges, ptimes, phours, ntimes
+    return d0, d1, pulled, tasks, events, purges, ptimes, phours, ntimes, whours, jhours
 
 
 def load_log(path):
@@ -101,7 +105,7 @@ def load_log(path):
 KEEP_DAYS = 91
 
 
-def serialize(d0, d1, pulled, events, purges, ptimes=None, phours=None, ntimes=None):
+def serialize(d0, d1, pulled, events, purges, ptimes=None, phours=None, ntimes=None, whours=None, jhours=None):
     """Inverse of parse_dump (task names re-indexed)."""
     tasks = []
     def ti(t):
@@ -120,16 +124,18 @@ def serialize(d0, d1, pulled, events, purges, ptimes=None, phours=None, ntimes=N
     pts = [f"PT{pid}=" + " ".join(f"{d}:{'.'.join(t)}" for d, t in sorted(v.items()) if t) for pid, v in (ptimes or {}).items()]
     phs = [f"PH{pid}=" + " ".join(f"{d}:{m:x}" for d, m in sorted(v.items())) for pid, v in (phours or {}).items()]
     pns = [f"PN{pid}=" + " ".join(f"{d}:{'.'.join(t)}" for d, t in sorted(v.items())) for pid, v in (ntimes or {}).items()]
-    return "\n".join([f"D={d0}|{d1}|{pulled}", "T=" + ";".join(tasks)] + lines + pcs + pts + phs + pns) + "\n"
+    pws = [f"PW{pid}=" + " ".join(f"{d}:{m:x}" for d, m in sorted(v.items())) for pid, v in (whours or {}).items()]
+    pjs = [f"PJ{pid}=" + " ".join(f"{d}:{m:x}" for d, m in sorted(v.items())) for pid, v in (jhours or {}).items()]
+    return "\n".join([f"D={d0}|{d1}|{pulled}", "T=" + ";".join(tasks)] + lines + pcs + pts + phs + pns + pws + pjs) + "\n"
 
 
 def merge_history(hist_text, new):
     """Replace every day the new pull covers, keep older history, trim to KEEP_DAYS."""
-    nd0, nd1, npulled, _, nev, npc, npt, nph, npn = new
+    nd0, nd1, npulled, _, nev, npc, npt, nph, npn, npw, npj = new
     if not hist_text:
-        hd0, hev, hpc, hpt, hph, hpn = nd0, {}, {}, {}, {}, {}
+        hd0, hev, hpc, hpt, hph, hpn, hpw, hpj = nd0, {}, {}, {}, {}, {}, {}, {}
     else:
-        hd0, _, _, _, hev, hpc, hpt, hph, hpn = parse_dump(hist_text)
+        hd0, _, _, _, hev, hpc, hpt, hph, hpn, hpw, hpj = parse_dump(hist_text)
     end = dt.date.fromisoformat(nd1)
     start = max(dt.date.fromisoformat(min(hd0, nd0)), end - dt.timedelta(days=KEEP_DAYS - 1))
     keep = lambda d: start.isoformat() <= d <= nd1
@@ -152,11 +158,25 @@ def merge_history(hist_text, new):
             out[pid] = v
         return out
     # Days before the per-shift pull existed have no PH entry: those shifts show as "no data", not as missed.
-    return start.isoformat(), nd1, npulled, ev, pc, mergeby(hpt, npt), mergeby(hph, nph), mergeby(hpn, npn)
+    # PW / PJ (work and printing hours) come from pull 1.7+. A day without them falls back to PH (any message logged).
+    return (start.isoformat(), nd1, npulled, ev, pc, mergeby(hpt, npt), mergeby(hph, nph), mergeby(hpn, npn),
+            mergeby(hpw, npw), mergeby(hpj, npj))
 
 
 def hm(s):
     return int(s[:2]) * 60 + int(s[2:4]) if s[2:3] != ":" else int(s[:2]) * 60 + int(s[3:5])
+
+
+def work_hours(phours, whours, jhours):
+    """Per day: (work mask, printing mask). Days pulled with pull 1.7+ use the work hours (printing, head tests, loading
+    media) and the printing hours (order jobs); older days fall back to "any message logged" for both."""
+    work, prod = {}, {}
+    for d in set(phours) | set(whours):
+        if d in whours:
+            work[d], prod[d] = whours[d], jhours.get(d, 0)
+        else:
+            work[d] = prod[d] = phours[d]
+    return work, prod
 
 
 def _active_hours(hours):
@@ -234,11 +254,12 @@ def _starts(act):
     return [h for h in act if not any(h - k in aset for k in range(1, IDLE_H + 1))]
 
 
-def purge_start_warning(days, times, hours, pcodes):
+def purge_start_warning(days, times, hours, pcodes, prod=None):
     """Warning only (doesn't change the 24-hour purge code): the Durst manuals ask for the purge daily before starting
     work. Checks the first startup of each day. Returns one text per day, "" when fine or not applicable (no startup,
     no purge-time data, or already flagged as over 24 hrs without a purge)."""
     act = _active_hours(hours)
+    pact = _active_hours(prod) if prod is not None else act
     starts = _starts(act)
     purges = sorted(_abs_min(d, t) for d, ts in times.items() for t in ts)
     first_data = min(hours) if hours else None
@@ -249,6 +270,10 @@ def purge_start_warning(days, times, hours, pcodes):
         st_ = [h for h in starts if o * 24 <= h < o * 24 + 24]
         if first_data is None or k < first_data or k not in hours or not st_ or pc in "mnu":
             out.append(""); continue
+        # the day's first startup that went on to print (a run with only a head test or loading needs no purge first)
+        st_ = [h for h in st_ if any(h <= x < next((q for q in starts if q > h), 10 ** 9) for x in pact)]
+        if not st_:
+            out.append(""); continue
         s0 = st_[0]
         if any(o * 1440 <= x < s0 * 60 - 60 for x in purges):   # already purged earlier that day (e.g. a run from overnight)
             out.append(""); continue
@@ -258,18 +283,19 @@ def purge_start_warning(days, times, hours, pcodes):
         if c is None:
             later = [x for x in purges if s0 * 60 <= x < (o + 1) * 1440]
             out.append(f"No purge before work at {hh}" + (f" (purged {_fmt_min(later[0])[-5:]})" if later else ""))
-        elif any(h < c // 60 - GRACE_H for h in act if s0 <= h < nxt_start):
+        elif any(h < c // 60 - GRACE_H for h in pact if s0 <= h < nxt_start):
             out.append(f"Purge {_fmt_min(c)[-5:]}, after work started at {hh}")
         else:
             out.append("")
     return out
 
 
-def nozzle_status(days, ntimes, hours):
+def nozzle_status(days, ntimes, hours, prod=None):
     """Nozzle check before work at each startup. One entry per day: [code, text]. code: g = every startup that day
     had its nozzle check before work, l = a check ran, but after work started, m = no check after a startup,
     n = no startup that day (printer idle, or still running from the day before), u = no nozzle-check data yet."""
     act = _active_hours(hours)
+    pact = _active_hours(prod) if prod is not None else act   # printing hours: "work started" before the check
     aset = set(act)
     checks = sorted(_abs_min(d, t) for d, ts in ntimes.items() for t in ts)
     first_data = min(ntimes) if ntimes else None
@@ -286,16 +312,18 @@ def nozzle_status(days, ntimes, hours):
         worst, txt = "g", []
         for s0 in st_:
             nxt_start = next((h for h in starts if h > s0), 10 ** 9)
+            if not any(s0 <= h < nxt_start for h in pact):
+                continue   # a run with no printing (head test, loading, setup only): no nozzle check needed
             c = next((x for x in checks if s0 * 60 - 60 <= x < nxt_start * 60), None)   # check in this run (or the hour before)
             hh = f"{s0 % 24:02d}:00"
             if c is None:
                 worst = "m"; txt.append(f"No nozzle check after startup at {hh}")
-            elif any(h < c // 60 - GRACE_H for h in act if s0 <= h < nxt_start):
+            elif any(h < c // 60 - GRACE_H for h in pact if s0 <= h < nxt_start):
                 worst = worst if worst == "m" else "l"
                 txt.append(f"Nozzle check {_fmt_min(c)[-5:]}, after work started at {hh}")
             else:
                 txt.append(f"Nozzle check {_fmt_min(c)[-5:]} at startup ({hh})")
-        out.append([worst, "; ".join(txt)])
+        out.append([worst, "; ".join(txt)] if txt else ["n", ""])
     return out
 
 
@@ -316,12 +344,12 @@ def main():
     new = parse_dump(open(a.dump).read())
     import os
     hist = open(a.history).read() if a.history and os.path.exists(a.history) else ""
-    d0, d1, pulled, events, purges, ptimes, phours, ntimes = merge_history(hist, new)
-    merged_text = serialize(d0, d1, pulled, events, purges, ptimes, phours, ntimes)
+    d0, d1, pulled, events, purges, ptimes, phours, ntimes, whours, jhours = merge_history(hist, new)
+    merged_text = serialize(d0, d1, pulled, events, purges, ptimes, phours, ntimes, whours, jhours)
     if a.history:
         os.makedirs(os.path.dirname(a.history) or ".", exist_ok=True)
         open(a.history, "w").write(merged_text)
-    _, _, _, tasks, events, purges, ptimes, phours, ntimes = parse_dump(merged_text)
+    _, _, _, tasks, events, purges, ptimes, phours, ntimes, whours, jhours = parse_dump(merged_text)
     start, end = dt.date.fromisoformat(d0), dt.date.fromisoformat(d1)
     days = [start + dt.timedelta(i) for i in range((end - start).days + 1)]
     TASKS = [t for t in tasks if t not in ACT]
@@ -408,9 +436,10 @@ def main():
         rec = {"id": int(pid), "plant": plant, "name": name, "model": model,
                "serial": ser, "sys": sysn, "d": rows, "last": last}
         # rec["sh"][day] = [purge code + nozzle-check code, [purge text, nozzle text]] (see purge_status, nozzle_status)
-        ps = purge_status(days, ptimes.get(pid, {}), phours.get(pid, {}))
-        ns = nozzle_status(days, ntimes.get(pid, {}), phours.get(pid, {}))
-        pw = purge_start_warning(days, ptimes.get(pid, {}), phours.get(pid, {}), [x[0] for x in ps])
+        wk, pr = work_hours(phours.get(pid, {}), whours.get(pid, {}), jhours.get(pid, {}))
+        ps = purge_status(days, ptimes.get(pid, {}), pr)   # purge every 24 hrs while printing
+        ns = nozzle_status(days, ntimes.get(pid, {}), wk, pr)
+        pw = purge_start_warning(days, ptimes.get(pid, {}), wk, [x[0] for x in ps], pr)
         # third element (only when set): warning that the purge didn't come before work at the day's first startup
         rec["sh"] = [[a_[0] + b_[0], [a_[1], b_[1]]] + ([w_] if w_ else []) for a_, b_, w_ in zip(ps, ns, pw)]
         for d, (code, *_) in zip(days, rec["sh"]):
