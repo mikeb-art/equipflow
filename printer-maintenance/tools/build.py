@@ -179,6 +179,16 @@ def work_hours(phours, whours, jhours):
     return work, prod
 
 
+def clock_hours(plant, work, days):
+    """Hours that count toward the 24-hour purge and head-test clock (WS Display, Nov 11 2026). MX runs 24 hours a day:
+    every hour counts, every day, even for a printer that is down (heads must keep flowing). CA and PA: runtime only,
+    i.e. the work hours (printing, head tests, loading media), so a weekend counts only when the plant worked it."""
+    if plant != "MX" or not work:
+        return work
+    first = min(work)
+    return {d.isoformat(): 0xFFFFFF for d in days if d.isoformat() >= first}
+
+
 def _active_hours(hours):
     """Absolute printer-local hours (days since 2000-01-01 * 24 + hour) with logged activity."""
     base = dt.date(2000, 1, 1)
@@ -198,7 +208,7 @@ def _fmt_min(m):
     return f"{d.strftime('%b %-d')} {m % 1440 // 60:02d}:{m % 60:02d}"
 
 
-def purge_status(days, times, hours):
+def purge_status(days, times, hours, what="purge"):
     """Purge every 24 hours. One entry per day: [code, text]. code: g = on time, l = purged, but more than 24 hrs
     after the last one, m = printer worked over 24 hrs past its last purge and no purge that day, n = no activity,
     u = no data (before purge times were pulled).
@@ -229,10 +239,11 @@ def purge_status(days, times, hours):
             if over:
                 since = f"last one {_fmt_min(lastp)}" if known else f"none since {_fmt_min(lastp)[:-6]}"
                 if nxt is None:
-                    missing = f"Over 24 hrs without a purge ({since})"
+                    missing = f"Over 24 hrs without a {what} ({since})"
                 else:
-                    late.append(f"Purged {_fmt_min(nxt)[-5:]}, {round((nxt - lastp) / 60)} hrs after the last one"
-                                if known else f"Purged {_fmt_min(nxt)[-5:]}, first since {_fmt_min(lastp)[:-6]}")
+                    did = "Purged" if what == "purge" else what[0].upper() + what[1:]
+                    late.append(f"{did} {_fmt_min(nxt)[-5:]}, {round((nxt - lastp) / 60)} hrs after the last one"
+                                if known else f"{did} {_fmt_min(nxt)[-5:]}, first since {_fmt_min(lastp)[:-6]}")
             if nxt is None:
                 break
             lastp, known = nxt, True
@@ -243,8 +254,9 @@ def purge_status(days, times, hours):
         elif late or missing:
             out.append(["l", "; ".join(late + ([missing] if missing else []))])
         else:
-            out.append(["g", f"Purged {_fmt_min(day_p[0])[-5:]}" + (f" (+{len(day_p) - 1} more)" if len(day_p) > 1 else "") if day_p
-                        else f"Within 24 hrs of the last purge ({_fmt_min(lastp)})"])
+            did = "Purged" if what == "purge" else what[0].upper() + what[1:]
+            out.append(["g", f"{did} {_fmt_min(day_p[0])[-5:]}" + (f" (+{len(day_p) - 1} more)" if len(day_p) > 1 else "") if day_p
+                        else f"Within 24 hrs of the last {what} ({_fmt_min(lastp)})"])
     return out
 
 
@@ -437,13 +449,19 @@ def main():
                "serial": ser, "sys": sysn, "d": rows, "last": last}
         # rec["sh"][day] = [purge code + nozzle-check code, [purge text, nozzle text]] (see purge_status, nozzle_status)
         wk, pr = work_hours(phours.get(pid, {}), whours.get(pid, {}), jhours.get(pid, {}))
-        ps = purge_status(days, ptimes.get(pid, {}), pr)   # purge every 24 hrs while printing
-        ns = nozzle_status(days, ntimes.get(pid, {}), wk, pr)
+        ck = clock_hours(plant, wk, days)
+        ps = purge_status(days, ptimes.get(pid, {}), ck)   # purge every 24 hrs of runtime (MX: every 24 hrs)
+        ns = nozzle_status(days, ntimes.get(pid, {}), wk, pr)   # nozzle check at each startup, before printing
+        # head test (nozzle check) every 24 hrs of runtime too; the day's nozzle code is the worse of the two
+        n24 = purge_status(days, ntimes.get(pid, {}), ck, "nozzle check")
+        RANK = {"m": 4, "l": 3, "g": 2, "n": 1, "u": 0}
+        ns = [[max(a_[0], b_[0], key=RANK.get), "; ".join(x for x in (b_[1] if b_[0] in "lm" else "", a_[1]) if x)]
+              for a_, b_ in zip(ns, n24)]
         pw = purge_start_warning(days, ptimes.get(pid, {}), wk, [x[0] for x in ps], pr)
         # third element (only when set): warning that the purge didn't come before work at the day's first startup
         rec["sh"] = [[a_[0] + b_[0], [a_[1], b_[1]]] + ([w_] if w_ else []) for a_, b_, w_ in zip(ps, ns, pw)]
         for d, (code, *_) in zip(days, rec["sh"]):
-            if d.weekday() < 5:
+            if d.weekday() < 5 or plant == "MX":   # MX is a 24-hour, 7-day operation
                 st["sh_active"] += code[0] in "glm"; st["sh_ok"] += code[0] == "g"
                 st["nz_active"] += code[1] in "glm"; st["nz_ok"] += code[1] == "g"
         out["printers"].append(rec)

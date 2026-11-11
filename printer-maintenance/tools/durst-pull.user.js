@@ -173,8 +173,14 @@
       };
       for (const r of jobs) {
         if (!r.startTime || !(r.numberOfPrintsDone > 0 || r.jobState === "Done")) continue;   // held / never printed
-        if (r.jobCategoryId === 1 && r.jobId) markSpan(jh, r.startTime, r.endTime);
+        // test-pattern jobs ("Test pattern type 9 Nozzle Check" …) are head tests; other Order (category 1) jobs are printing.
+        // Some printers send order jobs with job ID 0 (Rhotex 325-2 MX), so the ID is not used.
+        const isTest = r.jobCategoryId !== 1 || /test ?pattern|nozzle/i.test(r.jobTitle || "");
+        if (!isTest) markSpan(jh, r.startTime, r.endTime);
         markSpan(wh, r.startTime, r.endTime);
+        // test-pattern jobs are nozzle checks too (some printers log no test-pattern message for them)
+        if (/test ?pattern|nozzle/i.test(r.jobTitle || ""))
+          (ntimes[dayOf(r.startTime, p.timeZone)] = ntimes[dayOf(r.startTime, p.timeZone)] || []).push(hmOf(r.startTime, p.timeZone));
       }
       const LOAD = /^(6604|6602|9035|8320|9029|9030|29028)$/;
       for (const r of all) {
@@ -201,7 +207,8 @@
       pc.push("PC" + p.id + "=" + Object.keys(purge).sort().map(d => d + ":" + purge[d]).join(" "));
       pt.push("PT" + p.id + "=" + Object.keys(ptimes).sort().map(d => d + ":" + [...new Set(ptimes[d])].sort().join(".")).join(" "));
       // every active day gets a PN entry (empty = no nozzle check that day), so "none" differs from "not pulled"
-      pn.push("PN" + p.id + "=" + Object.keys(hours).sort().map(d => d + ":" + [...new Set(ntimes[d] || [])].sort().join(".")).join(" "));
+      const nd = [...new Set([...Object.keys(hours), ...Object.keys(ntimes)])].filter(d => d >= FROM && d <= TO).sort();
+      pn.push("PN" + p.id + "=" + nd.map(d => d + ":" + [...new Set(ntimes[d] || [])].sort().join(".")).join(" "));
       ph.push("PH" + p.id + "=" + Object.keys(hours).sort().map(d => d + ":" + hours[d].toString(16)).join(" "));
       // every pulled day gets a PW / PJ entry (0 = no work that day), so "no work" differs from "pulled before v1.7"
       const wd = [...new Set([...Object.keys(hours), ...Object.keys(wh)])].filter(d => d >= FROM && d <= TO).sort();
