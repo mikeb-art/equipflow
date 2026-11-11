@@ -510,14 +510,19 @@ def main():
     os.makedirs(a.charts, exist_ok=True)
     name = f"other-{ver}.png"
     om.chart(ost, os.path.join(a.charts, name))
+    import printer_grid as pg
+    grid = pg.rows_for_day(out, TASKS, yi, PURGE)
+    gname = f"printers-{ver}.png"
+    pg.chart(grid, f"Printers yesterday: {ydate.strftime('%a %b %-d')}", os.path.join(a.charts, gname))
     cutoff = (today - dt.timedelta(120)).strftime("%Y%m%d")
     for f in os.listdir(a.charts):
-        m = re.fullmatch(r"other-(\d{8})\d*\.png", f)
+        m = re.fullmatch(r"(?:other|printers)-(\d{8})\d*\.png", f)
         if m and m.group(1) < cutoff:
             os.remove(os.path.join(a.charts, f))
     img = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.charts)}/{name}"
+    gimg = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.charts)}/{gname}"
     title = f"Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}"
-    json.dump(om.card(title, printer_lines, ost, img), open(a.card, "w"), indent=1)
+    json.dump(om.card(title, printer_lines, ost, img, gimg), open(a.card, "w"), indent=1)
     print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}, other maintenance as of {today}: "
           + ", ".join(f"{p} {v['pct']}%" for p, v in ost["plants"].items()))
 

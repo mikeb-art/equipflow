@@ -182,13 +182,29 @@ def _esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def card(title, printer_lines, st, image_url):
-    """Google Chat cardsV2 message. printer_lines: {plant: [line, ...]}."""
+def card(title, printer_lines, st, image_url, grid_url=None, attention=None):
+    """Google Chat cardsV2 message. printer_lines: {plant: [line, ...]}. grid_url: printer status grid picture
+    (printer_grid.py); with it, the per-printer text moves into a collapsed "Details" section under the picture."""
     sections = []
-    for p in PLANTS:
-        lines = printer_lines.get(p) or ["Nothing put off or open"]
-        sections.append({"header": f"{p} printers",
-                         "widgets": [{"textParagraph": {"text": "<br>".join("• " + _esc(x) for x in lines)}}]})
+    if grid_url:
+        w = [{"image": {"imageUrl": grid_url, "altText": "Printer status yesterday: purge, nozzle check and put-off "
+                        "tasks per printer, green on time, amber late, red missed"}}]
+        if attention:
+            w.append({"textParagraph": {"text": "<font color=\"#d1352b\"><b>Needs attention</b></font><br>"
+                                                + "<br>".join("• " + _esc(x) for x in attention)}})
+        w.append({"buttonList": {"buttons": [{"text": f"{p} printers", "onClick": {"openLink": {"url": f"{SITE}/printer-maintenance/#{p}"}}}
+                                             for p in PLANTS]}})
+        sections.append({"header": "Printers", "widgets": w})
+        det = []
+        for p in PLANTS:
+            lines = printer_lines.get(p) or ["Nothing put off or open"]
+            det.append({"textParagraph": {"text": f"<b>{p}</b><br>" + "<br>".join("• " + _esc(x) for x in lines)}})
+        sections.append({"header": "Details by printer", "collapsible": True, "uncollapsibleWidgetsCount": 0, "widgets": det})
+    else:
+        for p in PLANTS:
+            lines = printer_lines.get(p) or ["Nothing put off or open"]
+            sections.append({"header": f"{p} printers",
+                             "widgets": [{"textParagraph": {"text": "<br>".join("• " + _esc(x) for x in lines)}}]})
     w = []
     if image_url:
         w.append({"image": {"imageUrl": image_url, "altText": "Other maintenance up to date by location: " + ", ".join(
@@ -212,8 +228,9 @@ def card(title, printer_lines, st, image_url):
         w.append({"textParagraph": {"text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br>" + "<br>".join(nr)}})
     w.append({"buttonList": {"buttons": [{"text": f"{p} other maintenance", "onClick": {"openLink": {"url": f"{SITE}/maintenance/#{p}"}}}
                                          for p in PLANTS]}})
-    w.append({"buttonList": {"buttons": [{"text": f"{p} printers", "onClick": {"openLink": {"url": f"{SITE}/printer-maintenance/#{p}"}}}
-                                         for p in PLANTS]}})
+    if not grid_url:
+        w.append({"buttonList": {"buttons": [{"text": f"{p} printers", "onClick": {"openLink": {"url": f"{SITE}/printer-maintenance/#{p}"}}}
+                                             for p in PLANTS]}})
     sections.append({"header": "Other maintenance status this morning", "widgets": w})
     return {"cardsV2": [{"cardId": "printer-maintenance-daily", "card": {
         "header": {"title": title, "subtitle": "From Durst Analytics and the Maintenance Log"}, "sections": sections}}]}

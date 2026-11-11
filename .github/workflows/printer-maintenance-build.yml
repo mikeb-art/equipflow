@@ -119,23 +119,26 @@ jobs:
             return 1
           }
           card=printer-maintenance/data/card.json
-          # The card's chart picture (its own dated file per post) is served by the EquipFlow site; wait (up to 4 min)
-          # until Vercel has deployed it.
-          url=$(jq -r '.. | objects | select(has("imageUrl")) | .imageUrl' "$card" | head -1)
-          png="printer-maintenance/data/charts/$(basename "${url%%\?*}")"
-          want=$(sha256sum "$png" | cut -d' ' -f1)
-          live=no
-          if [ -n "$url" ]; then
+          # The card's pictures (printer status grid and Other maintenance chart, their own dated files per post) are
+          # served by the EquipFlow site; wait (up to 4 min) until Vercel has deployed them.
+          live=yes
+          for url in $(jq -r '.. | objects | select(has("imageUrl")) | .imageUrl' "$card"); do
+            png="printer-maintenance/data/charts/$(basename "${url%%\?*}")"
+            want=$(sha256sum "$png" | cut -d' ' -f1)
+            ok=no
             for i in $(seq 1 24); do
               got=$(curl -sfL "$url" | sha256sum | cut -d' ' -f1) || got=
-              [ "$got" = "$want" ] && { live=yes; break; }
+              [ "$got" = "$want" ] && { ok=yes; break; }
               sleep 10
             done
-          fi
-          echo "chart picture live: $live"
+            echo "picture $(basename "$png") live: $ok"
+            [ "$ok" = yes ] || live=no
+          done
           if [ "$live" != yes ]; then
-            echo "::warning::Chart picture not live on the site; posting the card without it."
-            jq '(.cardsV2[0].card.sections[].widgets) |= map(select(has("image") | not))' "$card" > card-post.json
+            echo "::warning::A picture is not live on the site; posting the card without pictures (details section open)."
+            jq '(.cardsV2[0].card.sections[].widgets) |= map(select(has("image") | not))
+                | (.cardsV2[0].card.sections[] | select(has("collapsible"))) |= del(.collapsible, .uncollapsibleWidgetsCount)' \
+              "$card" > card-post.json
           else
             cp "$card" card-post.json
           fi
