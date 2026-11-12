@@ -1,4 +1,4 @@
 {
- "asof": "2026-11-12T13:51:03.892Z",
- "text": "*Purge check, Thu Nov 12, 5:51 AM Pacific: no purge in the last 24 hrs*\n*MX* <users/100639998660371440140>: Rhotex 325-2 (last purge Nov 9 07:55); P5 Tex-2 (last purge Nov 5 12:37)\ncc <users/112042970564499422793>\nPurge now, then a nozzle check. Details: https://equipflow-lemon.vercel.app/printer-maintenance/"
+ "asof": "2026-11-12T20:21:05.996Z",
+ "text": "*Purge check, Thu Nov 12, 12:21 PM Pacific: no purge in the last 24 hrs*\n*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 10 14:11)\n*MX* <users/100639998660371440140>: Rhotex 325-2 (last purge Nov 9 07:55); P5 Tex-2 (last purge Nov 5 12:37)\nPurge now, then a nozzle check. Details: https://equipflow-lemon.vercel.app/printer-maintenance/"
 }
