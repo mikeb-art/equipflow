@@ -4,6 +4,10 @@
 # Job "build" rebuilds and commits right away. Job "post" then waits until 7:00 AM Pacific (PST or PDT) before posting,
 # or posts at once if it is already past 7:00 or the run was started by hand.
 #
+# Midday purge check: a second scheduled pull each day is pushed with "midday" in its commit message (or run by hand with
+# "Midday" ticked). The build then refreshes the page and history only, and "post" sends just the printers that have gone
+# over 24 hours without a purge, tagged to each plant's print lead, at once. Nothing is posted when there are none.
+#
 # Secrets (Settings > Secrets and variables > Actions), never stored in the repo:
 #   GOOGLE_SA_KEY          JSON key of a Google service account with Viewer access to the Machine Maintenance Log
 #   PRINTING_CHAT_WEBHOOK  Google Chat webhook of the Printing space
@@ -19,6 +23,13 @@ on:
         description: "Post the reminder to the Printing space"
         type: boolean
         default: true
+      midday:
+        description: "Midday purge check (post only printers over 24 hrs without a purge)"
+        type: boolean
+        default: false
+
+env:
+  MIDDAY: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, 'midday')) || inputs.midday == true }}
 
 concurrency:
   group: printer-maintenance-build
@@ -49,7 +60,9 @@ jobs:
       - name: Build page, history, reminder and card
         run: |
           pip install --quiet matplotlib
-          out=$(python3 printer-maintenance/tools/build.py printer-maintenance/data/pull.txt "$RUNNER_TEMP/log.json")
+          extra=""
+          [ "$MIDDAY" = "true" ] && extra="--midday printer-maintenance/data/midday.json"
+          out=$(python3 printer-maintenance/tools/build.py printer-maintenance/data/pull.txt "$RUNNER_TEMP/log.json" $extra)
           echo "$out"
           echo "$out" | grep -q '^ok: 12 printers' || { echo "::error::Expected 'ok: 12 printers', got: $out"; exit 1; }
 
@@ -58,6 +71,7 @@ jobs:
         run: |
           f="printer-maintenance/index.html printer-maintenance/data/history.txt printer-maintenance/data/reminder.txt"
           f="$f printer-maintenance/data/card.json printer-maintenance/data/other.json printer-maintenance/data/charts"
+          f="$f printer-maintenance/data/midday.json"
           git add -N $f
           if git diff --quiet -- $f; then
             echo "Nothing changed."
@@ -83,7 +97,7 @@ jobs:
     timeout-minutes: 300
     steps:
       - name: Wait until 7:00 AM Pacific
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && env.MIDDAY != 'true'
         run: |
           now=$(date +%s)
           target=$(TZ=America/Los_Angeles date -d 'today 07:00' +%s)
@@ -118,6 +132,16 @@ jobs:
             head -c 300 resp.txt; echo
             return 1
           }
+          if [ "$MIDDAY" = "true" ]; then
+            # midday purge check: only printers over 24 hrs without a purge; nothing to post when there are none
+            if [ -z "$(jq -r '.text // ""' printer-maintenance/data/midday.json)" ]; then
+              echo "Midday purge check: every printer purged within 24 hrs; nothing posted."
+              exit 0
+            fi
+            jq '{text: .text}' printer-maintenance/data/midday.json > midday-post.json
+            post midday-post.json "midday purge check" || exit 1
+            exit 0
+          fi
           card=printer-maintenance/data/card.json
           # The card's pictures (printer status grid and Other maintenance chart, their own dated files per post) are
           # served by the EquipFlow site; wait (up to 4 min) until Vercel has deployed them.

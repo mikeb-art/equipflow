@@ -179,14 +179,58 @@ def work_hours(phours, whours, jhours):
     return work, prod
 
 
-def clock_hours(plant, work, days):
+def clock_hours(plant, work, days, pulled=None):
     """Hours that count toward the 24-hour purge and head-test clock (WS Display, Nov 11 2026). MX runs 24 hours a day:
     every hour counts, every day, even for a printer that is down (heads must keep flowing). CA and PA: runtime only,
-    i.e. the work hours (printing, head tests, loading media), so a weekend counts only when the plant worked it."""
+    i.e. the work hours (printing, head tests, loading media), so a weekend counts only when the plant worked it.
+    pulled (ISO time of the pull): MX hours stop at the last full hour before the pull, so the day of the pull is not
+    called overdue for hours that haven't happened yet."""
     if plant != "MX" or not work:
         return work
     first = min(work)
-    return {d.isoformat(): 0xFFFFFF for d in days if d.isoformat() >= first}
+    out = {d.isoformat(): 0xFFFFFF for d in days if d.isoformat() >= first}
+    if pulled:
+        now = dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Tijuana"))
+        for k in list(out):
+            if k == now.date().isoformat():
+                out[k] = (1 << now.hour) - 1
+            elif k > now.date().isoformat():
+                out[k] = 0
+    return out
+
+
+# Print leads tagged in the Printing space (Google Chat user IDs, same as rulers/tools/reminder.py).
+# Todd = PA, Christian = MX, Toan = CA and over all three plants (Mike, Nov 12 2026).
+LEADS = {"PA": ("Todd", "106179057914934309628"), "MX": ("Christian", "100639998660371440140"),
+         "CA": ("Toan", "112042970564499422793")}
+OVER_ALL = "CA"
+
+
+def purge_misses(out, di):
+    """{plant: [(printer, 'last purge Nov 5 12:37'), ...]} for day index di: printers with no purge in 24 hours
+    (purge_status code "m")."""
+    res = {}
+    for p in out["printers"]:
+        sh = p["sh"][di]
+        if sh[0][0] != "m":
+            continue
+        m = re.search(r"\((last one|none since) ([^)]+)\)", sh[1][0])
+        when = ("last purge " + m.group(2)) if m and m.group(1) == "last one" else ("none since " + m.group(2)) if m else "over 24 hrs"
+        res.setdefault(p["plant"], []).append((re.sub(r"\s+-\s+(CA|PA|MX)$", "", p["name"]), when))
+    return res
+
+
+def lead_lines(misses, title):
+    """Chat text addressed to each plant's print lead, misses only. Empty string when there are none."""
+    if not misses:
+        return ""
+    lines = [f"*{title}*"]
+    for plant in ("CA", "PA", "MX"):
+        if plant in misses:
+            lines.append(f"*{plant}* <users/{LEADS[plant][1]}>: " + "; ".join(f"{n} ({w})" for n, w in misses[plant]))
+    if any(pl != OVER_ALL for pl in misses) and OVER_ALL not in misses:
+        lines.append(f"cc <users/{LEADS[OVER_ALL][1]}>")
+    return "\n".join(lines)
 
 
 def _active_hours(hours):
@@ -351,6 +395,8 @@ def main():
     ap.add_argument("--card", default="printer-maintenance/data/card.json", help="Google Chat card message")
     ap.add_argument("--charts", default="printer-maintenance/data/charts", help="Folder for the dated Other maintenance charts")
     ap.add_argument("--other", default="printer-maintenance/data/other.json", help="Other maintenance status")
+    ap.add_argument("--midday", default="", help="Second check of the day: rebuild the page and history, write the "
+                    "purge-check Chat message to this file, and leave the morning reminder, card and charts alone")
     a = ap.parse_args()
 
     new = parse_dump(open(a.dump).read())
@@ -449,7 +495,7 @@ def main():
                "serial": ser, "sys": sysn, "d": rows, "last": last}
         # rec["sh"][day] = [purge code + nozzle-check code, [purge text, nozzle text]] (see purge_status, nozzle_status)
         wk, pr = work_hours(phours.get(pid, {}), whours.get(pid, {}), jhours.get(pid, {}))
-        ck = clock_hours(plant, wk, days)
+        ck = clock_hours(plant, wk, days, pulled)
         ps = purge_status(days, ptimes.get(pid, {}), ck)   # purge every 24 hrs of runtime (MX: every 24 hrs)
         ns = nozzle_status(days, ntimes.get(pid, {}), wk, pr)   # nozzle check at each startup, before printing
         # head test (nozzle check) every 24 hrs of runtime too; the day's nozzle code is the worse of the two
@@ -509,12 +555,27 @@ def main():
     html = html[:i] + json.dumps(out, separators=(",", ":")) + html[j:]
     open(a.html, "w").write(html)
 
+    pulled_pt = dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles"))
+    if a.midday:
+        # second check of the day: printers that have gone over 24 hours without a purge as of this pull
+        ti_ = out["days"].index(pulled_pt.date().isoformat()) if pulled_pt.date().isoformat() in out["days"] else len(days) - 1
+        miss = purge_misses(out, ti_)
+        text = lead_lines(miss, f"Purge check, {pulled_pt.strftime('%a %b %-d, %-I:%M %p')} Pacific: no purge in the last 24 hrs")
+        if text:
+            text += "\nPurge now, then a nozzle check. Details: https://equipflow-lemon.vercel.app/printer-maintenance/"
+        json.dump({"asof": pulled, "text": text}, open(a.midday, "w"), indent=1)
+        print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, midday purge check: "
+              f"{sum(len(v) for v in miss.values())} printers over 24 hrs")
+        return 0
+
     # reminder: yesterday (Pacific), per plant
     y = (dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles")).date()
          - dt.timedelta(days=1)).isoformat()
     yi = out["days"].index(y) if y in out["days"] else len(days) - 2
     ydate = dt.date.fromisoformat(out["days"][yi])
-    msg = [f"*Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}* (from Durst Analytics)"]
+    # purge misses first, addressed to each plant's print lead (tags only work in the message text, not in the card)
+    lead_text = lead_lines(purge_misses(out, yi), f"No purge in 24 hrs on {ydate.strftime('%a %b %-d')}")
+    msg = ([lead_text, ""] if lead_text else []) + [f"*Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}* (from Durst Analytics)"]
     printer_lines = {}
     for plant in ("CA", "PA", "MX"):
         lines = []
@@ -569,7 +630,10 @@ def main():
     img = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.charts)}/{name}"
     gimg = f"{om.SITE}/printer-maintenance/data/{os.path.basename(a.charts)}/{gname}"
     title = f"Previous 24 hrs maintenance: {ydate.strftime('%a %b %-d')}"
-    json.dump(om.card(title, printer_lines, ost, img, gimg), open(a.card, "w"), indent=1)
+    card = om.card(title, printer_lines, ost, img, gimg)
+    if lead_text:
+        card = {"text": lead_text, **card}   # shown above the card; the leads get the mention
+    json.dump(card, open(a.card, "w"), indent=1)
     print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, reminder for {ydate}, other maintenance as of {today}: "
           + ", ".join(f"{p} {v['pct']}%" for p, v in ost["plants"].items()))
 

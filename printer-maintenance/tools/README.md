@@ -55,3 +55,19 @@ To build locally: `python3 printer-maintenance/tools/build.py printer-maintenanc
 ## P5 "done" messages
 
 P5 printers send the same text ("Maintenance warning: X") for the on-screen prompt and for the operator tapping Execute. The Execute message has a zero-padded second ID in `errorNr` (e.g. `50001|00000000000003089282`). `pull.js` records those as done. Confirmed Oct 1, 2026 with Execute taps on the CA P5-350.
+
+## Purge misses addressed to the print leads (Nov 12, 2026)
+
+The morning post starts with a text block above the card, "No purge in 24 hrs on <day>", one line per plant with that
+plant's print lead tagged (Todd = PA, Christian = MX, Toan = CA and cc'd on the others; IDs in `LEADS` in build.py). It
+lists only printers whose purge was missed under the 24-hour rule (`purge_status` code `m`). No block when there are none.
+
+## Midday purge check
+
+A second Claude scheduled task ("Printer maintenance midday purge check", 12:20 PM Pacific, Mon to Sat) does the same
+3-day pull and pushes `pull.txt` with "midday" in the commit message. The build then runs `build.py ... --midday
+data/midday.json`: it refreshes `index.html` and `history.txt` (so the page shows today up to that time) and writes the
+Chat text to `midday.json`, leaving the morning reminder, card and charts alone. The "post" job sends it at once: only
+printers that have gone over 24 hours without a purge as of the pull, tagged to the leads; nothing when there are none.
+MX hours count only up to the last full hour before the pull (`clock_hours`), so a printer is not called overdue early.
+By hand: Actions > Printer maintenance build > Run workflow with "Midday" ticked.
