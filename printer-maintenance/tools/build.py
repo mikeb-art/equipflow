@@ -562,7 +562,7 @@ def main():
         miss = purge_misses(out, ti_)
         text = lead_lines(miss, f"Purge check, {pulled_pt.strftime('%a %b %-d, %-I:%M %p')} Pacific: no purge in the last 24 hrs")
         if text:
-            text += "\nPurge now, then a nozzle check. Details: https://equipflow-lemon.vercel.app/printer-maintenance/"
+            text += "\nPurge, then a nozzle check. Details: https://equipflow-lemon.vercel.app/printer-maintenance/"
         json.dump({"asof": pulled, "text": text}, open(a.midday, "w"), indent=1)
         print(f"ok: {len(out['printers'])} printers, {d0}..{d1}, midday purge check: "
               f"{sum(len(v) for v in miss.values())} printers over 24 hrs")
