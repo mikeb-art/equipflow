@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Tue Nov 10",
+     "title": "Previous 24 hrs maintenance: Wed Nov 11",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261111135124.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261112135103.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -56,17 +56,17 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "<b>CA</b><br>\u2022 Rhotex 325 - CA: No purge before work at 03:00 (purged 17:34); No nozzle check after startup at 03:00; Nozzle check 08:19 at startup (08:00); Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect<br>\u2022 P5-350 - CA: Purged 13:49, 27 hrs after the last one; Purge 13:49, after work started at 09:00; Nozzle check 13:53, 27 hrs after the last one; Nozzle check 13:53, after work started at 09:00<br>\u2022 P5 Tex - CA: Purged 14:10, 26 hrs after the last one; Purge 14:10, after work started at 08:00"
+         "text": "<b>CA</b><br>\u2022 Rhotex 325 - CA: No purge before work at 08:00<br>\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 10 14:11)"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Purged 15:38, 32 hrs after the last one; Purge 15:38, after work started at 06:00; Nozzle check 15:32, 31 hrs after the last one; Nozzle check 15:32, after work started at 06:00<br>\u2022 P5 Tex - PA: Purged 13:32, 140 hrs after the last one; Purge 13:32, after work started at 11:00; Nozzle check 13:38, 125 hrs after the last one; Nozzle check 13:38, after work started at 11:00"
+         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Nozzle check 07:57 at startup (07:00); No nozzle check after startup at 15:00<br>\u2022 P5 Tex - PA: Put off: Maintenance Service Call"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Nozzle check 06:29 at startup (06:00); No nozzle check after startup at 22:00<br>\u2022 Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 9 07:55); Over 24 hrs without a nozzle check (last one Nov 4 13:57); No nozzle check after startup at 08:00; No nozzle check after startup at 16:00; Purge put off, no purge ran; Put off: Inspect Print Plane, Stretch Roller Inspect<br>\u2022 P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Put off: Inspect Print Plane<br>\u2022 P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); Put off: Inspect Print Plane, Stretch Roller Inspect"
+         "text": "<b>MX</b><br>\u2022 Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 9 07:55); Still open: Inspect Print Plane (asked since Nov 10), Stretch Roller Inspect (asked since Nov 10)<br>\u2022 P5-350 - MX: Nozzle check 10:45, after work started at 07:00<br>\u2022 P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Purge put off, no purge ran; Put off: Stretch Roller Inspect, Guiding Rail Oiling, Water Level Cooling Unit Inspect<br>\u2022 P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Guiding Rail Oiling, Water Level Cooling Unit Inspect"
         }
        }
       ]
@@ -76,7 +76,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261111135124.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261112135103.png",
          "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 0%, weekly & longer 69%"
         }
        },
