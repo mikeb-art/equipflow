@@ -77,6 +77,8 @@ button:focus-visible,a:focus-visible,.cell:focus-visible{outline:2px solid var(-
 .cell.so::after{content:"";position:absolute;width:4px;height:4px;border-radius:50%;background:var(--bg);left:50%;top:50%;transform:translate(-50%,-50%)}
 .heat .dl{font-family:var(--mono);font-size:9px;color:var(--muted);padding-top:4px;white-space:nowrap;overflow:visible}
 .cell.we{opacity:.4}
+.cell.pt,.shcell.pt i,.legend i.pt{background-image:repeating-linear-gradient(135deg,rgba(8,12,24,.45) 0 3px,transparent 3px 6px)}
+.heat .dl.td{display:flex;justify-content:flex-end;color:var(--ink-2)}
 .c-good{background:var(--good)}.c-warn{background:var(--warn)}.c-crit{background:var(--crit)}.c-none{background:var(--none)}
 .shcell{display:flex;flex-direction:column;gap:1px;height:26px;cursor:default;border-radius:3px;overflow:hidden;border:1px solid transparent}
 .shcell:hover{border-color:#fff}.shcell.we{opacity:.4}
@@ -186,8 +188,8 @@ td .mini span{display:block;height:100%}
 
       <div class="card">
         <div class="head-row">
-          <div><h2>Daily status by printer</h2><div class="hint">One block per printer per day. Hover for the day's tasks; click a block or a printer name to show its details below (the selected printer is marked in the list). A dot means operators signed off tasks in the floor log that day. Faded blocks are weekends, which are left out of the counts.</div></div>
-          <div class="legend"><span><i class="c-good"></i>Nothing put off</span><span><i class="c-warn"></i>A task put off</span><span><i class="c-crit"></i>Purge put off, no purge ran</span><span><i class="c-none"></i>No maintenance activity</span></div>
+          <div><h2>Daily status by printer</h2><div class="hint">One block per printer per day. Red and the purge part of amber follow the 24-hour purge rule in the panel below, whether or not the printer showed its purge reminder. Hover for the day's tasks and the reminder; click a block or a printer name to show its details below (the selected printer is marked in the list). A dot means operators signed off tasks in the floor log that day. Faded blocks are weekends, which are left out of the counts. The striped last column is today so far: it only holds what the printers logged up to the morning pull.</div></div>
+          <div class="legend"><span><i class="c-good"></i>Purge on time, nothing put off</span><span><i class="c-warn"></i>A task put off or purge late</span><span><i class="c-crit"></i>No purge in 24 hrs</span><span><i class="c-none"></i>No maintenance activity</span><span><i class="c-good pt"></i>Today so far</span></div>
         </div>
         <div class="scroll"><div class="heat" id="heat"></div></div>
       </div>
@@ -195,7 +197,7 @@ td .mini span{display:block;height:100%}
       <div class="card" id="shiftcard">
         <div class="head-row">
           <div><h2>Purge every 24 hrs · nozzle check before work</h2><div class="hint" id="sh-hint">One column per day, two stripes: top = purge, bottom = nozzle check. Purge and head test (nozzle check): no more than 24 hours between them. MX runs 24 hours, 7 days: every hour counts, even when a printer is down, so the heads keep flowing. CA and PA: hours of runtime count (printing, a head test or loading media), so a weekend counts only when the plant worked it. Nozzle check also at every startup (first work after 4+ quiet hours) before printing begins, allowing the hour for power-on and ink heating. A stray message (a prompt answered at night, a standby warning) is not a startup. Hover a day for a purge-before-work warning (warning only, not in the counts): the Durst manuals ask for the purge daily before starting work, so the day's first startup is checked for a purge before work began. Times from Durst Analytics, printer clock; weekends are faded and left out of the counts.</div><div class="facts" id="sh-facts"></div></div>
-          <div class="legend"><span><i class="c-good"></i>On time</span><span><i class="c-warn"></i>Late</span><span><i class="c-crit"></i>Missed</span><span><i class="c-none"></i>Idle / no startup</span><span><i class="c-none" style="opacity:.35"></i>No data yet</span></div>
+          <div class="legend"><span><i class="c-good"></i>On time</span><span><i class="c-warn"></i>Late</span><span><i class="c-crit"></i>Missed</span><span><i class="c-none"></i>Idle / no startup</span><span><i class="c-none" style="opacity:.35"></i>No data yet</span><span><i class="c-good pt"></i>Today so far</span></div>
         </div>
         <div class="scroll"><div class="heat" id="shheat"></div></div>
       </div>
@@ -232,8 +234,8 @@ td .mini span{display:block;height:100%}
       </div>
 
       <div class="method">
-        <div class="card"><h2>Where this comes from</h2><p>Pulled <span id="pm-pulled">Sep 30, 2026</span> from the Durst Analytics+ server (the same data as each printer's Maintenance tab), all 12 active printers, the last 90 days. It refreshes every morning at 7:00 AM Pacific. Floor sign-offs come from the Machine Maintenance Log sheet, which starts Jul 9.</p><p>If this page or its data is down, the old manual sign-off app is archived as a backup at <a href="https://mikeb-art.github.io/machine-maintenance/archive/">mikeb-art.github.io/machine-maintenance/archive</a>. It logs to the same sheet.</p></div>
-        <div class="card"><h2>How "done" and "put off" are read</h2><p><b>Rhotex 325:</b> the printer logs each prompt as "done" or "Remind later". <b>P5 350 / P5 Tex:</b> the printer logs the on-screen prompt, and when the operator taps Execute it logs the task again with a separate "done" ID. A prompt with no Execute that day counts as put off. A purge also counts as done when a purge cycle ran the same day.</p><p><b>Purge and nozzle check (WS Display policy, Nov 2026):</b> a printer can start production once a nozzle check shows the heads are good, and the purge can run later in the day. <b>Nozzle check:</b> at every startup (the first activity after 4 or more hours with nothing logged: overnight, weekends, downtime), a test pattern must be printed before work; late when the printer was active more than an hour before it. <b>Purge:</b> at least once every 24 hours, counted from the last purge cycle Durst Analytics recorded; late when the printer kept working more than 24 hours after it, not counting the hour before the next purge. For reference, the Durst manuals ask for a purge cycle daily before starting work (once every 24 hours in 24-hour operation), then a test image: <a href="https://drive.google.com/file/d/1NG_FVlw66TwDuRNiHMj-mBZU02r-avTG/view" target="_blank" rel="noopener">Rhotex 325 §H.14.2.1</a>, <a href="https://drive.google.com/file/d/1Mnv04kZ8PuTRbri6DKUoffhq372fTSBB/view" target="_blank" rel="noopener">P5 Tex §H.17.2.1</a>, <a href="https://drive.google.com/file/d/1HbIsWAk-vIFq9Vycb3CKwI956-xv9NMY/view" target="_blank" rel="noopener">P5 350 §H.15.2.1</a>.</p></div>
+        <div class="card"><h2>Where this comes from</h2><p>Pulled <span id="pm-pulled">Sep 30, 2026</span> from the Durst Analytics+ server (the same data as each printer's Maintenance tab), all 12 active printers, the last 90 days. It refreshes once a day, Monday to Saturday, at about 5:50 AM Pacific (no Sunday run), so the last column is today up to that time; the Printing post follows at 7:00 AM. Floor sign-offs come from the Machine Maintenance Log sheet, which starts Jul 9.</p><p>If this page or its data is down, the old manual sign-off app is archived as a backup at <a href="https://mikeb-art.github.io/machine-maintenance/archive/">mikeb-art.github.io/machine-maintenance/archive</a>. It logs to the same sheet.</p></div>
+        <div class="card"><h2>How "done" and "put off" are read</h2><p><b>Rhotex 325:</b> the printer logs each prompt as "done" or "Remind later". <b>P5 350 / P5 Tex:</b> the printer logs the on-screen prompt, and when the operator taps Execute it logs the task again with a separate "done" ID. A prompt with no Execute that day counts as put off. A purge also counts as done when a purge cycle ran the same day.</p><p><b>Block colour in Daily status:</b> for the purge, only the 24-hour rule counts (red = no purge in 24 hours, amber = purged late), whether or not the printer showed its Maintenance Purge reminder. The P5 Tex printers rarely show it. The hover box says whether the printer asked. The purge cards and the trend chart above still count the printer's reminders.</p><p><b>Purge and nozzle check (WS Display policy, Nov 2026):</b> a printer can start production once a nozzle check shows the heads are good, and the purge can run later in the day. <b>Nozzle check:</b> at every startup (the first activity after 4 or more hours with nothing logged: overnight, weekends, downtime), a test pattern must be printed before work; late when the printer was active more than an hour before it. <b>Purge:</b> at least once every 24 hours, counted from the last purge cycle Durst Analytics recorded; late when the printer kept working more than 24 hours after it, not counting the hour before the next purge. For reference, the Durst manuals ask for a purge cycle daily before starting work (once every 24 hours in 24-hour operation), then a test image: <a href="https://drive.google.com/file/d/1NG_FVlw66TwDuRNiHMj-mBZU02r-avTG/view" target="_blank" rel="noopener">Rhotex 325 §H.14.2.1</a>, <a href="https://drive.google.com/file/d/1Mnv04kZ8PuTRbri6DKUoffhq372fTSBB/view" target="_blank" rel="noopener">P5 Tex §H.17.2.1</a>, <a href="https://drive.google.com/file/d/1HbIsWAk-vIFq9Vycb3CKwI956-xv9NMY/view" target="_blank" rel="noopener">P5 350 §H.15.2.1</a>.</p></div>
         <div class="card"><h2>Daily chat reminder</h2><p>Each morning after the pull, a bot posts to the Printing space, per plant: yesterday's put-off tasks, and weekly-and-longer tasks past their interval, with the date each was last done.</p></div>
       </div>
     </div>
@@ -251,10 +253,18 @@ const D=DATA.days.map(s=>new Date(s+"T12:00:00"));
 const fmt=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
 const fmtW=d=>d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
 let plant="ALL", range=30, sel={p:DATA.printers.findIndex(p=>p.name==="Rhotex 325-1 - MX"),d:N-1};
-const status=x=>{const t=x[0];const ks=Object.keys(t);
-  if(!ks.length&&!x[1]&&!x[2])return"none";
-  if(t[PURGE]&&t[PURGE][0]==="o")return"crit";
-  if(ks.some(k=>t[k][0]==="o"))return"warn";return"good"};
+/* Block colour. Purge: only the 24-hour rule counts (p.sh, the same test as the panel below), whether or not the printer
+   showed its Maintenance Purge reminder; the reminder is a line in the hover box. Days before purge times were pulled
+   (code "u") fall back to the reminder. Other tasks: put off = amber. */
+const pcode=s=>(s&&s[0]&&s[0][0])||"u";
+const status=(x,s)=>{const t=x[0],ks=Object.keys(t),pc=pcode(s),old=pc==="u";
+  if(pc==="m"||(old&&t[PURGE]&&t[PURGE][0]==="o"))return"crit";
+  if(pc==="l"||ks.some(k=>t[k][0]==="o"&&(old||+k!==PURGE)))return"warn";
+  if(!ks.length&&!x[1]&&!x[2])return"none";return"good"};
+/* Today's column is a partial day: it only holds what the printers logged up to the morning pull. */
+const PULLED=DATA.meta&&DATA.meta.pulled?new Date(DATA.meta.pulled):null;
+const PART=PULLED?DATA.days.indexOf(PULLED.toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"})):-1;
+const partNote=()=>`<br><i>Today so far · data through ${PULLED.toLocaleTimeString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",minute:"2-digit"})} Pacific</i>`;
 const vis=()=>DATA.printers.map((p,i)=>({...p,i})).filter(p=>plant==="ALL"||p.plant===plant);
 const WD=D.map(d=>d.getDay()>0&&d.getDay()<6);   /* weekdays only in the counts: the plants don't usually work weekends */
 const win=p=>p.d.slice(N-range);
@@ -273,36 +283,41 @@ function kpis(){let due=0,done=0,other=0,clean=0;const v=vis();
   $("k-skip").textContent=due-done;$("k-skip-n").textContent=`weekday printer-days · last ${range} days`;
   $("k-other").textContent=other;$("k-other-n").textContent="weekday printer-days with a put-off inspection or task";
   $("k-clean").textContent=`${clean} / ${v.length}`}
-function dayTip(p,di){const x=p.d[di],t=x[0];let h=`<b>${esc(p.name)}</b> · ${fmtW(D[di])}<br>`;
-  const ks=Object.keys(t);if(!ks.length&&!x[1]&&!x[2])return h+"No maintenance activity logged"+(WD[di]?"":"<br><i>Weekend · not in the counts</i>");
-  const off=ks.filter(k=>t[k][0]==="o").map(k=>TASKS[k]),dn=ks.filter(k=>t[k][0]==="d").map(k=>TASKS[k]);
-  if(off.length)h+=`Put off: ${esc(off.join(", "))}<br>`;if(dn.length)h+=`Done: ${esc(dn.join(", "))}<br>`;
-  h+=`Purge cycles: ${x[1]} · Test patterns: ${x[2]}`;if(x[3])h+=`<br>Floor sign-offs: ${x[3]}`;if(!WD[di])h+=`<br><i>Weekend · not in the counts</i>`;return h}
+function dayTip(p,di){const x=p.d[di],t=x[0],s=p.sh&&p.sh[di],pc=pcode(s),old=pc==="u";let h=`<b>${esc(p.name)}</b> · ${fmtW(D[di])}<br>`;
+  const ks=Object.keys(t),tail=()=>(WD[di]?"":"<br><i>Weekend · not in the counts</i>")+(di===PART?partNote():"");
+  /* purge: the 24-hour result first, then whether the printer showed its reminder (detail only, not the colour) */
+  const pl={g:"✓ ",l:"Late · ",m:"✕ "}[pc],asked=t[PURGE];
+  let pu=pl?`<b>Purge:</b> ${pl}${esc((s[1]&&s[1][0])||"")}<br>`:"";
+  if(!old&&(asked||pl&&pc!=="g"))pu+=asked?`Printer asked for a purge: ${asked[0]==="d"?"done":"put off"}<br>`:"Printer did not ask for a purge<br>";
+  if(!ks.length&&!x[1]&&!x[2])return h+pu+"No maintenance activity logged"+tail();
+  const tk=ks.filter(k=>old||+k!==PURGE),off=tk.filter(k=>t[k][0]==="o").map(k=>TASKS[k]),dn=tk.filter(k=>t[k][0]==="d").map(k=>TASKS[k]);
+  h+=pu;if(off.length)h+=`Put off: ${esc(off.join(", "))}<br>`;if(dn.length)h+=`Done: ${esc(dn.join(", "))}<br>`;
+  h+=`Purge cycles: ${x[1]} · Test patterns: ${x[2]}`;if(x[3])h+=`<br>Floor sign-offs: ${x[3]}`;return h+tail()}
 function heat(){const h=$("heat");h.innerHTML="";h.style.gridTemplateColumns=`minmax(160px,auto) repeat(${range},minmax(8px,1fr))`;
   const v=vis();if(!v.some(p=>p.i===sel.p))sel.p=v[0].i;
   v.forEach(p=>{const rl=document.createElement("button");rl.className="rl"+(p.i===sel.p?" sel":"");rl.title=p.i===sel.p?"Selected · details below":"Show this printer's details below";if(p.i===sel.p)rl.setAttribute("aria-current","true");rl.innerHTML=`${esc(p.name)} <span style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">${p.sys}</span>`;rl.onclick=()=>{sel.p=p.i;render()};h.appendChild(rl);
-    win(p).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.tabIndex=0;c.className=`cell c-${status(x)}${WD[di]?"":" we"}${x[3]?" so":""}${p.i===sel.p&&di===sel.d?" sel":""}`;
-      c.setAttribute("aria-label",`${p.name} ${fmt(D[di])}: ${status(x)}`);
+    win(p).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.tabIndex=0;const st=status(x,p.sh&&p.sh[di]);c.className=`cell c-${st}${WD[di]?"":" we"}${di===PART?" pt":""}${x[3]?" so":""}${p.i===sel.p&&di===sel.d?" sel":""}`;
+      c.setAttribute("aria-label",`${p.name} ${fmt(D[di])}${di===PART?" (today so far)":""}: ${st}`);
       c.onmousemove=e=>showTip(e,dayTip(p,di));c.onmouseleave=hideTip;c.onclick=()=>{sel={p:p.i,d:di};render()};c.onkeydown=e=>{if(e.key==="Enter"){sel={p:p.i,d:di};render()}};h.appendChild(c)})});
   h.appendChild(document.createElement("div"));const step=range>60?14:range>30?7:5;
-  D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div");l.className="dl";l.textContent=(j%step===0)?fmt(d):"";h.appendChild(l)})}
+  D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div"),td=N-range+j===PART;l.className="dl"+(td?" td":"");l.textContent=td?"today":(j%step===0)?fmt(d):"";h.appendChild(l)})}
 
 const hhmm=t=>t?t.slice(0,2)+":"+t.slice(2,4):"";
 function shTip(p,di){const x=p.sh[di];let h=`<b>${esc(p.name)}</b> · ${fmtW(D[di])}`;
   const lab={g:"✓ ",l:"Late · ",m:"✕ ",n:"",u:""};
   [["Purge",{n:"printer idle",u:"no data yet"}],["Nozzle check",{n:"no startup this day",u:"no data yet (needs pull script 1.6)"}]].forEach(([nm,e],i)=>{const c=x[0][i]||"u";h+=`<br><b>${nm}:</b> ${lab[c]}${e[c]||esc((x[1]&&x[1][i])||"")}`});
   if(x[2])h+=`<br><b>Purge before work:</b> ⚠ ${esc(x[2])} <i>(Durst manuals: purge before starting work · warning only)</i>`;
-  if(!WD[di])h+=`<br><i>Weekend · not in the counts</i>`;return h}
+  if(!WD[di])h+=`<br><i>Weekend · not in the counts</i>`;if(di===PART)h+=partNote();return h}
 function shCount(list,k){k=k||0;let a=0,g=0;list.forEach(p=>p.sh.slice(N-range).forEach((x,j)=>{if(!WD[N-range+j])return;const c=x[0][k]||"u";if("glm".includes(c))a++;if(c==="g")g++}));return{a,g}}
 function shiftsView(){const h=$("shheat");if(!h)return;h.innerHTML="";const v=vis().filter(p=>p.sh);
   $("shiftcard").hidden=!v.length;if(!v.length)return;
   h.style.gridTemplateColumns=`minmax(160px,auto) repeat(${range},minmax(8px,1fr))`;
   v.forEach(p=>{const rl=document.createElement("button");rl.className="rl"+(p.i===sel.p?" sel":"");rl.innerHTML=`${esc(p.name)} <span style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">purge · check</span>`;rl.onclick=()=>{sel.p=p.i;render()};h.appendChild(rl);
-    p.sh.slice(N-range).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.className="shcell"+(WD[di]?"":" we");
+    p.sh.slice(N-range).forEach((x,j)=>{const di=N-range+j,c=document.createElement("div");c.className="shcell"+(WD[di]?"":" we")+(di===PART?" pt":"");
       c.innerHTML=[...x[0]].map(k=>`<i class="${{g:"c-good",l:"c-warn",m:"c-crit",n:"c-none",u:"c-u"}[k]}"></i>`).join("");
       c.onmousemove=e=>showTip(e,shTip(p,di));c.onmouseleave=hideTip;c.onclick=()=>{sel={p:p.i,d:di};render()};h.appendChild(c)})});
   h.appendChild(document.createElement("div"));const step=range>60?14:range>30?7:5;
-  D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div");l.className="dl";l.textContent=(j%step===0)?fmt(d):"";h.appendChild(l)});
+  D.slice(N-range).forEach((d,j)=>{const l=document.createElement("div"),td=N-range+j===PART;l.className="dl"+(td?" td":"");l.textContent=td?"today":(j%step===0)?fmt(d):"";h.appendChild(l)});
   const all=shCount(v),byP=["MX","PA","CA"].map(pl=>[pl,shCount(v.filter(p=>p.plant===pl))]).filter(([,o])=>o.a);
   $("sh-facts").innerHTML=[[0,"Purged within 24 hrs"],[1,"Nozzle check before work"]].map(([k,l])=>{const o=shCount(v,k);return o.a?`<span class="fact">${l} on <b>${o.g}</b> of ${o.a} weekday printer-days (<b>${Math.round(o.g/o.a*100)}%</b>)</span>`:`<span class="fact">${l}: no data in this window yet</span>`}).join("")}
 const monOf=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
