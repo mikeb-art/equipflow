@@ -1,10 +1,11 @@
 {
+ "text": "*No purge in 24 hrs on Thu Nov 12*\n*MX* <users/100639998660371440140>: Rhotex 325-2 (last purge Nov 9 07:55)\ncc <users/112042970564499422793>",
  "cardsV2": [
   {
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Wed Nov 11",
+     "title": "Previous 24 hrs maintenance: Thu Nov 12",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +14,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261112135103.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261113135135.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -56,17 +57,17 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "<b>CA</b><br>\u2022 Rhotex 325 - CA: No purge before work at 08:00<br>\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 10 14:11)"
+         "text": "<b>CA</b><br>\u2022 P5-350 - CA: Put off: Roller Inspect<br>\u2022 P5 Tex - CA: Purged 12:26, 46 hrs after the last one; Purge 12:26, after work started at 09:00"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Nozzle check 07:57 at startup (07:00); No nozzle check after startup at 15:00<br>\u2022 P5 Tex - PA: Put off: Maintenance Service Call"
+         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Over 24 hrs without a nozzle check (last one Nov 11 07:57); No nozzle check after startup at 07:00<br>\u2022 P5 Tex - PA: Put off: Aerosol Filter Inspect"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 9 07:55); Still open: Inspect Print Plane (asked since Nov 10), Stretch Roller Inspect (asked since Nov 10)<br>\u2022 P5-350 - MX: Nozzle check 10:45, after work started at 07:00<br>\u2022 P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 4 22:15); Purge put off, no purge ran; Put off: Stretch Roller Inspect, Guiding Rail Oiling, Water Level Cooling Unit Inspect<br>\u2022 P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 5 12:37); Put off: Dust/Air Filter Inspect, Aerosol Filter Inspect, Guiding Rail Oiling, Water Level Cooling Unit Inspect"
+         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purged 10:53, 27 hrs after the last one; Purge 10:53, after work started at 06:00<br>\u2022 Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 9 07:55); Nozzle check 12:32, 27 hrs after the last one; Nozzle check 12:32 at startup (12:00)<br>\u2022 P5 Tex-2 - MX: Purged 13:00, 168 hrs after the last one; Purge 13:00, after work started at 02:00"
         }
        }
       ]
@@ -76,13 +77,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261112135103.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 0%, weekly & longer 69%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261113135135.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 100%, weekly & longer 69%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 69% (45 of 65), 20 overdue"
+         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 69% (45 of 65), 20 overdue"
         }
        },
        {
