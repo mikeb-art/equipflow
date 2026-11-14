@@ -1,11 +1,11 @@
 {
- "text": "*No purge in 24 hrs on Thu Nov 12*\n*MX* <users/100639998660371440140>: Rhotex 325-2 (last purge Nov 9 07:55)\ncc <users/112042970564499422793>",
+ "text": "*No purge in 24 hrs on Fri Nov 13*\n*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 12 12:26)",
  "cardsV2": [
   {
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Thu Nov 12",
+     "title": "Previous 24 hrs maintenance: Fri Nov 13",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -14,7 +14,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261113135135.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261114135100.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -57,17 +57,17 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "<b>CA</b><br>\u2022 P5-350 - CA: Put off: Roller Inspect<br>\u2022 P5 Tex - CA: Purged 12:26, 46 hrs after the last one; Purge 12:26, after work started at 09:00"
+         "text": "<b>CA</b><br>\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 12 12:26)"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Over 24 hrs without a nozzle check (last one Nov 11 07:57); No nozzle check after startup at 07:00<br>\u2022 P5 Tex - PA: Put off: Aerosol Filter Inspect"
+         "text": "<b>PA</b><br>\u2022 Nothing put off or open"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purged 10:53, 27 hrs after the last one; Purge 10:53, after work started at 06:00<br>\u2022 Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 9 07:55); Nozzle check 12:32, 27 hrs after the last one; Nozzle check 12:32 at startup (12:00)<br>\u2022 P5 Tex-2 - MX: Purged 13:00, 168 hrs after the last one; Purge 13:00, after work started at 02:00"
+         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purge 11:27, after work started at 07:00<br>\u2022 Rhotex 325-2 - MX: Purged 12:41, 101 hrs after the last one<br>\u2022 P5 Tex-1 - MX: Purged 14:32, 38 hrs after the last one; Purge 14:32, after work started at 07:00<br>\u2022 P5 Tex-2 - MX: Purge 14:09, after work started at 07:00"
         }
        }
       ]
@@ -77,7 +77,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261113135135.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261114135100.png",
          "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 100%, MX daily & every shift 100%, weekly & longer 69%"
         }
        },
