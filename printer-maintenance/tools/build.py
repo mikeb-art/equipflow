@@ -35,8 +35,8 @@ PURGE = "Maintenance Purge"
 #  - Nozzle check before work: at every startup (first activity after IDLE_H+ hours with nothing logged: overnight,
 #    weekend, downtime) a nozzle check must be printed before work. Late when the printer was active in an hour before
 #    (check hour - GRACE_H); the grace covers power-on, initializing and ink heating.
-#  - Purge every 24 hours, all plants: late when the printer worked more than 24 hours after its last purge, not
-#    counting the GRACE_H hour(s) before the next purge. Idle time doesn't count until the printer works again.
+#  - Purge every 24 hours, all plants: late when the printer printed production more than 24 hours after its last
+#    purge, not counting the GRACE_H hour(s) before the next purge. No production, no purge due (see clock_hours).
 # For reference, the Durst manuals (Rhotex 325 §H.14.2.1, P5 Tex §H.17.2.1, P5 350 §H.15.2.1) ask for a purge cycle "daily before starting
 # work (once every 24 hours in case of 24-hour operation)" followed by a test image.
 GRACE_H = 1
@@ -179,24 +179,13 @@ def work_hours(phours, whours, jhours):
     return work, prod
 
 
-def clock_hours(plant, work, days, pulled=None):
-    """Hours that count toward the 24-hour purge and head-test clock (WS Display, Nov 11 2026). MX runs 24 hours a day:
-    every hour counts, every day, even for a printer that is down (heads must keep flowing). CA and PA: runtime only,
-    i.e. the work hours (printing, head tests, loading media), so a weekend counts only when the plant worked it.
-    pulled (ISO time of the pull): MX hours stop at the last full hour before the pull, so the day of the pull is not
-    called overdue for hours that haven't happened yet."""
-    if plant != "MX" or not work:
-        return work
-    first = min(work)
-    out = {d.isoformat(): 0xFFFFFF for d in days if d.isoformat() >= first}
-    if pulled:
-        now = dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Tijuana"))
-        for k in list(out):
-            if k == now.date().isoformat():
-                out[k] = (1 << now.hour) - 1
-            elif k > now.date().isoformat():
-                out[k] = 0
-    return out
+def clock_hours(plant, work, prod, days=None, pulled=None):
+    """Hours that count toward the 24-hour purge and head-test clock, all plants (Mike, Nov 16 2026): production
+    hours only, i.e. hours an order job was printing (PJ; days pulled before 1.7 fall back to any message logged).
+    No production means no purge or head test is needed: a printer that sits idle over a weekend or while down is not
+    called overdue. When it prints again more than 24 hours after its last purge, the purge (and head test) must come
+    before that printing (allowing GRACE_H). Replaces the Nov 11 rule that counted every MX hour, even when down."""
+    return prod
 
 
 # Print leads tagged in the Printing space (Google Chat user IDs, same as rulers/tools/reminder.py).
@@ -495,10 +484,10 @@ def main():
                "serial": ser, "sys": sysn, "d": rows, "last": last}
         # rec["sh"][day] = [purge code + nozzle-check code, [purge text, nozzle text]] (see purge_status, nozzle_status)
         wk, pr = work_hours(phours.get(pid, {}), whours.get(pid, {}), jhours.get(pid, {}))
-        ck = clock_hours(plant, wk, days, pulled)
-        ps = purge_status(days, ptimes.get(pid, {}), ck)   # purge every 24 hrs of runtime (MX: every 24 hrs)
+        ck = clock_hours(plant, wk, pr, days, pulled)
+        ps = purge_status(days, ptimes.get(pid, {}), ck)   # purge every 24 hrs of production; no production, no purge due
         ns = nozzle_status(days, ntimes.get(pid, {}), wk, pr)   # nozzle check at each startup, before printing
-        # head test (nozzle check) every 24 hrs of runtime too; the day's nozzle code is the worse of the two
+        # head test (nozzle check) every 24 hrs of production too; the day's nozzle code is the worse of the two
         n24 = purge_status(days, ntimes.get(pid, {}), ck, "nozzle check")
         RANK = {"m": 4, "l": 3, "g": 2, "n": 1, "u": 0}
         ns = [[max(a_[0], b_[0], key=RANK.get), "; ".join(x for x in (b_[1] if b_[0] in "lm" else "", a_[1]) if x)]

@@ -30,7 +30,7 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      Viewer access to the sheet),
    - runs `tools/build.py pull.txt log.json`, which merges the pull into `data/history.txt` (rolling 91 days; the
      pulled days replace what was stored), rewrites the data in `index.html`, and writes `data/reminder.txt`,
-   - checks purges and nozzle checks against Durst Analytics times (WS Display policy, updated Nov 11 2026: purge and head test every 24 hours; MX counts every hour of every day, even for a printer that is down; CA and PA count hours of runtime (`PW`), so weekends count only when worked; see `clock_hours` in build.py. The older wording below about idle time is superseded): a nozzle check
+   - checks purges and nozzle checks against Durst Analytics times (WS Display policy, updated Nov 16 2026: purge and head test every 24 hours of production, all plants; only hours an order job was printing (`PJ`) count, so a printer with no production (weekend, down) needs no purge and is not flagged, but must be purged before it prints again; see `clock_hours` in build.py. This replaces the Nov 11 rule that counted every MX hour, even when down): a nozzle check
      (test pattern) before work at every startup (first activity after `IDLE_H` (4) quiet hours), and a purge cycle at
      least once every 24 hours, counted from the last purge (late when the printer kept working past that, not counting
      the `GRACE_H` (1) hour before the next purge). Warning only (not pass/fail): the day's first startup without a purge before work is listed as "No purge before work at HH:00" or "Purge HH:MM, after work started at HH:00" (Durst manuals: purge daily before starting work). Nozzle-check times (`PN` lines) need pull script 1.6 or later. Startups, "after work started" and the 24-hour purge clock use work hours from pull script 1.7+ (`PW`: hours with printing, a head test (test-pattern job or message) or loading media (clamp rollers opened, media detect / load / position / roll-end messages); `PJ`: hours an order job was printing, from the Printer Jobs list, `/frontend-api/job-overview/list`). A run with no printing needs no nozzle check or purge first. Days pulled before 1.7 fall back to `PH` (any message logged); the Monday 90-day pull refills them,
@@ -69,5 +69,5 @@ A second Claude scheduled task ("Printer maintenance midday purge check", 12:20 
 data/midday.json`: it refreshes `index.html` and `history.txt` (so the page shows today up to that time) and writes the
 Chat text to `midday.json`, leaving the morning reminder, card and charts alone. The "post" job sends it at once: only
 printers that have gone over 24 hours without a purge as of the pull, tagged to the leads; nothing when there are none.
-MX hours count only up to the last full hour before the pull (`clock_hours`), so a printer is not called overdue early.
+Only production hours count (`clock_hours`), so a printer is never called overdue for hours it hasn't printed.
 By hand: Actions > Printer maintenance build > Run workflow with "Midday" ticked.
