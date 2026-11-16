@@ -1,7 +1,3 @@
-*No purge in 24 hrs on Sun Nov 15*
-*MX* <users/100639998660371440140>: Rhotex 325-1 (last purge Nov 13 11:27); Rhotex 325-2 (last purge Nov 13 12:41); P5-350 (last purge Nov 13 07:26); P5 Tex-1 (last purge Nov 13 14:32); P5 Tex-2 (last purge Nov 13 14:09)
-cc <users/112042970564499422793>
-
 *Previous 24 hrs maintenance: Sun Nov 15* (from Durst Analytics)
 
 *CA*
@@ -11,11 +7,7 @@ cc <users/112042970564499422793>
 • Nothing put off or open
 
 *MX*
-• Rhotex 325-1 - MX: Over 24 hrs without a purge (last one Nov 13 11:27); Over 24 hrs without a nozzle check (last one Nov 13 18:13)
-• Rhotex 325-2 - MX: Over 24 hrs without a purge (last one Nov 13 12:41); Over 24 hrs without a nozzle check (last one Nov 13 13:12)
-• P5-350 - MX: Over 24 hrs without a purge (last one Nov 13 07:26); Over 24 hrs without a nozzle check (last one Nov 13 17:04)
-• P5 Tex-1 - MX: Over 24 hrs without a purge (last one Nov 13 14:32); Over 24 hrs without a nozzle check (last one Nov 13 22:14)
-• P5 Tex-2 - MX: Over 24 hrs without a purge (last one Nov 13 14:09); Over 24 hrs without a nozzle check (last one Nov 13 15:28)
+• Nothing put off or open
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
