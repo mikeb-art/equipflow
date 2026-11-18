@@ -1,17 +1,23 @@
-*Previous 24 hrs maintenance: Mon Nov 16* (from Durst Analytics)
+*No purge in 24 hrs on Tue Nov 17*
+*MX* <users/100639998660371440140>: Rhotex 325-1 (last purge Nov 13 11:27)
+cc <users/112042970564499422793>
+
+*Previous 24 hrs maintenance: Tue Nov 17* (from Durst Analytics)
 
 *CA*
-• P5 Tex - CA: Purged 14:36, 98 hrs after the last one; Purge 14:36, after work started at 09:00
+• P5 Tex - CA: Purged 17:02, 26 hrs after the last one; Purge 17:02, after work started at 10:00
 
 *PA*
 • Nothing put off or open
 
 *MX*
-• Nothing put off or open
+• Rhotex 325-1 - MX: Over 24 hrs without a purge (last one Nov 13 11:27)
+• P5 Tex-1 - MX: Purged 13:43, 95 hrs after the last one; Purge 13:43, after work started at 06:00
+• P5 Tex-2 - MX: Purged 14:49, 97 hrs after the last one; Purge 14:49, after work started at 06:00
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
 • CA: Weekly & longer 32% (6 of 19), 13 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 100% (22 of 22) · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 12% (8 of 65), 57 overdue; 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: Daily & every shift 100% (17 of 17) · Weekly & longer 69% (45 of 65), 20 overdue; 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
