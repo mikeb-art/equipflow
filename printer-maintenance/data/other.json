@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-19",
+ "asof": "2026-11-20",
  "plants": {
   "CA": {
    "name": "California",
@@ -397,8 +397,8 @@
     {
      "name": "Klieverik",
      "serial": "SER # 891",
-     "ok": 9,
-     "over": 7,
+     "ok": 16,
+     "over": 0,
      "never": 0,
      "groups": {
       "daily": {
@@ -407,55 +407,19 @@
        "never": 0
       },
       "long": {
-       "ok": 4,
-       "over": 7,
+       "ok": 11,
+       "over": 0,
        "never": 0
       }
      },
-     "overdue": [
-      [
-       "Clean burnt grease from walls",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean grease from internal and external cabinets",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Check ventilation filters (replace if necessary)",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean exhaust grille",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Check chain tension",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean belt leveling sensors (felt)",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Grease bearings",
-       "Monthly",
-       "2026-10-08"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     }
    ],
-   "ok": 62,
-   "over": 20,
+   "ok": 69,
+   "over": 13,
    "never": 2,
-   "pct": 76,
+   "pct": 84,
    "groups": {
     "daily": {
      "ok": 17,
@@ -464,10 +428,10 @@
      "pct": 100
     },
     "long": {
-     "ok": 45,
-     "over": 20,
+     "ok": 52,
+     "over": 13,
      "never": 2,
-     "pct": 69
+     "pct": 80
     }
    }
   }
