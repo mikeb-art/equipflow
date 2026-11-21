@@ -1,5 +1,5 @@
 {
- "asof": "2026-11-20",
+ "asof": "2026-11-21",
  "plants": {
   "CA": {
    "name": "California",
@@ -235,8 +235,8 @@
     {
      "name": "Monti 1",
      "serial": "SER # 2019197",
-     "ok": 10,
-     "over": 2,
+     "ok": 12,
+     "over": 0,
      "never": 0,
      "groups": {
       "daily": {
@@ -245,30 +245,19 @@
        "never": 0
       },
       "long": {
-       "ok": 10,
-       "over": 2,
+       "ok": 12,
+       "over": 0,
        "never": 0
       }
      },
-     "overdue": [
-      [
-       "Check felt tightening pneumatic cylinders",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Grease chains",
-       "Monthly",
-       "2026-10-08"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Monti 3",
      "serial": "SER # 2021393",
-     "ok": 10,
-     "over": 2,
+     "ok": 12,
+     "over": 0,
      "never": 0,
      "groups": {
       "daily": {
@@ -277,30 +266,19 @@
        "never": 0
       },
       "long": {
-       "ok": 10,
-       "over": 2,
+       "ok": 12,
+       "over": 0,
        "never": 0
       }
      },
-     "overdue": [
-      [
-       "Check felt tightening pneumatic cylinders",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Grease chains",
-       "Monthly",
-       "2026-10-08"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Monti 2",
      "serial": "SER # 2021144",
-     "ok": 10,
-     "over": 4,
+     "ok": 14,
+     "over": 0,
      "never": 0,
      "groups": {
       "daily": {
@@ -309,40 +287,19 @@
        "never": 0
       },
       "long": {
-       "ok": 10,
-       "over": 4,
+       "ok": 14,
+       "over": 0,
        "never": 0
       }
      },
-     "overdue": [
-      [
-       "Check felt tightening pneumatic cylinders",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean and grease chains",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Grease bearings and supports",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Check greasing of felt guide, felt tightener and supplementary roller bearings",
-       "Monthly",
-       "2026-10-08"
-      ]
-     ],
+     "overdue": [],
      "no_record": []
     },
     {
      "name": "Vutek 3r",
      "serial": "SER # 9870418",
-     "ok": 23,
-     "over": 5,
+     "ok": 28,
+     "over": 0,
      "never": 2,
      "groups": {
       "daily": {
@@ -351,38 +308,12 @@
        "never": 0
       },
       "long": {
-       "ok": 11,
-       "over": 5,
+       "ok": 16,
+       "over": 0,
        "never": 2
       }
      },
-     "overdue": [
-      [
-       "Clean the vented exterior covers",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Vacuum the cable carrier and shelf",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean the three main exhaust vents",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Wipe the linear encoder strip",
-       "Monthly",
-       "2026-10-08"
-      ],
-      [
-       "Clean the carriage home sensor",
-       "Monthly",
-       "2026-10-08"
-      ]
-     ],
+     "overdue": [],
      "no_record": [
       [
        "Replace the primary ink filters (all colors)",
@@ -416,10 +347,10 @@
      "no_record": []
     }
    ],
-   "ok": 69,
-   "over": 13,
+   "ok": 82,
+   "over": 0,
    "never": 2,
-   "pct": 84,
+   "pct": 100,
    "groups": {
     "daily": {
      "ok": 17,
@@ -428,10 +359,10 @@
      "pct": 100
     },
     "long": {
-     "ok": 52,
-     "over": 13,
+     "ok": 65,
+     "over": 0,
      "never": 2,
-     "pct": 80
+     "pct": 100
     }
    }
   }
