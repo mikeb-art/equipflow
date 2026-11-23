@@ -1,16 +1,14 @@
-*No purge in 24 hrs on Fri Nov 20*
-*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 19 13:54)
-
-*Previous 24 hrs maintenance: Fri Nov 20* (from Durst Analytics)
+*Previous 24 hrs maintenance: Sun Nov 22* (from Durst Analytics)
 
 *CA*
-• P5 Tex - CA: Over 24 hrs without a purge (last one Nov 19 13:54)
+• Nothing put off or open
 
 *PA*
 • Nothing put off or open
 
 *MX*
-• Rhotex 325-1 - MX: Purge 06:51, after work started at 03:00
+• Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect
+• P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 

@@ -1,11 +1,10 @@
 {
- "text": "*No purge in 24 hrs on Fri Nov 20*\n*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 19 13:54)",
  "cardsV2": [
   {
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Fri Nov 20",
+     "title": "Previous 24 hrs maintenance: Sun Nov 22",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -14,7 +13,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261121135058.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261123135323.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -57,7 +56,7 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "<b>CA</b><br>\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 19 13:54)"
+         "text": "<b>CA</b><br>\u2022 Nothing put off or open"
         }
        },
        {
@@ -67,7 +66,7 @@
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purge 06:51, after work started at 03:00"
+         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane, Dust/Air Filter Inspect, Stretch Roller Inspect, Aerosol Filter Inspect<br>\u2022 P5-350 - MX: Purge put off, no purge ran; Put off: Inspect Print Plane"
         }
        }
       ]
@@ -77,7 +76,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261121135058.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261123135323.png",
          "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 77%, MX daily & every shift 100%, weekly & longer 100%"
         }
        },
