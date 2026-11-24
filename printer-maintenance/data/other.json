@@ -65,8 +65,8 @@
      "name": "Monti 2",
      "serial": "SER # 2017445",
      "ok": 3,
-     "over": 6,
-     "never": 1,
+     "over": 7,
+     "never": 0,
      "groups": {
       "daily": {
        "ok": 0,
@@ -75,8 +75,8 @@
       },
       "long": {
        "ok": 3,
-       "over": 6,
-       "never": 1
+       "over": 7,
+       "never": 0
       }
      },
      "overdue": [
@@ -101,6 +101,11 @@
        "2026-10-27"
       ],
       [
+       "Clean fans for side panel cooling",
+       "Weekly",
+       "2026-09-25"
+      ],
+      [
        "Clean and grease driving chains",
        "Monthly",
        "2026-10-01"
@@ -111,30 +116,31 @@
        "2026-10-01"
       ]
      ],
-     "no_record": [
-      [
-       "Clean fans for side panel cooling",
-       "Weekly"
-      ]
-     ]
+     "no_record": []
     }
    ],
    "ok": 6,
-   "over": 13,
-   "never": 1,
-   "pct": 32,
+   "over": 14,
+   "never": 0,
+   "due": 20,
+   "overdue": 14,
+   "pct": 30,
    "groups": {
     "daily": {
      "ok": 0,
      "over": 0,
      "never": 0,
+     "due": 0,
+     "overdue": 0,
      "pct": null
     },
     "long": {
      "ok": 6,
-     "over": 13,
-     "never": 1,
-     "pct": 32
+     "over": 14,
+     "never": 0,
+     "due": 20,
+     "overdue": 14,
+     "pct": 30
     }
    }
   },
@@ -213,18 +219,24 @@
    "ok": 17,
    "over": 5,
    "never": 0,
+   "due": 22,
+   "overdue": 5,
    "pct": 77,
    "groups": {
     "daily": {
      "ok": 0,
      "over": 0,
      "never": 0,
+     "due": 0,
+     "overdue": 0,
      "pct": null
     },
     "long": {
      "ok": 17,
      "over": 5,
      "never": 0,
+     "due": 22,
+     "overdue": 5,
      "pct": 77
     }
    }
@@ -437,19 +449,25 @@
    "ok": 65,
    "over": 17,
    "never": 2,
-   "pct": 79,
+   "due": 84,
+   "overdue": 19,
+   "pct": 77,
    "groups": {
     "daily": {
      "ok": 0,
      "over": 17,
      "never": 0,
+     "due": 17,
+     "overdue": 17,
      "pct": 0
     },
     "long": {
      "ok": 65,
      "over": 0,
      "never": 2,
-     "pct": 100
+     "due": 67,
+     "overdue": 2,
+     "pct": 97
     }
    }
   }

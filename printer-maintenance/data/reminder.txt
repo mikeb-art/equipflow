@@ -13,7 +13,7 @@
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
-*Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)
-• CA: Weekly & longer 32% (6 of 19), 13 overdue; 1 never signed off · https://equipflow-lemon.vercel.app/maintenance/#CA
+*Other maintenance status this morning (Vutek and heat presses)*
+• CA: Weekly & longer 30% (6 of 20), 14 overdue · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 77% (17 of 22), 5 overdue · https://equipflow-lemon.vercel.app/maintenance/#PA
-• MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 100% (65 of 65); 2 never signed off · https://equipflow-lemon.vercel.app/maintenance/#MX
+• MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 97% (65 of 67), 2 overdue (2 never signed off) · https://equipflow-lemon.vercel.app/maintenance/#MX

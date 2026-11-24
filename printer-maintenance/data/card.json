@@ -72,22 +72,22 @@
       ]
      },
      {
-      "header": "Other maintenance status this morning",
+      "header": "Other maintenance status this morning (Vutek and heat presses)",
       "widgets": [
        {
         "image": {
          "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261124135135.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 32%, PA weekly & longer 77%, MX daily & every shift 0%, weekly & longer 100%"
+         "altText": "Other maintenance up to date by location: CA weekly & longer 30%, PA weekly & longer 77%, MX daily & every shift 0%, weekly & longer 97%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 32% (6 of 19), 13 overdue<br><b>PA</b>: Weekly &amp; longer 77% (17 of 22), 5 overdue<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 100% (65 of 65)"
+         "text": "<b>CA</b>: Weekly &amp; longer 30% (6 of 20), 14 overdue<br><b>PA</b>: Weekly &amp; longer 77% (17 of 22), 5 overdue<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 97% (65 of 67), 2 overdue (2 never signed off)"
         }
        },
        {
         "textParagraph": {
-         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br><b>CA</b>: 1 (Monti 2: 1)<br><b>MX</b>: 2 (Vutek 3r: 2)"
+         "text": "<font color=\"#6b7688\">Tasks never signed off in the log (counted as overdue):</font><br><b>MX</b>: 2 (Vutek 3r: 2)"
         }
        },
        {
