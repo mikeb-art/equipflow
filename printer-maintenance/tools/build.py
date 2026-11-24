@@ -594,7 +594,7 @@ def main():
         msg.extend(lines or ["• Nothing put off or open"])
     msg.append("\nDetails and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/")
 
-    # Other maintenance (Monti, Vutek, Klieverik sign-offs) as of the post's morning, plus the Chat card
+    # Other maintenance (Vutek and heat presses: Monti, Klieverik sign-offs) as of the post's morning, plus the Chat card
     import other_maintenance as om
     today = dt.datetime.fromisoformat(pulled.replace("Z", "+00:00")).astimezone(ZoneInfo("America/Los_Angeles")).date()
     ost = om.status(om.load_spec(a.maint_html), log_rows, today)

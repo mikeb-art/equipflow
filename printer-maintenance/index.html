@@ -490,10 +490,17 @@ $("co-auth").onclick=()=>{if(user){EQF.clearToken();try{google.accounts.oauth2.r
 function initAuth(){if(!window.google||!google.accounts||!google.accounts.oauth2){setTimeout(initAuth,300);return}
  tokenClient=google.accounts.oauth2.initTokenClient({client_id:CONFIG.CLIENT_ID,scope:SCOPES,callback:async r=>{if(r.error){msg("Sign-in didn't finish: "+r.error);return}EQF.saveToken(r,SCOPES);token=r.access_token;await afterToken()}});
  const c=EQF.cachedToken(SCOPES);if(c){token=c.access_token;afterToken()}}
-/* current-period state of each task from the Log rows: latest action in this period wins */
-function states(m){const st={};if(!log)return st;
+/* Replays one task's Log actions (oldest first) into the sign-offs still standing: an "Unchecked (was done)" removes only
+   the sign-off it undid (the newest Completed), so the task falls back to an earlier sign-off instead of reading as open;
+   "Unchecked (was notdone)" likewise removes only the newest "Marked NOT completed". Returns the newest standing entry. */
+function standing(list){const k=[];list.slice().sort((x,y)=>x.at-y.at).forEach(v=>{const a=v.a||"";
+  if(/^unchecked/i.test(a)){const w=/notdone/i.test(a)?"Marked NOT completed":"Completed";for(let i=k.length-1;i>=0;i--)if(k[i].a===w||(w==="Completed"&&k[i].a==="done")){k.splice(i,1);break}}
+  else k.push(v)});return k.length?k[k.length-1]:null}
+/* current-period state of each task from the Log rows (see standing()) */
+function states(m){const st={},acts={};if(!log)return st;
  for(const r of log){if(r[4]!==m[2]||r[3]!==m[1])continue;const iv=LABEL2IV[r[6]];if(!iv)continue;const d=new Date(r[0]);if(isNaN(d))continue;
-  if(iv==="d2"){if((Date.now()-d.getTime())/86400000>2)continue}else if(iv==="wd3"){let n=0,x=new Date(d);x.setHours(0,0,0,0);const e=new Date();e.setHours(0,0,0,0);while(x<e){x.setDate(x.getDate()+1);const w=x.getDay();if(w&&w!==6)n++}if(n>3)continue}else if(periodKey(iv,d)!==periodKey(iv))continue;const a=r[7]||"";st[r[5]]={s:a==="Completed"?"done":a==="Marked NOT completed"?"notdone":"open",by:r[1],at:d}}
+  if(iv==="d2"){if((Date.now()-d.getTime())/86400000>2)continue}else if(iv==="wd3"){let n=0,x=new Date(d);x.setHours(0,0,0,0);const e=new Date();e.setHours(0,0,0,0);while(x<e){x.setDate(x.getDate()+1);const w=x.getDay();if(w&&w!==6)n++}if(n>3)continue}else if(periodKey(iv,d)!==periodKey(iv))continue;(acts[r[5]]=acts[r[5]]||[]).push({a:r[7]||"",by:r[1],at:d})}
+ for(const t in acts){const v=standing(acts[t]);st[t]=v?{s:v.a==="Completed"||v.a==="done"?"done":v.a==="Marked NOT completed"?"notdone":"open",by:v.by,at:v.at}:{s:"open",by:"",at:null}}
  return st}
 let coView="now",coOff=0;
 const fD=d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
@@ -509,14 +516,15 @@ function rangeOf(view,off){const t=new Date();t.setHours(12,0,0,0);let s,e;
  return{s,e,end:e>t?t:e,cur:off===0,view}}
 function rangeLabel(v,r){return v==="week"?fD(r.s)+" – "+fD(r.e)+", "+r.e.getFullYear():r.s.toLocaleDateString("en-US",{month:"long",year:"numeric"})}
 /* For each scheduled task: the periods of its own interval that touch the range, and which of them were signed off
-   (latest Log action in each period wins, same rule as the current-period view). */
+   (standing Log actions in each period, same rule as the current-period view: see standing()). */
 function history(m,tasks,r){const res={};const lim=new Date(r.end);lim.setHours(23,59,59,999);
  tasks.forEach(t=>{const iv=t[1];if(!GROUPS.some(g=>g[1].includes(iv)))return;const keys=new Set();
   if((IVLEN[iv]||1)>=(r.view==="week"?7:28))keys.add(periodKey(iv,r.end));   /* period as long as the view or longer: just the one in progress at the range end */
   else for(const d=new Date(r.s);d<=r.end;d.setDate(d.getDate()+1)){if((iv==="shift"||iv==="daily")&&(d.getDay()===0||d.getDay()===6))continue;keys.add(periodKey(iv,d))}   /* daily tasks: weekdays only */res[t[0]]={iv,slots:keys.size,keys,by:{},last:null,done:0,notdone:0}});
  for(const row of(log||[])){if(row[4]!==m[2]||row[3]!==m[1])continue;const x=res[row[5]];if(!x)continue;const d=new Date(row[0]);if(isNaN(d)||d>lim)continue;
-  const k=periodKey(x.iv,d);if(!x.keys.has(k))continue;const p=x.by[k];if(!p||d>=p.at)x.by[k]={a:row[7]||"",at:d,who:row[1]||""}}
- Object.values(res).forEach(x=>Object.values(x.by).forEach(v=>{if(v.a==="Completed"){x.done++;if(!x.last||v.at>x.last.at)x.last=v}else if(v.a==="Marked NOT completed")x.notdone++}));
+  const k=periodKey(x.iv,d);if(!x.keys.has(k))continue;(x.by[k]=x.by[k]||[]).push({a:row[7]||"",at:d,who:row[1]||""})}
+ Object.values(res).forEach(x=>{for(const k in x.by){const v=standing(x.by[k]);if(v)x.by[k]=v;else delete x.by[k]}});
+ Object.values(res).forEach(x=>Object.values(x.by).forEach(v=>{if(v.a==="Completed"||v.a==="done"){x.done++;if(!x.last||v.at>x.last.at)x.last=v}else if(v.a==="Marked NOT completed")x.notdone++}));
  return res}
 /* days in the range the printer showed activity in Durst (prompts, purges or test patterns) */
 function runDays(sys,r){if(typeof DATA==="undefined")return null;const p=DATA.printers.find(q=>q.sys===sys);if(!p)return null;

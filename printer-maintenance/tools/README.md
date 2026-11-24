@@ -34,11 +34,13 @@ Runs every morning at 7:00 AM Pacific as a Claude scheduled task through Mike's 
      (test pattern) before work at every startup (first activity after `IDLE_H` (4) quiet hours), and a purge cycle at
      least once every 24 hours, counted from the last purge (late when the printer kept working past that, not counting
      the `GRACE_H` (1) hour before the next purge). Warning only (not pass/fail): the day's first startup without a purge before work is listed as "No purge before work at HH:00" or "Purge HH:MM, after work started at HH:00" (Durst manuals: purge daily before starting work). Nozzle-check times (`PN` lines) need pull script 1.6 or later. Startups, "after work started" and the 24-hour purge clock use work hours from pull script 1.7+ (`PW`: hours with printing, a head test (test-pattern job or message) or loading media (clamp rollers opened, media detect / load / position / roll-end messages); `PJ`: hours an order job was printing, from the Printer Jobs list, `/frontend-api/job-overview/list`). A run with no printing needs no nozzle check or purge first. Days pulled before 1.7 fall back to `PH` (any message logged); the Monday 90-day pull refills them,
-   - adds the "Other maintenance" status (Monti, Vutek, Klieverik sign-offs, `tools/other_maintenance.py`): machine
+   - adds the "Other maintenance" status (Vutek and heat presses: Monti and Klieverik sign-offs, `tools/other_maintenance.py`): machine
      and task lists come from `maintenance/index.html` (read with node), status as of the post's morning goes to
      `data/other.json`, the chart to `data/charts/other-<pull time>.png` (a new file per post, so
-     old Chat posts keep their own chart; kept 120 days), and the Chat card to `data/card.json`. Tasks never signed
-     off in the log are listed separately and left out of the percentage.
+     old Chat posts keep their own chart; kept 120 days), and the Chat card to `data/card.json`. Every scheduled
+     recurring task is always counted: tasks never signed off in the log count as overdue (and are also listed
+     separately), so a check, an uncheck or a missing record never changes how many tasks are due. An "Unchecked
+     (was done)" row cancels only the sign-off it undid; the task falls back to the previous Completed sign-off.
      Daily & every-shift tasks are shown apart from weekly & longer ones,
    - commits those files to `main` (Vercel publishes the page and the chart), and
    - in a second job ("post"), waits until 7:00 AM Pacific (posts at once if it is already later, or if the run was

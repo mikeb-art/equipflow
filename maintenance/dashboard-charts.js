@@ -353,8 +353,12 @@
   function hydrateStore(rows) {
     if (typeof store === "undefined" || !store || typeof periodKey !== "function") return false;
     var changed = false;
+    // Per task, the sign-offs still standing in the current period, oldest first. An "Unchecked (was done)" removes
+    // only the sign-off it undid (the newest "done"), so the task falls back to an earlier sign-off in the same period
+    // instead of reading as open; "Unchecked (was notdone)" likewise removes only the newest "notdone".
+    var stacks = {};
 
-    // oldest first, so the most recent action for a task wins
+    // oldest first
     var ordered = rows.slice().map(function (r) { return { r: r, t: parseTs(r[0]) }; })
       .filter(function (x) { return !!x.t; })
       .sort(function (a, b) { return a.t - b.t; });
@@ -378,11 +382,24 @@
       if (!st) return;
 
       var id = loc + "|" + mi + "|" + ti;
-      var prev = store[id];
+      var stk = stacks[id] || (stacks[id] = { key: nowKey, list: [] });
+      if (st === "open") {
+        var was = /notdone/i.test(String(r[7] || "")) ? "notdone" : "done";
+        for (var k = stk.list.length - 1; k >= 0; k--) {
+          if (stk.list[k] === was) { stk.list.splice(k, 1); break; }
+        }
+      } else {
+        stk.list.push(st);
+      }
+    });
+
+    Object.keys(stacks).forEach(function (id) {
+      var stk = stacks[id], prev = store[id];
+      var st = stk.list.length ? stk.list[stk.list.length - 1] : "open";
       if (st === "open") {
         if (prev) { delete store[id]; changed = true; }
-      } else if (!prev || prev.s !== st || prev.p !== nowKey) {
-        store[id] = { s: st, p: nowKey };
+      } else if (!prev || prev.s !== st || prev.p !== stk.key) {
+        store[id] = { s: st, p: stk.key };
         changed = true;
       }
     });

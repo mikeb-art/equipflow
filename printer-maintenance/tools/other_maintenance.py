@@ -1,18 +1,22 @@
-"""Other maintenance status (Monti, Vutek, Klieverik sign-offs on the Machine Maintenance page) for the daily Printing post.
+"""Other maintenance status (Vutek and heat presses: Monti and Klieverik sign-offs on the Machine Maintenance page) for the daily Printing post.
 
 Used by build.py. The machine and task lists come from the Machine Maintenance page (maintenance/index.html),
 read with node so this stays in step with what operators check off. Sign-offs come from the Maintenance Log rows
 build.py already has.
 
 A recurring task is up to date when it has a Completed sign-off within its window, counted back from the post's
-morning (daily windows skip weekends). Overdue: signed off before, but not within the window. No record: never
-signed off in the log; those are listed separately and left out of the percentage.
+morning (daily windows skip weekends). Every scheduled recurring task is always in the total: a task signed off before
+but not within its window is overdue, and so is a task with no valid sign-off at all ("never signed off"). A check, an
+uncheck or a missing record never changes how many tasks are due.
+An "Unchecked (was done)" row cancels only the sign-off it undid (the latest Completed before it on that machine and
+task); the task then falls back to the last Completed sign-off before that one.
 Daily & every-shift tasks (windows counted in workdays) and weekly & longer tasks are reported separately.
 """
 import collections, datetime as dt, json, re, subprocess
 
 SITE = "https://equipflow-lemon.vercel.app"
 PLANTS = ("CA", "PA", "MX")
+TITLE = "Other maintenance status this morning (Vutek and heat presses)"
 WINDOWS = {"shift": ("wd", 1), "daily": ("wd", 1), "d2": ("wd", 2), "wd3": ("wd", 3), "week": ("cd", 7),
            "biweek": ("cd", 14), "wd15": ("cd", 21), "month": ("cd", 31), "wd45": ("cd", 63), "qtr": ("cd", 92),
            "half": ("cd", 183), "year": ("cd", 366)}   # use / req / purge: not counted
@@ -24,8 +28,11 @@ def group_of(iv):
 
 
 def _tot(items):
+    """Totals for a plant or group. due = every scheduled task; overdue = over + never (no valid sign-off)."""
     t = {k: sum(x[k] for x in items) for k in ("ok", "over", "never")}
-    t["pct"] = round(100 * t["ok"] / (t["ok"] + t["over"])) if t["ok"] + t["over"] else None
+    t["due"] = t["ok"] + t["over"] + t["never"]
+    t["overdue"] = t["over"] + t["never"]
+    t["pct"] = round(100 * t["ok"] / t["due"]) if t["due"] else None
     return t
 
 _NODE = r'''
@@ -46,6 +53,20 @@ def load_spec(maint_html):
     return json.loads(r.stdout)
 
 
+def _ts(v):
+    """Log timestamp ("11/24/2026, 8:58:05 AM"; a date alone counts as midnight) or None."""
+    v = v.strip()
+    for f in ("%m/%d/%Y, %I:%M:%S %p", "%m/%d/%Y %I:%M:%S %p", "%m/%d/%Y, %H:%M:%S", "%m/%d/%Y %H:%M:%S"):
+        try:
+            return dt.datetime.strptime(v, f)
+        except ValueError:
+            pass
+    try:
+        return dt.datetime.strptime(v.split(",")[0].strip(), "%m/%d/%Y")
+    except ValueError:
+        return None
+
+
 def _since(today, iv):
     kind, n = WINDOWS[iv]
     if kind == "cd":
@@ -60,22 +81,27 @@ def _since(today, iv):
 
 def status(spec, log_rows, today):
     """log_rows: Log rows without the header. today: the post's date (sign-offs from today are ignored)."""
-    last = {}
-    for r in log_rows:
+    # Replay the log in time order (rows queued offline can be appended days late). Each machine + task keeps its
+    # Completed sign-offs in order; an "Unchecked (was done)" removes the newest one before it, i.e. the sign-off it
+    # undid, so the task falls back to the previous real sign-off. Other actions do not touch sign-offs.
+    rows = []
+    for i, r in enumerate(log_rows):
         if len(r) < 8:
             continue
-        try:
-            d = dt.datetime.strptime(r[0].split(",")[0].strip(), "%m/%d/%Y").date()
-        except ValueError:
+        ts = _ts(r[0])
+        if ts is None or ts.date() >= today:
             continue
-        if d >= today:
-            continue
+        rows.append((ts, i, r))
+    rows.sort(key=lambda x: (x[0], x[1]))
+    done = collections.defaultdict(list)
+    for ts, _, r in rows:
         key = (r[4].strip(), r[5].strip())
-        if r[7] == "Completed":
-            if key not in last or d > last[key]:
-                last[key] = d
-        elif r[7].startswith("Unchecked") and last.get(key) == d:
-            del last[key]
+        a = r[7].strip().lower()
+        if a in ("completed", "done"):
+            done[key].append(ts.date())
+        elif a.startswith("unchecked") and "notdone" not in a and done[key]:
+            done[key].pop()
+    last = {k: v[-1] for k, v in done.items() if v}
     out = {"asof": today.isoformat(), "plants": {}}
     for plant in PLANTS:
         L = spec["locs"].get(plant)
@@ -108,8 +134,8 @@ def status(spec, log_rows, today):
 
 
 def chart(st, png_path):
-    """Two panels (daily & every shift / weekly & longer), stacked bars per plant: up to date / overdue (the percentage
-    base). No-record tasks are noted at the right."""
+    """Two panels (daily & every shift / weekly & longer), stacked bars per plant: up to date / overdue, out of every
+    scheduled task. Tasks never signed off are part of the overdue bar and are also noted at the right."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -126,7 +152,7 @@ def chart(st, png_path):
     fig.patch.set_facecolor("white")
     for ax, (gk, glabel, plants) in zip(axes[:, 0], panels):
         for i, p in enumerate(plants):
-            s = st["plants"][p]["groups"][gk]; n = s["ok"] + s["over"]; y = len(plants) - 1 - i
+            s = st["plants"][p]["groups"][gk]; n = s["due"]; y = len(plants) - 1 - i
             a = 100 * s["ok"] / n if n else 0
             ax.barh(y, a, color=OK, height=0.56)
             ax.barh(y, 100 - a if n else 0, left=a, color=OVER, height=0.56)
@@ -154,26 +180,26 @@ def _group_text(s, bold):
     """'Daily & every shift 59% (17 of 29), 12 overdue · Weekly & longer 100% (53 of 53)' for one plant."""
     parts = []
     for gk, glabel in GROUPS:
-        g = s["groups"][gk]; n = g["ok"] + g["over"]
+        g = s["groups"][gk]; n = g["due"]
         if not n:
             continue
         t = f"{glabel} {g['pct']}% ({g['ok']} of {n})"
-        if g["over"]:
-            t += f", {g['over']} overdue"
+        if g["overdue"]:
+            t += f", {g['overdue']} overdue"
+            if g["never"]:
+                t += f" ({g['never']} never signed off)"
         parts.append(t)
     return " · ".join(parts) if parts else "no recurring tasks"
 
 
 def text_lines(st):
     """Plain-text version for reminder.txt (also the fallback post)."""
-    out = ["", "*Other maintenance status this morning* (Monti, Vutek, Klieverik sign-offs)"]
+    out = ["", f"*{TITLE}*"]
     for p in PLANTS:
         s = st["plants"].get(p)
         if not s:
             continue
         line = f"• {p}: " + _group_text(s, False)
-        if s["never"]:
-            line += f"; {s['never']} never signed off"
         out.append(line + f" · {SITE}/maintenance/#{p}")
     return out
 
@@ -225,12 +251,12 @@ def card(title, printer_lines, st, image_url, grid_url=None, attention=None):
             per = ", ".join(f"{m['name']}: {m['never']}" for m in s["machines"] if m["never"])
             nr.append(f"<b>{p}</b>: {s['never']} ({_esc(per)})")
     if nr:
-        w.append({"textParagraph": {"text": "<font color=\"#6b7688\">Tasks never signed off in the log (not in the %):</font><br>" + "<br>".join(nr)}})
+        w.append({"textParagraph": {"text": "<font color=\"#6b7688\">Tasks never signed off in the log (counted as overdue):</font><br>" + "<br>".join(nr)}})
     w.append({"buttonList": {"buttons": [{"text": f"{p} other maintenance", "onClick": {"openLink": {"url": f"{SITE}/maintenance/#{p}"}}}
                                          for p in PLANTS]}})
     if not grid_url:
         w.append({"buttonList": {"buttons": [{"text": f"{p} printers", "onClick": {"openLink": {"url": f"{SITE}/printer-maintenance/#{p}"}}}
                                              for p in PLANTS]}})
-    sections.append({"header": "Other maintenance status this morning", "widgets": w})
+    sections.append({"header": TITLE, "widgets": w})
     return {"cardsV2": [{"cardId": "printer-maintenance-daily", "card": {
         "header": {"title": title, "subtitle": "From Durst Analytics and the Maintenance Log"}, "sections": sections}}]}
