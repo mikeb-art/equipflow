@@ -1,10 +1,11 @@
 {
+ "text": "*No purge in 24 hrs on Tue Nov 24*\n*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 23 15:55)",
  "cardsV2": [
   {
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Mon Nov 23",
+     "title": "Previous 24 hrs maintenance: Tue Nov 24",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +14,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261124135135.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261125135117.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -56,17 +57,17 @@
       "widgets": [
        {
         "textParagraph": {
-         "text": "<b>CA</b><br>\u2022 P5 Tex - CA: Purged 15:50, 98 hrs after the last one; Purge 15:50, after work started at 09:00"
+         "text": "<b>CA</b><br>\u2022 P5 Tex - CA: Over 24 hrs without a purge (last one Nov 23 15:55)"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>PA</b><br>\u2022 Nothing put off or open"
+         "text": "<b>PA</b><br>\u2022 P5-350 - PA: Nozzle check 15:25, after work started at 10:00"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Rhotex 325-1 - MX: Purge put off, no purge ran<br>\u2022 P5-350 - MX: Purged 12:34, 78 hrs after the last one; No purge before work at 00:00 (purged 12:34)<br>\u2022 P5 Tex-2 - MX: Purged 10:53, 76 hrs after the last one; Purge 10:53, after work started at 06:00"
+         "text": "<b>MX</b><br>\u2022 P5 Tex-1 - MX: No purge before work at 00:00 (purged 06:36)<br>\u2022 P5 Tex-2 - MX: Nozzle check 06:43 at startup (06:00); Nozzle check 17:25, after work started at 15:00"
         }
        }
       ]
@@ -76,13 +77,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261124135135.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 30%, PA weekly & longer 77%, MX daily & every shift 0%, weekly & longer 97%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261125135117.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 30%, PA weekly & longer 100%, MX daily & every shift 0%, weekly & longer 42%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 30% (6 of 20), 14 overdue<br><b>PA</b>: Weekly &amp; longer 77% (17 of 22), 5 overdue<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 97% (65 of 67), 2 overdue (2 never signed off)"
+         "text": "<b>CA</b>: Weekly &amp; longer 30% (6 of 20), 14 overdue<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 42% (28 of 67), 39 overdue (2 never signed off)"
         }
        },
        {
