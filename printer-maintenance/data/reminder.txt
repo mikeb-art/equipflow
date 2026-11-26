@@ -1,21 +1,17 @@
-*No purge in 24 hrs on Tue Nov 24*
-*CA* <users/112042970564499422793>: P5 Tex (last purge Nov 23 15:55)
-
-*Previous 24 hrs maintenance: Tue Nov 24* (from Durst Analytics)
+*Previous 24 hrs maintenance: Wed Nov 25* (from Durst Analytics)
 
 *CA*
-• P5 Tex - CA: Over 24 hrs without a purge (last one Nov 23 15:55)
+• Nothing put off or open
 
 *PA*
-• P5-350 - PA: Nozzle check 15:25, after work started at 10:00
+• P5-350 - PA: No nozzle check after startup at 09:00
 
 *MX*
-• P5 Tex-1 - MX: No purge before work at 00:00 (purged 06:36)
-• P5 Tex-2 - MX: Nozzle check 06:43 at startup (06:00); Nozzle check 17:25, after work started at 15:00
+• Nothing put off or open
 
 Details and close-out: https://equipflow-lemon.vercel.app/printer-maintenance/
 
 *Other maintenance status this morning (Vutek and heat presses)*
-• CA: Weekly & longer 30% (6 of 20), 14 overdue · https://equipflow-lemon.vercel.app/maintenance/#CA
+• CA: Weekly & longer 100% (20 of 20) · https://equipflow-lemon.vercel.app/maintenance/#CA
 • PA: Weekly & longer 100% (22 of 22) · https://equipflow-lemon.vercel.app/maintenance/#PA
 • MX: Daily & every shift 0% (0 of 17), 17 overdue · Weekly & longer 42% (28 of 67), 39 overdue (2 never signed off) · https://equipflow-lemon.vercel.app/maintenance/#MX
