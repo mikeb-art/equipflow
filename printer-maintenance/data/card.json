@@ -4,7 +4,7 @@
    "cardId": "printer-maintenance-daily",
    "card": {
     "header": {
-     "title": "Previous 24 hrs maintenance: Wed Nov 25",
+     "title": "Previous 24 hrs maintenance: Thu Nov 26",
      "subtitle": "From Durst Analytics and the Maintenance Log"
     },
     "sections": [
@@ -13,7 +13,7 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261126135102.png",
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/printers-20261127135132.png",
          "altText": "Printer status yesterday: purge, nozzle check and put-off tasks per printer, green on time, amber late, red missed"
         }
        },
@@ -61,12 +61,12 @@
        },
        {
         "textParagraph": {
-         "text": "<b>PA</b><br>\u2022 P5-350 - PA: No nozzle check after startup at 09:00"
+         "text": "<b>PA</b><br>\u2022 Nothing put off or open"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>MX</b><br>\u2022 Nothing put off or open"
+         "text": "<b>MX</b><br>\u2022 P5-350 - MX: No purge before work at 02:00 (purged 07:05)<br>\u2022 P5 Tex-1 - MX: No purge before work at 00:00 (purged 06:32)<br>\u2022 P5 Tex-2 - MX: No nozzle check after startup at 21:00"
         }
        }
       ]
@@ -76,13 +76,13 @@
       "widgets": [
        {
         "image": {
-         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261126135102.png",
-         "altText": "Other maintenance up to date by location: CA weekly & longer 100%, PA weekly & longer 100%, MX daily & every shift 0%, weekly & longer 42%"
+         "imageUrl": "https://equipflow-lemon.vercel.app/printer-maintenance/data/charts/other-20261127135132.png",
+         "altText": "Other maintenance up to date by location: CA weekly & longer 100%, PA weekly & longer 100%, MX daily & every shift 100%, weekly & longer 97%"
         }
        },
        {
         "textParagraph": {
-         "text": "<b>CA</b>: Weekly &amp; longer 100% (20 of 20)<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 0% (0 of 17), 17 overdue<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 42% (28 of 67), 39 overdue (2 never signed off)"
+         "text": "<b>CA</b>: Weekly &amp; longer 100% (20 of 20)<br><b>PA</b>: Weekly &amp; longer 100% (22 of 22)<br><b>MX</b>: Daily &amp; every shift 100% (17 of 17)<br>&nbsp;&nbsp;&nbsp;Weekly &amp; longer 97% (65 of 67), 2 overdue (2 never signed off)"
         }
        },
        {
